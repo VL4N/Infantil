@@ -7,6 +7,12 @@ on:
 permissions:
   contents: write
 
+# Si llega un cambio nuevo a la misma rama, se cancela la compilación anterior
+# (ya no sirve) para no gastar minutos de GitHub.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest

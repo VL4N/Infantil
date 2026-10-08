@@ -9,6 +9,12 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Si llega un cambio nuevo a la misma rama, se cancela la compilación anterior
+# (ya no sirve) para no gastar minutos de GitHub.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   emulador:
     runs-on: ubuntu-latest
