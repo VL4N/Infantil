@@ -86,20 +86,26 @@ const _numberWords = [
 
 String numberWord(int n) => n >= 0 && n < _numberWords.length ? _numberWords[n] : '$n';
 
+/// Frases cortas y reutilizables: la voz de la app viene grabada frase por frase
+/// (ver logic/phrases.dart), así que se evita juntar dos números variables en una frase.
+String touchedNumber(String option) => 'Casi. Tocaste el $option.';
+const letsCount = '¡Vamos a contar juntos!';
+
 /// Explicación con voz de una respuesta equivocada, para aprender en ese momento.
 List<ExplainStep> explainMistake(Question q, int chosen) {
   final add = q.addition;
   if (add != null && add.kind == AddKind.count) {
     return [
-      ExplainStep('Casi. Tocaste el ${q.options[chosen]}. ¡Vamos a contar juntos!', 'es'),
+      ExplainStep(touchedNumber(q.options[chosen]), 'es'),
+      const ExplainStep(letsCount, 'es'),
       for (var i = 1; i <= add.a; i++) ExplainStep(numberWord(i), 'es', count: i),
       ExplainStep('Hay ${add.a}. ¡Toca el ${add.a}!', 'es', count: add.a, highlightAnswer: true),
     ];
   }
   if (add != null && add.kind == AddKind.missing) {
     return [
-      ExplainStep('Casi. Tocaste el ${q.options[chosen]}. Tenemos ${add.a}, ¡contemos hasta ${add.sum}!', 'es',
-          count: add.a),
+      ExplainStep(touchedNumber(q.options[chosen]), 'es'),
+      ExplainStep('Tenemos ${add.a}, ¡contemos hasta ${add.sum}!', 'es', count: add.a),
       for (var i = add.a + 1; i <= add.sum; i++) ExplainStep(numberWord(i), 'es', count: i),
       ExplainStep('Contamos ${add.b} más. ${add.a} más ${add.b} son ${add.sum}. ¡Toca el ${add.b}!', 'es',
           count: add.sum, highlightAnswer: true),
@@ -107,7 +113,8 @@ List<ExplainStep> explainMistake(Question q, int chosen) {
   }
   if (add != null) {
     final steps = <ExplainStep>[
-      ExplainStep('Casi. Tocaste el ${q.options[chosen]}. ¡Vamos a contar juntos!', 'es'),
+      ExplainStep(touchedNumber(q.options[chosen]), 'es'),
+      const ExplainStep(letsCount, 'es'),
     ];
     if (add.drawable) {
       for (var i = 1; i <= add.sum; i++) {

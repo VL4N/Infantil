@@ -28,6 +28,36 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      # Voz de la app: graba con Piper todas las frases (lib/logic/phrases.dart).
+      # Los audios se guardan en caché y solo se graban las frases nuevas.
+      - name: Lista de frases
+        id: frases
+        run: |
+          dart run tool/export_phrases.dart > frases.tsv
+          echo "Frases: $(wc -l < frases.tsv)"
+          echo "hash=$(sha256sum frases.tsv | cut -c1-16)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: assets/voz
+          key: voz-v1-claude-ljspeech-${{ steps.frases.outputs.hash }}
+          restore-keys: voz-v1-claude-ljspeech-
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Grabar frases con Piper
+        run: |
+          command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+          pip install --quiet piper-tts
+          base=https://huggingface.co/rhasspy/piper-voices/resolve/main
+          mkdir -p modelos
+          # Español: es_MX "claude" (Apache-2.0). Inglés: en_US "ljspeech" (dominio público).
+          for f in es/es_MX/claude/high/es_MX-claude-high en/en_US/ljspeech/high/en_US-ljspeech-high; do
+            curl -sfL -o "modelos/$(basename $f).onnx" "$base/$f.onnx"
+            curl -sfL -o "modelos/$(basename $f).onnx.json" "$base/$f.onnx.json"
+          done
+          python tool/generar_voces.py frases.tsv modelos/es_MX-claude-high.onnx modelos/en_US-ljspeech-high.onnx assets/voz
+          echo "Audios: $(ls assets/voz/*.mp3 | wc -l), tamaño: $(du -sh assets/voz | cut -f1)"
+          test "$(ls assets/voz/*.mp3 | wc -l)" -eq "$(wc -l < frases.tsv)"
       - run: flutter analyze
       - run: flutter test
       # APK de prueba (firmado con clave de depuración) para instalar en el teléfono.
