@@ -1,7 +1,7 @@
 name: Emuladores Android
 
-# Abre la app de verdad en teléfonos Android virtuales de varias versiones y
-# comprueba que se ve la pantalla y se puede jugar (detecta pantallas negras y cierres).
+# Abre la app de verdad en teléfonos Android virtuales y comprueba que se ve la
+# pantalla y se puede jugar (detecta pantallas negras y cierres).
 on:
   push:
   workflow_dispatch:
@@ -20,6 +20,11 @@ jobs:
           - api-level: 36 # Android 16
     name: Android API ${{ matrix.api-level }}
     steps:
+      # Primero, antes de instalar Java y Flutter: el emulador necesita varios GB.
+      - name: Liberar espacio en disco
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/local/.ghcup || true
+          df -h /
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
@@ -31,10 +36,6 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - name: Liberar espacio en disco (el emulador necesita varios GB)
-        run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/local/lib/node_modules "$AGENT_TOOLSDIRECTORY" || true
-          df -h /
       - name: Activar KVM (aceleración del emulador)
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -52,3 +53,49 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
           script: flutter test integration_test --timeout 10m
+
+  # Instala el MISMO APK de la página de descargas (versión release) en Android 16,
+  # lo abre como un usuario, y guarda captura de pantalla y registro de errores.
+  apk-real:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    name: APK real en Android 16
+    steps:
+      - name: Liberar espacio en disco
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/local/.ghcup || true
+          df -h /
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.6'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build apk --release
+      - name: Activar KVM (aceleración del emulador)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disk-size: 4096M
+          ram-size: 4096M
+          cores: 4
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
+          script: bash .github/scripts/probar-apk.sh build/app/outputs/flutter-apk/app-release.apk
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: diagnostico-android-16
+          path: diagnostico/

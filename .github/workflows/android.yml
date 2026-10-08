@@ -36,12 +36,28 @@ jobs:
           flutter build apk --release
           mv build/app/outputs/flutter-apk/app-release.apk AprendeJugando-compatible.apk
           git checkout android/app/src/main/AndroidManifest.xml
+      # Variante con Flutter 3.41.9 (la estable anterior, de abril), por si la
+      # pantalla negra viene de un fallo de la versión 3.47 de Flutter.
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          channel: stable
+          cache: true
+      - name: APK con Flutter 3.41.9
+        run: |
+          flutter --version
+          sed -i 's/  sdk: \^3.13.5/  sdk: ^3.11.0/' pubspec.yaml
+          flutter pub get
+          flutter build apk --release
+          mv build/app/outputs/flutter-apk/app-release.apk AprendeJugando-flutter341.apk
+          git checkout pubspec.yaml pubspec.lock
       - uses: actions/upload-artifact@v4
         with:
           name: aprende-jugando-apk
           path: |
             AprendeJugando.apk
             AprendeJugando-compatible.apk
+            AprendeJugando-flutter341.apk
       # En la rama principal, publica el APK como versión descargable:
       # https://github.com/VL4N/Infantil/releases/latest
       - if: github.ref == 'refs/heads/main'
@@ -52,8 +68,10 @@ jobs:
           body: |
             APK de prueba para instalar en un teléfono Android.
             Descarga **AprendeJugando.apk** y ábrelo en el teléfono (permite "instalar apps de origen desconocido").
-            Si la pantalla se queda en negro, prueba **AprendeJugando-compatible.apk** (motor gráfico clásico).
+            Si la pantalla se queda en negro, prueba **AprendeJugando-compatible.apk** (motor gráfico clásico)
+            o **AprendeJugando-flutter341.apk** (hecho con Flutter 3.41.9, la versión estable anterior).
           files: |
             AprendeJugando.apk
             AprendeJugando-compatible.apk
+            AprendeJugando-flutter341.apk
           make_latest: true
