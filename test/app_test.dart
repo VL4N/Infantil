@@ -23,6 +23,7 @@ Future<void> startApp(WidgetTester tester, {bool premium = false}) async {
     if (call.method == 'speak') spoken.add('${call.arguments is Map ? call.arguments['text'] : call.arguments}');
     return 1;
   });
+  Voice.useClips = false;
   await Voice.init();
   SharedPreferences.setMockInitialValues({'premium': premium});
   await AppState.instance.load();

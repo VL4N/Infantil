@@ -1,7 +1,15 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
-/// Voz del propio teléfono (español latino e inglés).
+import '../logic/phrases.dart';
+
+/// Voz de la app (español latino e inglés).
+///
+/// Primero intenta la voz grabada incluida en la app (assets/voz/, generada con
+/// Piper a partir de lib/logic/phrases.dart): suena natural e igual en todos los
+/// teléfonos. Si una frase no está grabada, usa la voz del propio teléfono.
 ///
 /// En algunos teléfonos el motor de voz tarda en arrancar o no responde nunca:
 /// flutter_tts deja las llamadas en espera hasta entonces. Por eso nada de la app
@@ -13,6 +21,14 @@ import 'package:flutter_tts/flutter_tts.dart';
 class Voice {
   static final _tts = FlutterTts();
   static bool _ready = false;
+
+  /// Audios grabados disponibles (rutas `assets/voz/<archivo>.mp3`).
+  static Set<String> _clips = {};
+
+  /// Las pruebas lo apagan para escuchar la voz simulada del teléfono.
+  @visibleForTesting
+  static bool useClips = true;
+  static AudioPlayer? _player;
   static const _googleEngine = 'com.google.android.tts';
 
   /// Voz elegida para cada idioma ('es', 'en'); vacía si no hay lista de voces.
@@ -25,6 +41,10 @@ class Voice {
   /// Se llama sin esperar (después de mostrar la app). Si el motor tarda, la voz
   /// se activa sola cuando responde.
   static Future<void> init() async {
+    try {
+      final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+      _clips = manifest.listAssets().where((a) => a.startsWith('assets/voz/')).toSet();
+    } catch (_) {}
     try {
       await _useGoogleEngineIfAvailable();
       await _tts.setSpeechRate(rate);
@@ -101,6 +121,11 @@ class Voice {
 
   /// [lang]: 'es' o 'en'. Termina cuando acaba de hablar (o enseguida si no hay voz).
   static Future<void> say(String text, String lang) async {
+    final clip = 'assets/voz/${clipName(text, lang)}';
+    if (useClips && _clips.contains(clip)) {
+      await _playClip(clip);
+      return;
+    }
     if (!_ready) return;
     try {
       await () async {
@@ -119,7 +144,22 @@ class Voice {
     }
   }
 
+  static Future<void> _playClip(String clip) async {
+    try {
+      final player = _player ??= AudioPlayer();
+      await player.stop();
+      final done = player.onPlayerComplete.first;
+      await player.play(AssetSource(clip.substring('assets/'.length)));
+      await done.timeout(const Duration(seconds: 10));
+    } catch (_) {
+      // Si el audio no se puede reproducir, se sigue sin voz antes que bloquear el juego.
+    }
+  }
+
   static Future<void> stop() async {
+    try {
+      await _player?.stop().timeout(const Duration(seconds: 2));
+    } catch (_) {}
     if (!_ready) return;
     try {
       await _tts.stop().timeout(const Duration(seconds: 2));

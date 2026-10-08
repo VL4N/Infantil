@@ -33,6 +33,17 @@ Búho generado con Higgsfield y centrado sobre fondo crema. Archivos en `assets/
 y `play_store_512.png` (el de 512×512 que pide la ficha de Google Play).
 Para regenerar los iconos de Android: `dart run flutter_launcher_icons`.
 
+## Voz
+
+La app trae su propia voz grabada (suena igual en todos los teléfonos, sin internet).
+`lib/logic/phrases.dart` lista todas las frases; al compilar, GitHub Actions las graba con
+[Piper](https://github.com/rhasspy/piper) (`tool/generar_voces.py`) y las incluye en `assets/voz/`.
+Si falta alguna frase, la app usa la voz del teléfono. `test/phrases_test.dart` comprueba que no falte ninguna.
+
+Voces (permiten uso comercial):
+- Español: **es_MX "claude" (high)**, licencia Apache-2.0 ([HirCoir/Piper-TTS-Spanish](https://huggingface.co/spaces/HirCoir/Piper-TTS-Spanish)).
+- Inglés: **en_US "ljspeech" (high)**, dataset LJ Speech de dominio público.
+
 ## Estructura
 
 ```
