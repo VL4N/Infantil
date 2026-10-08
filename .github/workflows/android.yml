@@ -63,10 +63,40 @@ jobs:
       # APK de prueba (firmado con clave de depuración) para instalar en el teléfono.
       - run: flutter build apk --release
       - run: mv build/app/outputs/flutter-apk/app-release.apk AprendeJugando.apk
+      # Archivo para subir a Google Play (.aab): firmado con tu clave de subida y
+      # con los anuncios reales. Solo se crea si los secretos de la clave están
+      # guardados en GitHub (Settings → Secrets and variables → Actions).
+      # El número de compilación sube solo, porque Google Play exige uno nuevo en cada subida.
+      - name: AAB para Google Play
+        id: aab
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::notice::No hay clave de subida guardada en GitHub: no se crea el archivo para Google Play."
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          {
+            echo "storeFile=upload-keystore.jks"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=${KEY_PASSWORD:-$KEYSTORE_PASSWORD}"
+          } > android/key.properties
+          flutter build appbundle --release --dart-define=PLAY_RELEASE=true --build-number=${{ github.run_number }}
+          mv build/app/outputs/bundle/release/app-release.aab AprendeJugando-GooglePlay.aab
+          rm android/key.properties android/app/upload-keystore.jks
+          echo "built=true" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
           name: aprende-jugando-apk
-          path: AprendeJugando.apk
+          path: |
+            AprendeJugando.apk
+            AprendeJugando-GooglePlay.aab
+          if-no-files-found: ignore
       # En la rama principal, publica el APK como versión descargable:
       # https://github.com/VL4N/Infantil/releases/latest
       - if: github.ref == 'refs/heads/main'
@@ -77,7 +107,10 @@ jobs:
           body: |
             APK de prueba para instalar en un teléfono Android.
             Descarga **AprendeJugando.apk** y ábrelo en el teléfono (permite "instalar apps de origen desconocido").
-          files: AprendeJugando.apk
+            **AprendeJugando-GooglePlay.aab** (si aparece) es el archivo para subir a Google Play Console; no se instala en el teléfono.
+          files: |
+            AprendeJugando.apk
+            AprendeJugando-GooglePlay.aab
           make_latest: true
       # Deja solo la versión recién publicada: borra las anteriores para no confundir.
       - if: github.ref == 'refs/heads/main'
