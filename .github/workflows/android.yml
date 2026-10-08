@@ -27,39 +27,10 @@ jobs:
       # APK de prueba (firmado con clave de depuración) para instalar en el teléfono.
       - run: flutter build apk --release
       - run: mv build/app/outputs/flutter-apk/app-release.apk AprendeJugando.apk
-      # Variante "compatible" con el motor gráfico clásico (sin Impeller), para
-      # diagnosticar pantallas negras en algunos teléfonos (p. ej. con GPU MediaTek).
-      - name: APK compatible (sin Impeller)
-        run: |
-          sed -i 's#</application>#    <meta-data android:name="io.flutter.embedding.android.EnableImpeller" android:value="false" />\n    </application>#' android/app/src/main/AndroidManifest.xml
-          grep -q 'EnableImpeller' android/app/src/main/AndroidManifest.xml
-          flutter build apk --release
-          mv build/app/outputs/flutter-apk/app-release.apk AprendeJugando-compatible.apk
-          git checkout android/app/src/main/AndroidManifest.xml
-      # Variante con Flutter 3.41.9 (la estable anterior, de abril), por si la
-      # pantalla negra viene de un fallo de la versión 3.47 de Flutter.
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.41.9'
-          channel: stable
-          cache: true
-      - name: APK con Flutter 3.41.9
-        # Si esta variante falla, igual se publican los otros APK.
-        continue-on-error: true
-        run: |
-          flutter --version
-          bash .github/scripts/android-flutter341.sh
-          flutter pub get
-          flutter build apk --release
-          mv build/app/outputs/flutter-apk/app-release.apk AprendeJugando-flutter341.apk
-          git checkout android pubspec.yaml pubspec.lock
       - uses: actions/upload-artifact@v4
         with:
           name: aprende-jugando-apk
-          path: |
-            AprendeJugando.apk
-            AprendeJugando-compatible.apk
-            AprendeJugando-flutter341.apk
+          path: AprendeJugando.apk
       # En la rama principal, publica el APK como versión descargable:
       # https://github.com/VL4N/Infantil/releases/latest
       - if: github.ref == 'refs/heads/main'
@@ -70,10 +41,5 @@ jobs:
           body: |
             APK de prueba para instalar en un teléfono Android.
             Descarga **AprendeJugando.apk** y ábrelo en el teléfono (permite "instalar apps de origen desconocido").
-            Si la pantalla se queda en negro, prueba **AprendeJugando-compatible.apk** (motor gráfico clásico)
-            o **AprendeJugando-flutter341.apk** (hecho con Flutter 3.41.9, la versión estable anterior).
-          files: |
-            AprendeJugando.apk
-            AprendeJugando-compatible.apk
-            AprendeJugando-flutter341.apk
+          files: AprendeJugando.apk
           make_latest: true
