@@ -44,13 +44,15 @@ jobs:
           channel: stable
           cache: true
       - name: APK con Flutter 3.41.9
+        # Si esta variante falla, igual se publican los otros APK.
+        continue-on-error: true
         run: |
           flutter --version
-          sed -i 's/  sdk: \^3.13.5/  sdk: ^3.11.0/' pubspec.yaml
+          bash .github/scripts/android-flutter341.sh
           flutter pub get
           flutter build apk --release
           mv build/app/outputs/flutter-apk/app-release.apk AprendeJugando-flutter341.apk
-          git checkout pubspec.yaml pubspec.lock
+          git checkout android pubspec.yaml pubspec.lock
       - uses: actions/upload-artifact@v4
         with:
           name: aprende-jugando-apk
