@@ -87,6 +87,7 @@ class _GameScreenState extends State<GameScreen> {
       setState(() {
         _wrong.add(i);
         if (_firstTry && !_isReview) _reviews.add((_round + _reviewAfter, _q));
+        if (_firstTry && _q.speechLang == 'en') AppState.instance.recordMiss(_q.speech);
         _firstTry = false;
         _flash = null;
       });

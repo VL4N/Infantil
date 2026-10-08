@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config.dart';
 
-/// Estrellas, progreso por nivel/tema y estado Premium, guardados en el teléfono.
+/// Estrellas, progreso por nivel/tema, resumen para papás y estado Premium, guardados en el teléfono.
 class AppState extends ChangeNotifier {
   AppState._();
   static final instance = AppState._();
@@ -15,14 +15,33 @@ class AppState extends ChangeNotifier {
   /// Mejor resultado (0 a 3 estrellas) de cada nivel de suma o tema de inglés.
   final Map<String, int> best = {};
 
+  /// Partidas terminadas de cada nivel o tema.
+  final Map<String, int> played = {};
+
+  /// Días en que terminó al menos una partida ('2026-10-08').
+  final Set<String> days = {};
+
+  /// Veces que se equivocó con cada palabra en inglés.
+  final Map<String, int> misses = {};
+
+  /// Reloj para los días jugados (se cambia en las pruebas).
+  DateTime Function() now = DateTime.now;
+
   Future<void> load() async {
     _prefs = await SharedPreferences.getInstance();
     stars = _prefs!.getInt('stars') ?? 0;
     premium = _prefs!.getBool('premium') ?? false;
     best.clear();
+    played.clear();
+    misses.clear();
     for (final key in _prefs!.getKeys()) {
       if (key.startsWith('best:')) best[key.substring(5)] = _prefs!.getInt(key) ?? 0;
+      if (key.startsWith('played:')) played[key.substring(7)] = _prefs!.getInt(key) ?? 0;
+      if (key.startsWith('miss:')) misses[key.substring(5)] = _prefs!.getInt(key) ?? 0;
     }
+    days
+      ..clear()
+      ..addAll(_prefs!.getStringList('days') ?? const []);
     notifyListeners();
   }
 
@@ -37,15 +56,31 @@ class AppState extends ChangeNotifier {
 
   int bestFor(String key) => best[key] ?? 0;
 
-  /// Guarda las estrellas (0 a 3) de una partida si mejoran el resultado anterior. Las devuelve.
+  /// Guarda una partida terminada: cuenta la partida y el día, y las estrellas (0 a 3)
+  /// si mejoran el resultado anterior. Devuelve las estrellas.
   int recordGame(String key, int earned) {
     if (earned > bestFor(key)) {
       best[key] = earned;
       _prefs?.setInt('best:$key', earned);
-      notifyListeners();
     }
+    played[key] = (played[key] ?? 0) + 1;
+    _prefs?.setInt('played:$key', played[key]!);
+    final t = now();
+    final today = '${t.year}-${'${t.month}'.padLeft(2, '0')}-${'${t.day}'.padLeft(2, '0')}';
+    if (days.add(today)) _prefs?.setStringList('days', days.toList());
+    notifyListeners();
     return earned;
   }
+
+  /// Anota que se equivocó con una palabra en inglés.
+  void recordMiss(String word) {
+    misses[word] = (misses[word] ?? 0) + 1;
+    _prefs?.setInt('miss:$word', misses[word]!);
+  }
+
+  /// Palabras en inglés con más errores, de más a menos.
+  List<MapEntry<String, int>> hardestWords([int count = 5]) =>
+      (misses.entries.toList()..sort((a, b) => b.value.compareTo(a.value))).take(count).toList();
 
   void setPremium(bool value) {
     if (premium == value) return;
