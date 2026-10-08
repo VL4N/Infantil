@@ -12,6 +12,7 @@ class Question {
     required this.speech,
     required this.speechLang,
     this.ask,
+    this.count,
     this.addition,
     this.optionWords,
     this.pictureOptions = false,
@@ -32,6 +33,9 @@ class Question {
 
   /// Lo que dice la voz al mostrar la pregunta, si no es [speech] (para no decir la respuesta).
   final String? ask;
+
+  /// En "How many?": cuántos dibujos hay que contar en inglés.
+  final int? count;
 
   /// Las opciones son dibujos (más grandes) en lugar de números.
   final bool pictureOptions;
@@ -121,6 +125,16 @@ List<ExplainStep> explainMistake(Question q, int chosen) {
   }
 
   final words = q.optionWords!;
+  final count = q.count;
+  if (count != null) {
+    return [
+      const ExplainStep('Casi. Tocaste', 'es'),
+      ExplainStep(words[chosen], 'en'),
+      const ExplainStep('Contemos juntos en inglés', 'es'),
+      for (var i = 1; i <= count; i++) ExplainStep(englishNumbers[i - 1], 'en', count: i, highlightAnswer: i == count),
+      const ExplainStep('¡Tócalo!', 'es', highlightAnswer: true),
+    ];
+  }
   if (!q.pictureOptions) {
     return [
       const ExplainStep('Casi. Tocaste', 'es'),
@@ -221,9 +235,36 @@ Question englishQuestion(Random r, Topic topic) {
   );
 }
 
-/// Pregunta de un tema de inglés, mezclando "escucha y toca el dibujo" con "mira el dibujo y elige la palabra".
-Question englishMixedQuestion(Random r, Topic topic) =>
-    r.nextInt(3) == 0 ? englishWordQuestion(r, topic) : englishQuestion(r, topic);
+/// Pregunta de un tema de inglés: "escucha y toca el dibujo" (la mitad), "mira el dibujo y elige la palabra"
+/// (una de cada tres) y "How many?", contar los dibujos en inglés (una de cada seis).
+Question englishMixedQuestion(Random r, Topic topic) => switch (r.nextInt(6)) {
+      0 || 1 => englishWordQuestion(r, topic),
+      2 => englishCountQuestion(r, topic),
+      _ => englishQuestion(r, topic),
+    };
+
+/// one, two, three… ten (del tema Números).
+final englishNumbers = [for (final w in topics.firstWhere((t) => t.key == 'numeros').words) w.$1];
+
+/// Cuenta los dibujos y elige el número en inglés: hasta 5, o hasta 10 en el tema Números.
+Question englishCountQuestion(Random r, Topic topic) {
+  final max = topic.key == 'numeros' ? 10 : 5;
+  final n = 1 + r.nextInt(max);
+  // Para contar se usa un dibujo del tema (en Números, que son cifras, una estrella).
+  final picture = topic.key == 'numeros' ? '⭐' : topic.words[r.nextInt(topic.words.length)].$2;
+  final options = _options(r, n, {for (var d = -2; d <= 2; d++) if (n + d >= 1 && n + d <= 10) n + d});
+  final words = [for (final o in options) englishNumbers[o - 1]];
+  return Question(
+    prompt: List.filled(n, picture).join(' '),
+    options: words,
+    optionWords: words,
+    answerIndex: options.indexOf(n),
+    speech: englishNumbers[n - 1],
+    ask: 'How many?',
+    count: n,
+    speechLang: 'en',
+  );
+}
 
 /// Mira el dibujo y elige cómo se dice en inglés.
 Question englishWordQuestion(Random r, Topic topic) {
