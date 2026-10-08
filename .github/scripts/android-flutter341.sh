@@ -11,6 +11,8 @@ cp "$GEN/android/gradle/wrapper/gradle-wrapper.properties" android/gradle/wrappe
 cp "$GEN/android/app/build.gradle.kts" android/app/
 sed -i 's/applicationId = "com.aprendejugando.aprende_jugando"/applicationId = "com.owlitokids.aprendejugando"/' android/app/build.gradle.kts
 sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 24/' android/app/build.gradle.kts
+sed -i 's#signingConfig = signingConfigs.getByName("debug")#signingConfig = signingConfigs.getByName("debug")\n            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")#' android/app/build.gradle.kts
+grep -q 'proguard-rules.pro' android/app/build.gradle.kts
 grep -q 'applicationId = "com.owlitokids.aprendejugando"' android/app/build.gradle.kts
 grep -q 'minSdk = 24' android/app/build.gradle.kts
 sed -i 's/  sdk: \^3.13.5/  sdk: ^3.11.0/' pubspec.yaml
