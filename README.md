@@ -16,6 +16,13 @@ Modelo **freemium**: gratis con publicidad apta para niños, y Premium (pago ún
 - Control parental (multiplicación) antes de entrar a Premium o comprar.
 - Anuncios AdMob en modo infantil: clasificación **G**, no personalizados, sin ID de publicidad y **nunca durante el juego**.
 
+## Icono
+
+Búho generado con Higgsfield y centrado sobre fondo crema. Archivos en `assets/icon/`:
+`icon_full.png` (icono completo), `icon_foreground.png` (capa del icono adaptable de Android)
+y `play_store_512.png` (el de 512×512 que pide la ficha de Google Play).
+Para regenerar los iconos de Android: `dart run flutter_launcher_icons`.
+
 ## Estructura
 
 ```
