@@ -7,6 +7,7 @@ import 'package:aprende_jugando/screens/game_screen.dart';
 import 'package:aprende_jugando/screens/memory_screen.dart';
 import 'dart:math';
 import 'package:aprende_jugando/services/app_state.dart';
+import 'package:aprende_jugando/services/voice.dart';
 import 'package:aprende_jugando/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,6 +23,7 @@ Future<void> startApp(WidgetTester tester, {bool premium = false}) async {
     if (call.method == 'speak') spoken.add('${call.arguments is Map ? call.arguments['text'] : call.arguments}');
     return 1;
   });
+  await Voice.init();
   SharedPreferences.setMockInitialValues({'premium': premium});
   await AppState.instance.load();
   await tester.pumpWidget(const AprendeJugandoApp());
