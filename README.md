@@ -12,7 +12,8 @@ Modelo **freemium**: gratis con publicidad apta para niños, y Premium (pago ún
 - Sumas en tres formatos que se mezclan en cada partida: "2 + 3 = ?", "2 + ? = 5" (cuánto falta)
   y, en el nivel "Hasta 5", "¿Cuántos hay?" para contar dibujos.
 - Inglés en dos formatos que se mezclan: "escucha y toca el dibujo" y "mira el dibujo y elige la palabra"
-  (cada palabra tiene un 🔊 para escucharla antes de elegir).
+  (cada palabra tiene un 🔊 para escucharla antes de elegir). También "How many?": contar dibujos
+  y elegir el número en inglés (hasta 5; hasta 10 en el tema Números).
 - **Parejas en inglés**: juego de memoria con 8 cartas para juntar cada dibujo con su palabra
   (la palabra se lee en voz alta al destaparla). Usa los mismos temas y candados que Inglés.
 - Cada partida da de 0 a 3 estrellas; el mejor resultado de cada nivel y tema se ve en el menú.

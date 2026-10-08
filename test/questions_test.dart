@@ -134,10 +134,40 @@ void main() {
     }
   });
 
-  test('los temas de inglés mezclan los dos formatos', () {
+  test('los temas de inglés mezclan los tres formatos', () {
     final r = Random(8);
-    final formats = {for (var i = 0; i < 100; i++) englishMixedQuestion(r, topics.first).pictureOptions};
-    expect(formats, {true, false});
+    final qs = [for (var i = 0; i < 200; i++) englishMixedQuestion(r, topics.first)];
+    expect(qs.any((q) => q.pictureOptions), isTrue);
+    expect(qs.any((q) => !q.pictureOptions && q.count == null), isTrue);
+    expect(qs.any((q) => q.count != null), isTrue);
+  });
+
+  test('"How many?": se cuentan los dibujos y se elige el número en inglés', () {
+    final r = Random(10);
+    for (final topic in topics) {
+      final max = topic.key == 'numeros' ? 10 : 5;
+      for (var i = 0; i < 200; i++) {
+        final q = englishCountQuestion(r, topic);
+        final n = q.count!;
+        expect(n, inInclusiveRange(1, max));
+        expect(q.prompt.split(' ').length, n);
+        expect(q.answer, englishNumbers[n - 1]);
+        expect(q.ask, 'How many?');
+        expect(q.options.toSet().length, 3);
+        expect(q.options.every(englishNumbers.contains), isTrue);
+      }
+    }
+  });
+
+  test('al equivocarse en "How many?" cuenta en inglés', () {
+    final q = Question(
+      prompt: '🐶 🐶 🐶', options: ['two', 'three', 'four'], optionWords: ['two', 'three', 'four'], answerIndex: 1,
+      speech: 'three', ask: 'How many?', count: 3, speechLang: 'en',
+    );
+    final steps = explainMistake(q, 2);
+    expect([for (final s in steps) if (s.lang == 'en') s.text], ['four', 'one', 'two', 'three']);
+    expect([for (final s in steps) if (s.count != null) s.count], [1, 2, 3]);
+    expect(steps.last.highlightAnswer, isTrue);
   });
 
   test('al equivocarse en "elige la palabra" dice lo que tocó y cómo se dice el dibujo', () {

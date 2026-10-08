@@ -201,6 +201,28 @@ void main() {
     expect(AppState.instance.bestFor('parejas-animales'), 3);
   });
 
+  testWidgets('inglés: "How many?" cuenta los dibujos en inglés al equivocarse', (tester) async {
+    await startApp(tester);
+    await tester.pumpWidget(MaterialApp(
+      home: GameScreen(title: 'Inglés', progressKey: 'ingles-frutas', makeQuestion: (r) => englishCountQuestion(r, topics[1])),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('¿Cuántos hay? Dilo en inglés'), findsOneWidget);
+    expect(spoken, ['How many?']);
+
+    final n = find.byKey(const Key('counted-object')).evaluate().length;
+    final options = [for (var i = 0; i < 3; i++) tester.widget<BigButton>(find.byKey(Key('option-$i'))).label];
+    final wrong = options.indexWhere((o) => o != englishNumbers[n - 1]);
+    await tester.tap(find.byKey(Key('option-$wrong')));
+    await waitFor(tester, seconds: 15);
+    expect(spoken, containsAllInOrder(['Contemos juntos en inglés', ...englishNumbers.take(n)]));
+    expect(find.text(englishNumbers[n - 1]), findsWidgets, reason: 'cada dibujo muestra su número en inglés');
+
+    await tester.tap(find.byKey(Key('option-${options.indexOf(englishNumbers[n - 1])}')));
+    await waitFor(tester);
+    expect(spoken, contains('Very good! ${englishNumbers[n - 1]}'));
+  });
+
   test('las estrellas de una partida dependen de los aciertos a la primera', () {
     expect([for (final c in [0, 1, 4, 5, 7, 8, 10]) AppState.starsFor(c)], [0, 1, 1, 2, 2, 3, 3]);
   });

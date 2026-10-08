@@ -182,8 +182,15 @@ class _GameScreenState extends State<GameScreen> {
                     : null,
               ),
               if (q.speechLang == 'en' && !q.pictureOptions) ...[
-                const Text('¿Cómo se dice en inglés?', textAlign: TextAlign.center, style: TextStyle(fontSize: 18)),
-                Text(q.prompt, key: const Key('prompt'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 110)),
+                Text(
+                  q.count != null ? '¿Cuántos hay? Dilo en inglés' : '¿Cómo se dice en inglés?',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 18),
+                ),
+                if (q.count != null)
+                  _CountingInEnglish(q.prompt.split(' '), counted: _counted)
+                else
+                  Text(q.prompt, key: const Key('prompt'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 110)),
               ] else if (q.speechLang == 'en') ...[
                 const Text('Escucha y toca el dibujo correcto', textAlign: TextAlign.center, style: TextStyle(fontSize: 18)),
                 const SizedBox(height: 12),
@@ -361,4 +368,34 @@ class _CountingOn extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Dibujos para contar en inglés. Al explicar, cada uno muestra su número en inglés.
+class _CountingInEnglish extends StatelessWidget {
+  const _CountingInEnglish(this.pictures, {this.counted});
+  final List<String> pictures;
+  final int? counted;
+
+  @override
+  Widget build(BuildContext context) => Wrap(
+        key: const Key('prompt'),
+        alignment: WrapAlignment.center,
+        spacing: 8,
+        runSpacing: 4,
+        children: [
+          for (var i = 0; i < pictures.length; i++)
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(pictures[i], key: const Key('counted-object'), style: const TextStyle(fontSize: 46)),
+                SizedBox(
+                  height: 24,
+                  child: counted != null && i < counted!
+                      ? Text(englishNumbers[i], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.blue))
+                      : null,
+                ),
+              ],
+            ),
+        ],
+      );
 }
