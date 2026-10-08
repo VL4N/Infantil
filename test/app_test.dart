@@ -1,8 +1,11 @@
 import 'package:aprende_jugando/config.dart';
 import 'package:aprende_jugando/logic/content.dart';
+import 'package:aprende_jugando/logic/memory.dart';
 import 'package:aprende_jugando/logic/questions.dart';
 import 'package:aprende_jugando/main.dart';
 import 'package:aprende_jugando/screens/game_screen.dart';
+import 'package:aprende_jugando/screens/memory_screen.dart';
+import 'dart:math';
 import 'package:aprende_jugando/services/app_state.dart';
 import 'package:aprende_jugando/theme.dart';
 import 'package:flutter/material.dart';
@@ -150,14 +153,62 @@ void main() {
     expect(spoken, contains('Very good! $answer'));
   });
 
+  testWidgets('parejas: se juega desde el menú y guarda las estrellas', (tester) async {
+    await startApp(tester);
+    await tester.tap(find.text('🃏  Parejas en inglés'));
+    await tester.pumpAndSettle();
+    expect(find.text('🍎 Frutas'), findsOneWidget);
+    expect(find.text('🎨 Colores 🔒'), findsOneWidget);
+
+    // Pantalla de teléfono en vertical, como en la app real.
+    tester.view.physicalSize = const Size(1080, 2280);
+    tester.view.devicePixelRatio = 2.7;
+    addTearDown(tester.view.reset);
+
+    // Misma semilla que la pantalla, para saber dónde está cada carta.
+    await tester.pumpWidget(MaterialApp(
+      home: MemoryScreen(topic: topics.first, progressKey: memoryKey(topics.first), random: Random(4)),
+    ));
+    await tester.pumpAndSettle();
+    final cards = MemoryGame(Random(4), topics.first).cards;
+    expect(find.text('❓'), findsNWidgets(8));
+
+    // Un error: dos cartas que no son pareja se vuelven a tapar.
+    final a = cards.indexWhere((c) => !c.showsPicture);
+    final b = cards.indexWhere((c) => c.word != cards[a].word);
+    await tester.tap(find.byKey(Key('card-$a')));
+    await tester.pump();
+    expect(spoken.last, cards[a].word, reason: 'la palabra se lee en voz alta');
+    await tester.tap(find.byKey(Key('card-$b')));
+    await tester.pump();
+    expect(find.text('❓'), findsNWidgets(6));
+    await waitFor(tester, seconds: 2);
+    expect(find.text('❓'), findsNWidgets(8));
+
+    // Luego todas las parejas.
+    for (final word in {for (final c in cards) c.word}) {
+      for (var i = 0; i < cards.length; i++) {
+        if (cards[i].word == word) {
+          await tester.tap(find.byKey(Key('card-$i')));
+          await tester.pump();
+        }
+      }
+      expect(spoken, contains('Yes! $word'));
+      await waitFor(tester, seconds: 1);
+    }
+    expect(find.textContaining('Encontraste las 4 parejas en 5 intentos'), findsOneWidget);
+    expect(find.text('★★★'), findsOneWidget);
+    expect(AppState.instance.bestFor('parejas-animales'), 3);
+  });
+
   test('las estrellas de una partida dependen de los aciertos a la primera', () {
     expect([for (final c in [0, 1, 4, 5, 7, 8, 10]) AppState.starsFor(c)], [0, 1, 1, 2, 2, 3, 3]);
   });
 
   testWidgets('solo se guarda el mejor resultado', (tester) async {
     await startApp(tester);
-    expect(AppState.instance.recordGame('ingles-animales', 6), 2);
-    expect(AppState.instance.recordGame('ingles-animales', 2), 1);
+    expect(AppState.instance.recordGame('ingles-animales', 2), 2);
+    expect(AppState.instance.recordGame('ingles-animales', 1), 1);
     expect(AppState.instance.bestFor('ingles-animales'), 2);
   });
 

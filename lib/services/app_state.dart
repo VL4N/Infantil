@@ -37,9 +37,8 @@ class AppState extends ChangeNotifier {
 
   int bestFor(String key) => best[key] ?? 0;
 
-  /// Guarda el resultado de una partida si mejora el anterior. Devuelve las estrellas ganadas.
-  int recordGame(String key, int correct) {
-    final earned = starsFor(correct);
+  /// Guarda las estrellas (0 a 3) de una partida si mejoran el resultado anterior. Las devuelve.
+  int recordGame(String key, int earned) {
     if (earned > bestFor(key)) {
       best[key] = earned;
       _prefs?.setInt('best:$key', earned);
