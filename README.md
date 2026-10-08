@@ -57,6 +57,10 @@ En tu ordenador (con Flutter y Android Studio instalados): `flutter run`.
 
 ## Publicar en Google Play (desde Ecuador)
 
+Guía paso a paso, textos de la ficha y respuestas de los cuestionarios:
+**[docs/publicar-en-google-play.md](docs/publicar-en-google-play.md)**.
+Política de privacidad: `docs/privacidad.html` (publicada con GitHub Pages).
+
 1. **Cuenta de desarrollador** en [Play Console](https://play.google.com/console) (pago único de 25 USD).
 2. **Perfil de pagos (comerciante)** en Play Console para cobrar. Los pagos llegan en USD a tu cuenta bancaria.
 3. **Producto Premium**: en Play Console → *Monetizar → Productos → Productos únicos*, crea uno con el ID `premium_unlock` y su precio (p. ej. 2,99 USD).
@@ -64,8 +68,8 @@ En tu ordenador (con Flutter y Android Studio instalados): `flutter run`.
    y `android/app/src/main/AndroidManifest.xml`. Los APK de prueba muestran anuncios de **prueba**;
    solo la versión para Google Play (compilada con `--dart-define=PLAY_RELEASE=true`) muestra los reales.
    **No toques nunca tus propios anuncios reales**: AdMob lo considera fraude.
-5. **Firma de la app**: crea tu clave de subida y configúrala en `android/app/build.gradle.kts`
-   (ahora usa la clave de depuración). Compila con `flutter build appbundle`.
+5. **Firma de la app**: crea tu clave de subida y guárdala en los secretos de GitHub (ver la guía).
+   Con eso, cada versión en Releases trae `AprendeJugando-GooglePlay.aab` listo para subir.
 6. **Ficha de la tienda**:
    - Público objetivo: menores de 13 → la app entra en el programa **Familias**.
    - Política de privacidad (URL pública, obligatoria).
