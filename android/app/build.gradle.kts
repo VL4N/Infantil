@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         // Identificador único en Google Play. No se puede cambiar después de publicar.
-        applicationId = "com.aprendejugando.aprende_jugando"
+        applicationId = "com.owlitokids.aprendejugando"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24 // Requerido por AdMob
