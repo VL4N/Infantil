@@ -1,32 +1,49 @@
 # Aprende Jugando 🧒
 
-App web sencilla para que peques de 3 a 7 años practiquen:
+App Android (Flutter) para que peques de 3 a 7 años practiquen **sumas** e **inglés**.
+Modelo **freemium**: gratis con publicidad apta para niños, y Premium (pago único por Google Play) sin anuncios y con todo el contenido.
 
-- **Sumar** con dibujos para contar (niveles hasta 5, 10 y 20).
-- **Inglés**: escuchan una palabra y tocan el dibujo correcto (animales, frutas, colores y números).
-
-Cada acierto a la primera da una ⭐ (se guardan en el dispositivo). Sin anuncios, sin registro, sin internet una vez cargada.
-
-## Cómo usarla
-
-Abre `index.html` en el navegador del móvil, tablet u ordenador. No hace falta instalar nada.
-La voz usa el sintetizador del propio dispositivo, así que suena mejor si tiene voces en español e inglés instaladas.
-
-## Modelo freemium
-
-Todo se ajusta en `config.js`.
-
-| Gratis | Premium (pago único) |
+| Gratis | Premium |
 |---|---|
 | Sumas hasta 5 y hasta 10 | Sumas hasta 20 |
 | Inglés: animales y frutas | Inglés: colores y números |
-| Con publicidad (1 anuncio cada 2 partidas, solo en la pantalla final) | Sin publicidad |
+| Un anuncio en la pantalla final de cada partida | Sin publicidad |
 
-- **Control parental**: para comprar o entrar en Premium hay que resolver una multiplicación (`monetization.js`).
-- **Publicidad**: hoy es un espacio de prueba. Para publicar en tiendas hay que usar una red certificada para apps familiares (p. ej. AdMob con `tagForChildDirectedTreatment`) y anuncios **no personalizados** (COPPA / RGPD).
-- **Compra**: hoy desbloquea directamente para probar. Falta conectar Google Play Billing / StoreKit.
+- Voz del teléfono: español latino (`es-US`) e inglés (`en-US`).
+- Control parental (multiplicación) antes de entrar a Premium o comprar.
+- Anuncios AdMob en modo infantil: clasificación **G**, no personalizados, sin ID de publicidad y **nunca durante el juego**.
 
-### Pendiente para publicar en Google Play / App Store
-1. Empaquetar la web como app nativa (p. ej. con Capacitor).
-2. Conectar AdMob (modo infantil) y la compra dentro de la app.
-3. Política de privacidad y formulario de "Familias" (Google) o categoría "Niños" (Apple).
+## Estructura
+
+```
+lib/
+  config.dart            ← qué es gratis, ID del producto, IDs de anuncios
+  logic/                 ← contenido y generación de preguntas
+  services/billing.dart  ← compra con Google Play Billing
+  services/ads.dart      ← AdMob (modo infantil)
+  screens/               ← pantallas
+test/                    ← pruebas automáticas
+```
+
+## Probar la app
+
+Cada vez que se sube código, GitHub Actions compila el APK
+(pestaña **Actions → Android APK → aprende-jugando-apk**). Descárgalo e instálalo en un teléfono Android.
+
+En tu ordenador (con Flutter y Android Studio instalados): `flutter run`.
+
+## Publicar en Google Play (desde Ecuador)
+
+1. **Cuenta de desarrollador** en [Play Console](https://play.google.com/console) (pago único de 25 USD).
+2. **Perfil de pagos (comerciante)** en Play Console para cobrar. Los pagos llegan en USD a tu cuenta bancaria.
+3. **Producto Premium**: en Play Console → *Monetizar → Productos → Productos únicos*, crea uno con el ID `premium_unlock` y su precio (p. ej. 2,99 USD).
+4. **AdMob**: crea una cuenta en [admob.google.com](https://admob.google.com), registra la app y un bloque *Banner*.
+   Cambia los IDs de prueba en `lib/config.dart` y `android/app/src/main/AndroidManifest.xml`.
+   En AdMob marca la app como **dirigida a niños**.
+5. **Firma de la app**: crea tu clave de subida y configúrala en `android/app/build.gradle.kts`
+   (ahora usa la clave de depuración). Compila con `flutter build appbundle`.
+6. **Ficha de la tienda**:
+   - Público objetivo: menores de 13 → la app entra en el programa **Familias**.
+   - Política de privacidad (URL pública, obligatoria).
+   - Declarar que contiene anuncios y compras en la app.
+7. Sube primero a **prueba interna** para probar la compra con cuentas de prueba (no se cobra) y luego a producción.
