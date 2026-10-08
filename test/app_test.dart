@@ -227,6 +227,52 @@ void main() {
     expect(spoken, contains('Very good! ${englishNumbers[n - 1]}'));
   });
 
+  testWidgets('resumen para papás: días, partidas y palabras difíciles, detrás de la pregunta', (tester) async {
+    await startApp(tester);
+    final state = AppState.instance;
+    state.now = () => DateTime(2026, 10, 8, 9);
+    state.recordGame('suma-5', 3);
+    state.recordGame('suma-5', 1);
+    state.now = () => DateTime(2026, 10, 9, 18);
+    state.recordGame('ingles-animales', 2);
+    state.recordMiss('cow');
+    state.recordMiss('cow');
+    state.recordMiss('duck');
+    addTearDown(() => state.now = DateTime.now);
+
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('📊 Resumen para papás'), 100);
+    await tester.tap(find.text('📊 Resumen para papás'));
+    await tester.pumpAndSettle();
+    await answerGate(tester, correctly: true);
+
+    expect(find.text('📅 Días jugados: 2'), findsOneWidget);
+    expect(find.text('🎮 Partidas terminadas: 3'), findsOneWidget);
+    expect(find.text('Sumar 🐣 Hasta 5'), findsOneWidget);
+    expect(find.text('2 partidas'), findsOneWidget);
+    expect(find.text('Inglés 🐶 Animales'), findsOneWidget);
+    expect(find.text('• cow: 2 errores'), findsOneWidget);
+    expect(find.text('• duck: 1 error'), findsOneWidget);
+
+    // Queda guardado en el teléfono.
+    await state.load();
+    expect(state.days, {'2026-10-08', '2026-10-09'});
+    expect(state.played['suma-5'], 2);
+    expect(state.hardestWords().first.key, 'cow');
+  });
+
+  testWidgets('equivocarse en inglés anota la palabra', (tester) async {
+    await startApp(tester);
+    final q = englishQuestion(Random(1), topics.first);
+    await tester.pumpWidget(MaterialApp(
+      home: GameScreen(title: 'Inglés', progressKey: 'ingles-animales', makeQuestion: (_) => q),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('option-${(q.answerIndex + 1) % 3}')));
+    await waitFor(tester, seconds: 8);
+    expect(AppState.instance.misses, {q.speech: 1});
+  });
+
   test('las estrellas de una partida dependen de los aciertos a la primera', () {
     expect([for (final c in [0, 1, 4, 5, 7, 8, 10]) AppState.starsFor(c)], [0, 1, 1, 2, 2, 3, 3]);
   });

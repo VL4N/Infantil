@@ -48,3 +48,16 @@ const mathLevels = [(5, '🐣 Hasta 5'), (10, '🐥 Hasta 10'), (20, '🦅 Hasta
 String mathKey(int max) => 'suma-$max';
 String topicKey(Topic topic) => 'ingles-${topic.key}';
 String memoryKey(Topic topic) => 'parejas-${topic.key}';
+
+/// Nombre para papás de un nivel o tema guardado con [mathKey], [topicKey] o [memoryKey].
+String progressLabel(String key) {
+  final dash = key.indexOf('-');
+  final kind = dash < 0 ? '' : key.substring(0, dash);
+  final rest = key.substring(dash + 1);
+  if (kind == 'suma') {
+    final level = mathLevels.where((l) => '${l.$1}' == rest).firstOrNull;
+    return 'Sumar ${level?.$2 ?? rest}';
+  }
+  final topic = topics.where((t) => t.key == rest).firstOrNull;
+  return '${kind == 'parejas' ? 'Parejas' : 'Inglés'} ${topic?.label ?? rest}';
+}

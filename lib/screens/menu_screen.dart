@@ -8,6 +8,7 @@ import '../theme.dart';
 import 'game_screen.dart';
 import 'memory_screen.dart';
 import 'parental_gate.dart';
+import 'parents_screen.dart';
 import 'premium_screen.dart';
 
 Future<void> openPremium(BuildContext context) async {
@@ -79,6 +80,14 @@ class MenuScreen extends StatelessWidget {
                     onPressed: () => openPremium(context),
                     child: const Text('👑 Versión Premium (para papás)', style: TextStyle(fontSize: 18)),
                   ),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (await parentalGate(context) && context.mounted) {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ParentsScreen()));
+              }
+            },
+            child: const Text('📊 Resumen para papás', style: TextStyle(fontSize: 18)),
           ),
         ],
       ),

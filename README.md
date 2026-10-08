@@ -21,7 +21,9 @@ Modelo **freemium**: gratis con publicidad apta para niños, y Premium (pago ún
 - **Aprende de sus errores**: si se equivoca, no hay castigo. La voz le explica paso a paso
   (en sumas cuenta los dibujos con él uno a uno; en inglés le dice cómo se llama lo que tocó y cuál era),
   le señala la respuesta correcta y esa pregunta vuelve a salir unas rondas después como **repaso**.
-- Control parental (multiplicación) antes de entrar a Premium o comprar.
+- **Resumen para papás** (detrás del control parental): días jugados, partidas y mejor resultado
+  de cada nivel o tema, y las palabras en inglés que más le cuestan.
+- Control parental (multiplicación) antes de entrar a Premium, comprar o ver el resumen.
 - Anuncios AdMob en modo infantil: clasificación **G**, no personalizados, sin ID de publicidad y **nunca durante el juego**.
 
 ## Icono
