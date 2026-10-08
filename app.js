@@ -63,17 +63,20 @@ function say(text, lang) {
 // ---------- Navegación ----------
 const TITLES = {
   menu: 'Aprende Jugando', 'math-levels': 'Sumar', math: 'Sumar',
-  'english-topics': 'Inglés', english: 'Inglés', done: '¡Bravo!',
+  'english-topics': 'Inglés', english: 'Inglés', done: '¡Bravo!', premium: 'Premium',
 };
 function show(name) {
   document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
   $(`#screen-${name}`).classList.add('active');
   $('#title').textContent = TITLES[name];
   $('#btn-home').hidden = name === 'menu';
+  if (name === 'premium') renderPremium();
 }
 document.addEventListener('click', (e) => {
   const go = e.target.closest('[data-go]');
   if (go) show(go.dataset.go);
+  const parental = e.target.closest('[data-parental]');
+  if (parental) Monetization.parentalGate().then((ok) => ok && show(parental.dataset.parental));
 });
 $('#btn-home').addEventListener('click', () => show('menu'));
 
@@ -131,6 +134,7 @@ function finish() {
   const { correct } = game;
   const msg = correct >= 8 ? '¡Eres una estrella!' : correct >= 5 ? '¡Muy bien!' : '¡Sigue practicando!';
   $('#done-text').textContent = `${msg} ${correct} de ${ROUNDS} a la primera.`;
+  Monetization.maybeShowAd($('#ad-slot'));
   say(game.kind === 'english' ? 'Great job!' : `¡${msg.replace(/¡|!/g, '')}!`, game.kind === 'english' ? 'en-US' : 'es-ES');
   show('done');
 }
@@ -176,9 +180,44 @@ function mathRound(max) {
   });
 }
 
+// ---------- Premium ----------
+function canPlay(free) {
+  if (free || Monetization.isPremium()) return true;
+  say('Pide ayuda a papá o a mamá', 'es-ES');
+  Monetization.parentalGate().then((ok) => ok && show('premium'));
+  return false;
+}
+
+function refreshLocks() {
+  document.querySelectorAll('[data-math-max]').forEach((btn) => {
+    btn.classList.toggle('locked', !Monetization.isPremium() && !Monetization.isMathLevelFree(Number(btn.dataset.mathMax)));
+  });
+  document.querySelectorAll('[data-topic]').forEach((btn) => {
+    btn.classList.toggle('locked', !Monetization.isPremium() && !Monetization.isTopicFree(btn.dataset.topic));
+  });
+}
+
+function renderPremium() {
+  const owned = Monetization.isPremium();
+  $('#btn-buy').textContent = owned ? '✅ Ya tienes Premium' : `Desbloquear por ${CONFIG.premium.price}`;
+  $('#btn-buy').disabled = owned;
+  $('#premium-status').textContent = owned ? '¡Gracias por apoyar la app!' : 'Pago único. Sin suscripción.';
+}
+
+$('#btn-buy').addEventListener('click', () => {
+  Monetization.purchase().then((ok) => {
+    if (!ok) return;
+    refreshLocks();
+    renderPremium();
+    flash('👑');
+  });
+});
+
+// ---------- Sumas: niveles ----------
 document.querySelectorAll('[data-math-max]').forEach((btn) => {
   btn.addEventListener('click', () => {
     const max = Number(btn.dataset.mathMax);
+    if (!canPlay(Monetization.isMathLevelFree(max))) return;
     $('#math-bar').style.width = '0';
     const play = () => startGame('math', () => mathRound(max), () => { $('#math-bar').style.width = '0'; play(); });
     play();
@@ -209,13 +248,17 @@ Object.entries(TOPICS).forEach(([key, t]) => {
   const b = document.createElement('button');
   b.className = 'pill';
   b.textContent = t.label;
+  b.dataset.topic = key;
   b.addEventListener('click', () => {
+    if (!canPlay(Monetization.isTopicFree(key))) return;
     $('#eng-bar').style.width = '0';
     const play = () => startGame('english', () => englishRound(key), () => { $('#eng-bar').style.width = '0'; play(); });
     play();
   });
   topicList.appendChild(b);
 });
+
+refreshLocks();
 
 // Algunas plataformas cargan las voces tarde
 if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => {};

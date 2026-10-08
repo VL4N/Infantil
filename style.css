@@ -93,3 +93,39 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 @media (min-width: 520px) {
   .grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 }
+
+/* ---------- Freemium ---------- */
+.locked { opacity: .65; }
+.locked::after { content: ' 🔒'; }
+.link-btn {
+  background: none; border: 0; font-size: 1.1rem; text-decoration: underline;
+  padding: 8px; color: var(--ink); opacity: .8;
+}
+.perks { list-style: none; padding: 0; margin: 0; font-size: 1.3rem; line-height: 2; }
+.pill.buy { background: var(--yellow); width: 100%; font-weight: bold; }
+.pill.ok { background: var(--green); color: #fff; }
+.small { font-size: 1rem; margin: 0; opacity: .75; text-align: center; }
+
+.ad-slot {
+  width: 100%; border: 2px dashed #bbb; border-radius: 16px; padding: 10px;
+  background: #fff; text-align: center;
+}
+.ad-slot[hidden] { display: none; }
+.ad-label { display: block; font-size: .8rem; opacity: .6; text-align: left; }
+.ad-body { min-height: 60px; display: flex; align-items: center; justify-content: center; opacity: .6; }
+
+.modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 10;
+}
+.modal[hidden] { display: none; }
+.modal-box {
+  background: var(--bg); border-radius: var(--radius); padding: 20px;
+  width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 14px;
+}
+.gate-q { font-size: 1.8rem; text-align: center; margin: 0; font-weight: bold; }
+#gate-input {
+  font-size: 1.8rem; text-align: center; padding: 10px; border-radius: 12px;
+  border: 2px solid #ccc; font-family: inherit; width: 100%;
+}
+.grid.two { grid-template-columns: 1fr 1fr; }
