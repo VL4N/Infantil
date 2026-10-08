@@ -7,6 +7,12 @@ on:
 permissions:
   contents: write
 
+# Si llega un cambio nuevo a la misma rama, se cancela la compilación anterior
+# (ya no sirve) para no gastar minutos de GitHub.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -43,3 +49,13 @@ jobs:
             Descarga **AprendeJugando.apk** y ábrelo en el teléfono (permite "instalar apps de origen desconocido").
           files: AprendeJugando.apk
           make_latest: true
+      # Deja solo la versión recién publicada: borra las anteriores para no confundir.
+      - if: github.ref == 'refs/heads/main'
+        name: Borrar versiones de prueba anteriores
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release list --limit 200 --json tagName --jq '.[].tagName' \
+            | grep '^build-' | grep -vx "build-${{ github.run_number }}" \
+            | while read -r tag; do gh release delete "$tag" --cleanup-tag --yes; done
