@@ -60,9 +60,10 @@ En tu ordenador (con Flutter y Android Studio instalados): `flutter run`.
 1. **Cuenta de desarrollador** en [Play Console](https://play.google.com/console) (pago único de 25 USD).
 2. **Perfil de pagos (comerciante)** en Play Console para cobrar. Los pagos llegan en USD a tu cuenta bancaria.
 3. **Producto Premium**: en Play Console → *Monetizar → Productos → Productos únicos*, crea uno con el ID `premium_unlock` y su precio (p. ej. 2,99 USD).
-4. **AdMob**: crea una cuenta en [admob.google.com](https://admob.google.com), registra la app y un bloque *Banner*.
-   Cambia los IDs de prueba en `lib/config.dart` y `android/app/src/main/AndroidManifest.xml`.
-   En AdMob marca la app como **dirigida a niños**.
+4. **AdMob** ✅: la app y el bloque *Banner* ya están creados y sus IDs puestos en `lib/config.dart`
+   y `android/app/src/main/AndroidManifest.xml`. Los APK de prueba muestran anuncios de **prueba**;
+   solo la versión para Google Play (compilada con `--dart-define=PLAY_RELEASE=true`) muestra los reales.
+   **No toques nunca tus propios anuncios reales**: AdMob lo considera fraude.
 5. **Firma de la app**: crea tu clave de subida y configúrala en `android/app/build.gradle.kts`
    (ahora usa la clave de depuración). Compila con `flutter build appbundle`.
 6. **Ficha de la tienda**:
