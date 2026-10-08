@@ -16,6 +16,8 @@ void main() {
   }
 
   testWidgets('la app abre, muestra el menú y se puede jugar', (tester) async {
+    // main() cambia la pantalla de error; se restaura al final de la prueba.
+    final originalErrorBuilder = ErrorWidget.builder;
     await app.main();
     await waitFor(tester, find.text('¿Qué quieres aprender hoy?'));
 
@@ -34,5 +36,7 @@ void main() {
     await waitFor(tester, find.textContaining('Animales'));
     await tester.tap(find.textContaining('Animales'));
     await waitFor(tester, find.byType(LinearProgressIndicator));
+
+    ErrorWidget.builder = originalErrorBuilder;
   });
 }

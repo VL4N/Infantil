@@ -36,6 +36,10 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      # Compilar ANTES de encender el emulador y liberar la memoria de Gradle:
+      # las dos cosas a la vez agotan la memoria del servidor y GitHub lo apaga.
+      - run: flutter build apk --debug
+      - run: (cd android && ./gradlew --stop) || true
       - name: Activar KVM (aceleración del emulador)
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -48,8 +52,8 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disk-size: 4096M
-          ram-size: 4096M
-          cores: 4
+          ram-size: 2048M
+          cores: 2
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
           script: flutter test integration_test --timeout 10m
@@ -77,6 +81,7 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter build apk --release
+      - run: (cd android && ./gradlew --stop) || true
       - name: Activar KVM (aceleración del emulador)
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -89,8 +94,8 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disk-size: 4096M
-          ram-size: 4096M
-          cores: 4
+          ram-size: 2048M
+          cores: 2
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
           script: bash .github/scripts/probar-apk.sh build/app/outputs/flutter-apk/app-release.apk
