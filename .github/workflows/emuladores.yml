@@ -2,8 +2,11 @@ name: Emuladores Android
 
 # Abre la app de verdad en teléfonos Android virtuales y comprueba que se ve la
 # pantalla y se puede jugar (detecta pantallas negras y cierres).
+# Solo en la rama principal (o a mano desde la pestaña Actions), para no gastar
+# los minutos gratis de GitHub en cada cambio de las ramas de trabajo.
 on:
   push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
