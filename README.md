@@ -11,6 +11,8 @@ Modelo **freemium**: gratis con publicidad apta para niños, y Premium (pago ún
 
 - Sumas en tres formatos que se mezclan en cada partida: "2 + 3 = ?", "2 + ? = 5" (cuánto falta)
   y, en el nivel "Hasta 5", "¿Cuántos hay?" para contar dibujos.
+- Inglés en dos formatos que se mezclan: "escucha y toca el dibujo" y "mira el dibujo y elige la palabra"
+  (cada palabra tiene un 🔊 para escucharla antes de elegir).
 - Cada partida da de 0 a 3 estrellas; el mejor resultado de cada nivel y tema se ve en el menú.
 - Voz del teléfono: español latino (`es-US`) e inglés (`en-US`).
 - **Aprende de sus errores**: si se equivoca, no hay castigo. La voz le explica paso a paso

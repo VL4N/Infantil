@@ -1,4 +1,5 @@
 import 'package:aprende_jugando/config.dart';
+import 'package:aprende_jugando/logic/content.dart';
 import 'package:aprende_jugando/logic/questions.dart';
 import 'package:aprende_jugando/main.dart';
 import 'package:aprende_jugando/screens/game_screen.dart';
@@ -119,6 +120,34 @@ void main() {
     await waitFor(tester, seconds: 20);
     expect(spoken.last, contains('¡Toca el $answer!'));
     if (a + answer <= 10) expect(find.byKey(const Key('counted-object')), findsNWidgets(a + answer));
+  });
+
+  testWidgets('inglés: mira el dibujo, escucha las palabras y elige', (tester) async {
+    await startApp(tester);
+    await tester.pumpWidget(MaterialApp(
+      home: GameScreen(title: 'Inglés', progressKey: 'ingles-animales', makeQuestion: (r) => englishWordQuestion(r, topics.first)),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('¿Cómo se dice en inglés?'), findsOneWidget);
+    expect(spoken, ['What is this?']);
+
+    final picture = tester.widget<Text>(find.byKey(const Key('prompt'))).data!;
+    final answer = topics.first.words.firstWhere((w) => w.$2 == picture).$1;
+    final options = [for (var i = 0; i < 3; i++) tester.widget<BigButton>(find.byKey(Key('option-$i'))).label];
+
+    await tester.tap(find.byKey(const Key('listen-0')));
+    await tester.pump();
+    expect(spoken.last, options[0], reason: 'el 🔊 lee la palabra sin responder');
+    expect(find.text('👂 Escucha…'), findsNothing);
+
+    final wrong = options.indexWhere((o) => o != answer);
+    await tester.tap(find.byKey(Key('option-$wrong')));
+    await waitFor(tester, seconds: 10);
+    expect(spoken, containsAllInOrder([options[wrong], 'Este dibujo en inglés se dice', answer]));
+
+    await tester.tap(find.byKey(Key('option-${options.indexOf(answer)}')));
+    await waitFor(tester);
+    expect(spoken, contains('Very good! $answer'));
   });
 
   test('las estrellas de una partida dependen de los aciertos a la primera', () {

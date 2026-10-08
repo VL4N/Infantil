@@ -119,6 +119,35 @@ void main() {
     expect(counts, [12, 13, 14, 15, 15]);
   });
 
+  test('inglés al revés: el dibujo se muestra y se elige la palabra', () {
+    final r = Random(7);
+    for (final topic in topics) {
+      for (var i = 0; i < 200; i++) {
+        final q = englishWordQuestion(r, topic);
+        final pair = topic.words.firstWhere((w) => w.$2 == q.prompt);
+        expect(q.answer, pair.$1);
+        expect(q.speech, pair.$1);
+        expect(q.ask, 'What is this?', reason: 'la voz no dice la respuesta al empezar');
+        expect(q.options.toSet().length, 3);
+        expect(q.pictureOptions, isFalse);
+      }
+    }
+  });
+
+  test('los temas de inglés mezclan los dos formatos', () {
+    final r = Random(8);
+    final formats = {for (var i = 0; i < 100; i++) englishMixedQuestion(r, topics.first).pictureOptions};
+    expect(formats, {true, false});
+  });
+
+  test('al equivocarse en "elige la palabra" dice lo que tocó y cómo se dice el dibujo', () {
+    final q = englishWordQuestion(Random(9), topics.first);
+    final wrong = (q.answerIndex + 1) % 3;
+    final steps = explainMistake(q, wrong);
+    expect([for (final s in steps) if (s.lang == 'en') s.text], [q.options[wrong], q.answer]);
+    expect(steps.last.highlightAnswer, isTrue);
+  });
+
   test('en inglés dice cómo se llama lo que tocó y cuál era', () {
     final q = englishQuestion(Random(3), topics.first);
     final wrong = (q.answerIndex + 1) % 3;
