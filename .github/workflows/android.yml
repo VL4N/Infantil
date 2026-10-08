@@ -49,3 +49,13 @@ jobs:
             Descarga **AprendeJugando.apk** y ábrelo en el teléfono (permite "instalar apps de origen desconocido").
           files: AprendeJugando.apk
           make_latest: true
+      # Deja solo la versión recién publicada: borra las anteriores para no confundir.
+      - if: github.ref == 'refs/heads/main'
+        name: Borrar versiones de prueba anteriores
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release list --limit 200 --json tagName --jq '.[].tagName' \
+            | grep '^build-' | grep -vx "build-${{ github.run_number }}" \
+            | while read -r tag; do gh release delete "$tag" --cleanup-tag --yes; done
