@@ -84,6 +84,15 @@ void main() {
     expect(steps.last.text, contains('¡Toca el 3!'));
   });
 
+  test('cada tema de inglés tiene palabras y dibujos sin repetir, y alcanza para las parejas', () {
+    for (final topic in topics) {
+      expect(topic.words.length, greaterThanOrEqualTo(8), reason: topic.key);
+      expect({for (final w in topic.words) w.$1}.length, topic.words.length, reason: topic.key);
+      expect({for (final w in topic.words) w.$2}.length, topic.words.length, reason: topic.key);
+      expect(topic.words.every((w) => !w.$2.contains(' ')), isTrue, reason: 'los dibujos no llevan espacios');
+    }
+  });
+
   test('inglés: el dibujo correcto corresponde a la palabra', () {
     final r = Random(2);
     for (final topic in topics) {

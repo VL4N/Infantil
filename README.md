@@ -6,7 +6,7 @@ Modelo **freemium**: gratis con publicidad apta para niños, y Premium (pago ún
 | Gratis | Premium |
 |---|---|
 | Sumas hasta 5 y hasta 10 | Sumas hasta 20 |
-| Inglés: animales y frutas | Inglés: colores y números |
+| Inglés: animales y frutas | Inglés: colores, números, cuerpo, ropa, familia y saludos |
 | Un anuncio en la pantalla final de cada partida | Sin publicidad |
 
 - Sumas en tres formatos que se mezclan en cada partida: "2 + 3 = ?", "2 + ? = 5" (cuánto falta)
