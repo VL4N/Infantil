@@ -14,7 +14,8 @@ adb logcat -d > diagnostico/logcat.txt
 adb shell dumpsys activity top | head -40 > diagnostico/actividad.txt || true
 
 echo "===== ¿Sigue viva la app? ====="
-adb shell pidof "$PKG" && echo "proceso vivo" || echo "::error::la app no está corriendo (se cerró)"
+FALLO=0
+adb shell pidof "$PKG" && echo "proceso vivo" || { echo "::error::la app no está corriendo (se cerró)"; FALLO=1; }
 
 echo "===== Color de la pantalla ====="
 python3 - <<'PY'
@@ -44,9 +45,12 @@ px = [(r[x], r[x+1], r[x+2]) for r in rows[::40] for x in range(0, stride, bpp*4
 dark = sum(1 for p in px if sum(p) < 60) / len(px)
 avg = tuple(sum(p[k] for p in px) // len(px) for k in range(3))
 print(f"tamaño {w}x{h}, color medio {avg}, píxeles negros {dark:.0%}")
-if dark > 0.9: print("::error::PANTALLA NEGRA en Android 16")
+if dark > 0.9:
+    print("::error::PANTALLA NEGRA en Android 16")
+    open("diagnostico/negra", "w").close()
 PY
+[ -f diagnostico/negra ] && FALLO=1
 
 echo "===== Errores en el registro ====="
 grep -E "FATAL|AndroidRuntime|E flutter|flutter :|Flutter|Impeller|$PKG|UnsatisfiedLink|dlopen|libflutter|libapp" diagnostico/logcat.txt | head -150
-exit 0
+exit $FALLO
