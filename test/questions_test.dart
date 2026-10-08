@@ -34,6 +34,56 @@ void main() {
     expect(ranks, {0, 1, 2});
   });
 
+  test('"¿Cuántos hay?" y "2 + ? = 5" tienen una sola respuesta correcta', () {
+    final r = Random(5);
+    for (var i = 0; i < 500; i++) {
+      final c = countQuestion(r, 5);
+      expect(c.addition!.kind, AddKind.count);
+      expect(c.answer, '${c.addition!.a}');
+      expect(c.addition!.a, inInclusiveRange(1, 5));
+      expect(c.options.toSet().length, 3);
+      expect(c.options.every((o) => int.parse(o) >= 1), isTrue);
+
+      for (final max in [10, 20]) {
+        final m = missingQuestion(r, max);
+        final add = m.addition!;
+        expect(m.prompt, '${add.a} + ? = ${add.sum}');
+        expect(m.answer, '${add.b}');
+        expect(add.sum, lessThanOrEqualTo(max));
+        expect(m.options.toSet().length, 3);
+        expect(m.options.every((o) => int.parse(o) >= 0), isTrue);
+      }
+    }
+  });
+
+  test('cada nivel mezcla formatos: contar en "Hasta 5", lo que falta en los demás', () {
+    final r = Random(6);
+    Set<AddKind> kinds(int max) => {for (var i = 0; i < 200; i++) mathQuestion(r, max).addition!.kind};
+    expect(kinds(5), {AddKind.sum, AddKind.count});
+    expect(kinds(10), {AddKind.sum, AddKind.missing});
+    expect(kinds(20), {AddKind.sum, AddKind.missing});
+  });
+
+  test('al equivocarse en "¿Cuántos hay?" cuenta los dibujos', () {
+    final q = Question(
+      prompt: '¿Cuántos hay?', options: ['2', '3', '4'], answerIndex: 1,
+      speech: '¿Cuántos hay?', speechLang: 'es', addition: const Addition(3, 0, '🍎', kind: AddKind.count),
+    );
+    final steps = explainMistake(q, 0);
+    expect([for (final s in steps) if (s.count != null) s.count], [1, 2, 3, 3]);
+    expect(steps.last.text, 'Hay 3. ¡Toca el 3!');
+  });
+
+  test('al equivocarse en "2 + ? = 5" cuenta desde el 2 hasta el 5', () {
+    final q = Question(
+      prompt: '2 + ? = 5', options: ['3', '5', '2'], answerIndex: 0,
+      speech: '2 más cuánto es 5', speechLang: 'es', addition: const Addition(2, 3, '⭐', kind: AddKind.missing),
+    );
+    final steps = explainMistake(q, 1);
+    expect([for (final s in steps) if (s.count != null) s.count], [2, 3, 4, 5, 5]);
+    expect(steps.last.text, contains('¡Toca el 3!'));
+  });
+
   test('inglés: el dibujo correcto corresponde a la palabra', () {
     final r = Random(2);
     for (final topic in topics) {

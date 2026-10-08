@@ -1,5 +1,7 @@
 import 'package:aprende_jugando/config.dart';
+import 'package:aprende_jugando/logic/questions.dart';
 import 'package:aprende_jugando/main.dart';
+import 'package:aprende_jugando/screens/game_screen.dart';
 import 'package:aprende_jugando/services/app_state.dart';
 import 'package:aprende_jugando/theme.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +35,16 @@ Future<void> waitFor(WidgetTester tester, {int seconds = 3}) async {
   for (var i = 0; i < seconds * 4; i++) {
     await tester.pump(const Duration(milliseconds: 250));
   }
+}
+
+/// Respuesta correcta de la pregunta de suma en pantalla, para cualquier formato.
+int mathAnswer(WidgetTester tester) {
+  final prompt = tester.widget<Text>(find.byKey(const Key('prompt'))).data!;
+  final n = RegExp(r'\d+').allMatches(prompt).map((m) => int.parse(m[0]!)).toList();
+  if (prompt.contains('+ ?')) return n[1] - n[0];
+  if (n.length == 2) return n[0] + n[1];
+  // "¿Cuántos hay?": se cuentan los dibujos.
+  return find.byKey(const Key('counted-object')).evaluate().length;
 }
 
 void main() {
@@ -69,9 +81,7 @@ void main() {
     await tester.pumpAndSettle();
 
     for (var i = 0; i < Config.roundsPerGame; i++) {
-      final prompt = tester.widget<Text>(find.textContaining('= ?')).data!;
-      final n = RegExp(r'\d+').allMatches(prompt).map((m) => int.parse(m[0]!)).toList();
-      await tester.tap(find.widgetWithText(InkWell, '${n[0] + n[1]}'));
+      await tester.tap(find.widgetWithText(InkWell, '${mathAnswer(tester)}'));
       await waitFor(tester);
     }
     expect(find.textContaining('10 de 10 a la primera'), findsOneWidget);
@@ -89,6 +99,28 @@ void main() {
     expect(AppState.instance.bestFor('suma-5'), 3);
   });
 
+  testWidgets('en "2 + ? = 5" el segundo grupo aparece al contar', (tester) async {
+    await startApp(tester);
+    await tester.pumpWidget(MaterialApp(
+      home: GameScreen(title: 'Sumar', progressKey: 'suma-10', makeQuestion: (r) => missingQuestion(r, 10)),
+    ));
+    await tester.pumpAndSettle();
+    final answer = mathAnswer(tester);
+    final prompt = tester.widget<Text>(find.byKey(const Key('prompt'))).data!;
+    final a = int.parse(prompt.split(' ').first);
+    expect(find.text('?'), findsOneWidget, reason: 'lo que falta está escondido');
+    if (a + answer <= 10) expect(find.byKey(const Key('counted-object')), findsNWidgets(a));
+
+    final wrong = find.descendant(
+      of: find.byWidgetPredicate((w) => w is BigButton && w.label != '$answer' && w.key.toString().contains('option')),
+      matching: find.byType(InkWell),
+    ).first;
+    await tester.tap(wrong);
+    await waitFor(tester, seconds: 20);
+    expect(spoken.last, contains('¡Toca el $answer!'));
+    if (a + answer <= 10) expect(find.byKey(const Key('counted-object')), findsNWidgets(a + answer));
+  });
+
   test('las estrellas de una partida dependen de los aciertos a la primera', () {
     expect([for (final c in [0, 1, 4, 5, 7, 8, 10]) AppState.starsFor(c)], [0, 1, 1, 2, 2, 3, 3]);
   });
@@ -102,9 +134,9 @@ void main() {
 
   testWidgets('si se equivoca, le explica, le señala la respuesta y luego repasa', (tester) async {
     await startApp(tester);
-    await tester.tap(find.text('➕  Sumar'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('🐣 Hasta 5'));
+    await tester.pumpWidget(MaterialApp(
+      home: GameScreen(title: 'Sumar', progressKey: 'suma-5', makeQuestion: (r) => additionQuestion(r, 5)),
+    ));
     await tester.pumpAndSettle();
 
     (int, int) current() {
