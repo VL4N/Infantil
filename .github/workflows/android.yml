@@ -4,6 +4,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,7 +26,20 @@ jobs:
       - run: flutter test
       # APK de prueba (firmado con clave de depuración) para instalar en el teléfono.
       - run: flutter build apk --release
+      - run: mv build/app/outputs/flutter-apk/app-release.apk AprendeJugando.apk
       - uses: actions/upload-artifact@v4
         with:
           name: aprende-jugando-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: AprendeJugando.apk
+      # En la rama principal, publica el APK como versión descargable:
+      # https://github.com/VL4N/Infantil/releases/latest
+      - if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Versión de prueba ${{ github.run_number }}
+          body: |
+            APK de prueba para instalar en un teléfono Android.
+            Descarga **AprendeJugando.apk** y ábrelo en el teléfono (permite "instalar apps de origen desconocido").
+          files: AprendeJugando.apk
+          make_latest: true

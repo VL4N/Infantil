@@ -30,8 +30,11 @@ test/                    ← pruebas automáticas
 
 ## Probar la app
 
-Cada vez que se sube código, GitHub Actions compila el APK
-(pestaña **Actions → Android APK → aprende-jugando-apk**). Descárgalo e instálalo en un teléfono Android.
+El APK de la última versión está siempre en
+**[Releases → última versión](https://github.com/VL4N/Infantil/releases/latest)** → `AprendeJugando.apk`.
+Descárgalo en el teléfono Android y ábrelo (permite "instalar apps de origen desconocido").
+
+Cada vez que se sube código a `main`, GitHub Actions comprueba la app, compila el APK y publica una versión nueva.
 
 En tu ordenador (con Flutter y Android Studio instalados): `flutter run`.
 
