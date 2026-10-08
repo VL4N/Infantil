@@ -10,11 +10,16 @@ import 'theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  await AppState.instance.load();
-  await Voice.init();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  try {
+    await AppState.instance.load().timeout(const Duration(seconds: 3));
+  } catch (_) {
+    // Si el progreso guardado no carga, se empieza de cero antes que no mostrar nada.
+  }
   runApp(const AprendeJugandoApp());
-  // Tienda y anuncios cargan en segundo plano para no retrasar el arranque.
+  // Voz, tienda y anuncios cargan en segundo plano: nunca deben retrasar la
+  // primera pantalla (si el motor de voz no responde, la app se quedaba en negro).
+  Voice.init();
   Billing.instance.init();
   Ads.init();
 }
