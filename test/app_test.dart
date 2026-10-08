@@ -159,6 +159,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('🍎 Frutas'), findsOneWidget);
     expect(find.text('🎨 Colores 🔒'), findsOneWidget);
+    for (final premium in ['👃 Cuerpo', '👕 Ropa', '👪 Familia', '👋 Saludos']) {
+      await tester.scrollUntilVisible(find.text('$premium 🔒'), 100);
+      expect(find.text('$premium 🔒'), findsOneWidget, reason: 'los temas nuevos son Premium');
+    }
 
     // Pantalla de teléfono en vertical, como en la app real.
     tester.view.physicalSize = const Size(1080, 2280);

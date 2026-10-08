@@ -24,6 +24,22 @@ const topics = [
     ('one', '1'), ('two', '2'), ('three', '3'), ('four', '4'), ('five', '5'),
     ('six', '6'), ('seven', '7'), ('eight', '8'), ('nine', '9'), ('ten', '10'),
   ]),
+  Topic('cuerpo', '👃 Cuerpo', [
+    ('eye', '👁️'), ('ear', '👂'), ('nose', '👃'), ('mouth', '👄'), ('tooth', '🦷'),
+    ('tongue', '👅'), ('hand', '✋'), ('arm', '💪'), ('leg', '🦵'), ('foot', '🦶'),
+  ]),
+  Topic('ropa', '👕 Ropa', [
+    ('shirt', '👕'), ('pants', '👖'), ('dress', '👗'), ('shoes', '👟'), ('hat', '🎩'),
+    ('socks', '🧦'), ('coat', '🧥'), ('glasses', '👓'), ('scarf', '🧣'), ('gloves', '🧤'),
+  ]),
+  Topic('familia', '👪 Familia', [
+    ('mom', '👩'), ('dad', '👨'), ('baby', '👶'), ('grandma', '👵'),
+    ('grandpa', '👴'), ('girl', '👧'), ('boy', '👦'), ('family', '👪'),
+  ]),
+  Topic('saludos', '👋 Saludos', [
+    ('hello', '👋'), ('good morning', '🌅'), ('good night', '🌙'), ('thank you', '🙏'),
+    ('yes', '👍'), ('no', '👎'), ('I love you', '❤️'), ('happy birthday', '🎂'),
+  ]),
 ];
 
 const mathLevels = [(5, '🐣 Hasta 5'), (10, '🐥 Hasta 10'), (20, '🦅 Hasta 20')];
