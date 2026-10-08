@@ -96,7 +96,7 @@ class MathLevelsScreen extends StatelessWidget {
                 stars: state.canPlayMath(max) ? state.bestFor(mathKey(max)) : null,
                 onTap: () => state.canPlayMath(max)
                     ? Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => GameScreen(title: 'Sumar', progressKey: mathKey(max), makeQuestion: (r) => additionQuestion(r, max)),
+                        builder: (_) => GameScreen(title: 'Sumar', progressKey: mathKey(max), makeQuestion: (r) => mathQuestion(r, max)),
                       ))
                     : _lockedTap(context),
               ),

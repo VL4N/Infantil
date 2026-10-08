@@ -197,7 +197,7 @@ class _GameScreenState extends State<GameScreen> {
                 else if (_counted != null)
                   _CountingOn(q.addition!, upTo: _counted!),
                 const SizedBox(height: 12),
-                Text(q.prompt, textAlign: TextAlign.center, style: const TextStyle(fontSize: 52, fontWeight: FontWeight.bold)),
+                Text(q.prompt, key: const Key('prompt'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 52, fontWeight: FontWeight.bold)),
               ],
               const SizedBox(height: 28),
               Row(
@@ -268,7 +268,7 @@ class _CountingPicture extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(add.object, style: const TextStyle(fontSize: 34)),
+          Text(add.object, key: const Key('counted-object'), style: const TextStyle(fontSize: 34)),
           SizedBox(
             height: 26,
             child: done
@@ -289,6 +289,11 @@ class _CountingPicture extends StatelessWidget {
             children: [for (var n = from; n < from + count; n++) _item(n)],
           ),
         );
+    if (add.kind == AddKind.count) {
+      return Row(mainAxisAlignment: MainAxisAlignment.center, children: [group(1, add.a)]);
+    }
+    // En "2 + ? = 5" el segundo grupo está escondido hasta que se cuenta en la explicación.
+    final revealed = add.kind == AddKind.missing ? ((counted ?? 0) - add.a).clamp(0, add.b) : add.b;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -297,7 +302,10 @@ class _CountingPicture extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 10),
           child: Text('+', style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: AppColors.blue)),
         ),
-        group(add.a + 1, add.b),
+        if (revealed == 0)
+          const Text('?', style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: AppColors.blue))
+        else
+          group(add.a + 1, revealed),
       ],
     );
   }

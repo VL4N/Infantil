@@ -35,11 +35,24 @@ class Question {
   String get answer => options[answerIndex];
 }
 
+/// Formatos de ejercicio de suma.
+enum AddKind {
+  /// "2 + 3 = ?"
+  sum,
+
+  /// "2 + ? = 5": cuánto falta.
+  missing,
+
+  /// "¿Cuántos hay?": contar dibujos (para los más pequeños). Usa solo [Addition.a].
+  count,
+}
+
 class Addition {
-  const Addition(this.a, this.b, this.object);
+  const Addition(this.a, this.b, this.object, {this.kind = AddKind.sum});
   final int a;
   final int b;
   final String object;
+  final AddKind kind;
 
   int get sum => a + b;
 
@@ -68,6 +81,22 @@ String numberWord(int n) => n >= 0 && n < _numberWords.length ? _numberWords[n] 
 /// Explicación con voz de una respuesta equivocada, para aprender en ese momento.
 List<ExplainStep> explainMistake(Question q, int chosen) {
   final add = q.addition;
+  if (add != null && add.kind == AddKind.count) {
+    return [
+      ExplainStep('Casi. Tocaste el ${q.options[chosen]}. ¡Vamos a contar juntos!', 'es'),
+      for (var i = 1; i <= add.a; i++) ExplainStep(numberWord(i), 'es', count: i),
+      ExplainStep('Hay ${add.a}. ¡Toca el ${add.a}!', 'es', count: add.a, highlightAnswer: true),
+    ];
+  }
+  if (add != null && add.kind == AddKind.missing) {
+    return [
+      ExplainStep('Casi. Tocaste el ${q.options[chosen]}. Tenemos ${add.a}, ¡contemos hasta ${add.sum}!', 'es',
+          count: add.a),
+      for (var i = add.a + 1; i <= add.sum; i++) ExplainStep(numberWord(i), 'es', count: i),
+      ExplainStep('Contamos ${add.b} más. ${add.a} más ${add.b} son ${add.sum}. ¡Toca el ${add.b}!', 'es',
+          count: add.sum, highlightAnswer: true),
+    ];
+  }
   if (add != null) {
     final steps = <ExplainStep>[
       ExplainStep('Casi. Tocaste el ${q.options[chosen]}. ¡Vamos a contar juntos!', 'es'),
@@ -99,6 +128,51 @@ List<ExplainStep> explainMistake(Question q, int chosen) {
 
 typedef QuestionMaker = Question Function(Random random);
 
+/// Pregunta de un nivel de suma, mezclando formatos: en "Hasta 5" también se cuentan dibujos;
+/// en los niveles mayores también hay que encontrar el número que falta.
+Question mathQuestion(Random r, int max) {
+  if (r.nextInt(3) > 0) return additionQuestion(r, max);
+  return max <= 5 ? countQuestion(r, max) : missingQuestion(r, max);
+}
+
+/// Dos números incorrectos al azar entre [candidates] (sin la respuesta ni negativos).
+List<int> _options(Random r, int answer, Set<int> candidates) {
+  candidates.removeWhere((w) => w == answer || w < 0);
+  final wrong = (candidates.toList()..shuffle(r)).take(2);
+  return [answer, ...wrong]..shuffle(r);
+}
+
+Question countQuestion(Random r, int max) {
+  final n = 1 + r.nextInt(max);
+  final obj = _objects[r.nextInt(_objects.length)];
+  final options = _options(r, n, {for (var d = -2; d <= 2; d++) if (n + d > 0) n + d});
+  return Question(
+    prompt: '¿Cuántos hay?',
+    addition: Addition(n, 0, obj, kind: AddKind.count),
+    options: [for (final o in options) '$o'],
+    answerIndex: options.indexOf(n),
+    speech: '¿Cuántos hay?',
+    speechLang: 'es',
+  );
+}
+
+Question missingQuestion(Random r, int max) {
+  final a = 1 + r.nextInt(max - 1);
+  final b = 1 + r.nextInt(max - a);
+  final sum = a + b;
+  final obj = _objects[r.nextInt(_objects.length)];
+  // Errores típicos: contar uno de más o de menos, o responder uno de los números que se ven.
+  final options = _options(r, b, {for (var d = -3; d <= 3; d++) b + d, a, sum});
+  return Question(
+    prompt: '$a + ? = $sum',
+    addition: Addition(a, b, obj, kind: AddKind.missing),
+    options: [for (final o in options) '$o'],
+    answerIndex: options.indexOf(b),
+    speech: '$a más cuánto es $sum',
+    speechLang: 'es',
+  );
+}
+
 Question additionQuestion(Random r, int max) {
   final a = 1 + r.nextInt(max - 1);
   final b = 1 + r.nextInt(max - a);
@@ -107,10 +181,7 @@ Question additionQuestion(Random r, int max) {
 
   // Errores típicos: quedarse corto o pasarse al contar, o responder uno de los sumandos.
   // Así la respuesta no es siempre el número del medio y adivinar no sirve.
-  final candidates = <int>{for (var d = -3; d <= 3; d++) sum + d, a, b}
-    ..removeWhere((w) => w == sum || w < 0);
-  final wrong = (candidates.toList()..shuffle(r)).take(2);
-  final options = [sum, ...wrong]..shuffle(r);
+  final options = _options(r, sum, {for (var d = -3; d <= 3; d++) sum + d, a, b});
   return Question(
     prompt: '$a + $b = ?',
     addition: Addition(a, b, obj),

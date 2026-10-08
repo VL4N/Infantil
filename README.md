@@ -9,6 +9,9 @@ Modelo **freemium**: gratis con publicidad apta para niños, y Premium (pago ún
 | Inglés: animales y frutas | Inglés: colores y números |
 | Un anuncio en la pantalla final de cada partida | Sin publicidad |
 
+- Sumas en tres formatos que se mezclan en cada partida: "2 + 3 = ?", "2 + ? = 5" (cuánto falta)
+  y, en el nivel "Hasta 5", "¿Cuántos hay?" para contar dibujos.
+- Cada partida da de 0 a 3 estrellas; el mejor resultado de cada nivel y tema se ve en el menú.
 - Voz del teléfono: español latino (`es-US`) e inglés (`en-US`).
 - **Aprende de sus errores**: si se equivoca, no hay castigo. La voz le explica paso a paso
   (en sumas cuenta los dibujos con él uno a uno; en inglés le dice cómo se llama lo que tocó y cuál era),
