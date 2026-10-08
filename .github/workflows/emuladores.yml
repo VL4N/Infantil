@@ -31,6 +31,10 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      - name: Liberar espacio en disco (el emulador necesita varios GB)
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/local/lib/node_modules "$AGENT_TOOLSDIRECTORY" || true
+          df -h /
       - name: Activar KVM (aceleración del emulador)
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -42,6 +46,9 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_6
+          disk-size: 4096M
+          ram-size: 4096M
+          cores: 4
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
           script: flutter test integration_test --timeout 10m
