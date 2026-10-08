@@ -24,6 +24,10 @@ class Voice {
 
   /// Audios grabados disponibles (rutas `assets/voz/<archivo>.mp3`).
   static Set<String> _clips = {};
+
+  /// Las pruebas lo apagan para escuchar la voz simulada del teléfono.
+  @visibleForTesting
+  static bool useClips = true;
   static AudioPlayer? _player;
   static const _googleEngine = 'com.google.android.tts';
 
@@ -118,7 +122,7 @@ class Voice {
   /// [lang]: 'es' o 'en'. Termina cuando acaba de hablar (o enseguida si no hay voz).
   static Future<void> say(String text, String lang) async {
     final clip = 'assets/voz/${clipName(text, lang)}';
-    if (_clips.contains(clip)) {
+    if (useClips && _clips.contains(clip)) {
       await _playClip(clip);
       return;
     }
