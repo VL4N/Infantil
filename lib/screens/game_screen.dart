@@ -77,7 +77,7 @@ class _GameScreenState extends State<GameScreen> {
     final q = _q;
     final intro = _isReview ? Voice.say('¡Repasemos!', 'es') : Future<void>.value();
     intro.then((_) {
-      if (mounted && identical(q, _q)) Voice.say(q.speech, q.speechLang);
+      if (mounted && identical(q, _q)) Voice.say(q.ask ?? q.speech, q.speechLang);
     });
   }
 
@@ -181,7 +181,10 @@ class _GameScreenState extends State<GameScreen> {
                     ? const Text('🔁 Repaso', textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
                     : null,
               ),
-              if (q.speechLang == 'en') ...[
+              if (q.speechLang == 'en' && !q.pictureOptions) ...[
+                const Text('¿Cómo se dice en inglés?', textAlign: TextAlign.center, style: TextStyle(fontSize: 18)),
+                Text(q.prompt, key: const Key('prompt'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 110)),
+              ] else if (q.speechLang == 'en') ...[
                 const Text('Escucha y toca el dibujo correcto', textAlign: TextAlign.center, style: TextStyle(fontSize: 18)),
                 const SizedBox(height: 12),
                 BigButton(
@@ -200,28 +203,38 @@ class _GameScreenState extends State<GameScreen> {
                 Text(q.prompt, key: const Key('prompt'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 52, fontWeight: FontWeight.bold)),
               ],
               const SizedBox(height: 28),
-              Row(
-                children: [
-                  for (var i = 0; i < q.options.length; i++)
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6),
-                        child: AnimatedScale(
-                          scale: _highlightAnswer && i == q.answerIndex && !_locked ? 1.12 : 1,
-                          duration: const Duration(milliseconds: 300),
-                          child: BigButton(
-                            key: Key('option-$i'),
-                            label: q.options[i],
-                            fontSize: q.pictureOptions ? 52 : 40,
-                            color: _optionColor(i),
-                            textColor: _wrong.contains(i) || (_locked && i == q.answerIndex) ? Colors.white : AppColors.ink,
-                            onTap: () => _tap(i),
-                          ),
+              if (q.speechLang == 'en' && !q.pictureOptions)
+                // Palabras: una debajo de otra, cada una con su botón para escucharla.
+                for (var i = 0; i < q.options.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Row(
+                      children: [
+                        Expanded(child: _option(i, fontSize: 32)),
+                        const SizedBox(width: 10),
+                        BigButton(
+                          key: Key('listen-$i'),
+                          label: '🔊',
+                          fontSize: 28,
+                          color: AppColors.blue,
+                          padding: const EdgeInsets.all(18),
+                          onTap: _explaining ? null : () => Voice.say(q.options[i], 'en'),
+                        ),
+                      ],
+                    ),
+                  )
+              else
+                Row(
+                  children: [
+                    for (var i = 0; i < q.options.length; i++)
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: _option(i, fontSize: q.pictureOptions ? 52 : 40),
                         ),
                       ),
-                    ),
-                ],
-              ),
+                  ],
+                ),
               if (_explaining) ...[
                 const SizedBox(height: 20),
                 const Text('👂 Escucha…', textAlign: TextAlign.center, style: TextStyle(fontSize: 20)),
@@ -244,6 +257,19 @@ class _GameScreenState extends State<GameScreen> {
       ),
     );
   }
+
+  Widget _option(int i, {required double fontSize}) => AnimatedScale(
+        scale: _highlightAnswer && i == _q.answerIndex && !_locked ? 1.12 : 1,
+        duration: const Duration(milliseconds: 300),
+        child: BigButton(
+          key: Key('option-$i'),
+          label: _q.options[i],
+          fontSize: fontSize,
+          color: _optionColor(i),
+          textColor: _wrong.contains(i) || (_locked && i == _q.answerIndex) ? Colors.white : AppColors.ink,
+          onTap: () => _tap(i),
+        ),
+      );
 
   Color _optionColor(int i) {
     if (_wrong.contains(i)) return Colors.orange.shade300;

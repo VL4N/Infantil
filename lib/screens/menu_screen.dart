@@ -130,7 +130,7 @@ class EnglishTopicsScreen extends StatelessWidget {
                 stars: state.canPlayTopic(topic.key) ? state.bestFor(topicKey(topic)) : null,
                 onTap: () => state.canPlayTopic(topic.key)
                     ? Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => GameScreen(title: 'Inglés', progressKey: topicKey(topic), makeQuestion: (r) => englishQuestion(r, topic)),
+                        builder: (_) => GameScreen(title: 'Inglés', progressKey: topicKey(topic), makeQuestion: (r) => englishMixedQuestion(r, topic)),
                       ))
                     : _lockedTap(context),
               ),

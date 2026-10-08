@@ -11,6 +11,7 @@ class Question {
     required this.answerIndex,
     required this.speech,
     required this.speechLang,
+    this.ask,
     this.addition,
     this.optionWords,
     this.pictureOptions = false,
@@ -28,6 +29,9 @@ class Question {
   final int answerIndex;
   final String speech;
   final String speechLang;
+
+  /// Lo que dice la voz al mostrar la pregunta, si no es [speech] (para no decir la respuesta).
+  final String? ask;
 
   /// Las opciones son dibujos (más grandes) en lugar de números.
   final bool pictureOptions;
@@ -117,6 +121,15 @@ List<ExplainStep> explainMistake(Question q, int chosen) {
   }
 
   final words = q.optionWords!;
+  if (!q.pictureOptions) {
+    return [
+      const ExplainStep('Casi. Tocaste', 'es'),
+      ExplainStep(words[chosen], 'en'),
+      const ExplainStep('Este dibujo en inglés se dice', 'es', highlightAnswer: true),
+      ExplainStep(q.speech, 'en', highlightAnswer: true),
+      const ExplainStep('¡Tócalo!', 'es', highlightAnswer: true),
+    ];
+  }
   return [
     const ExplainStep('Casi. Ese dibujo en inglés se dice', 'es'),
     ExplainStep(words[chosen], 'en'),
@@ -205,5 +218,26 @@ Question englishQuestion(Random r, Topic topic) {
     speech: target.$1,
     speechLang: 'en',
     pictureOptions: true,
+  );
+}
+
+/// Pregunta de un tema de inglés, mezclando "escucha y toca el dibujo" con "mira el dibujo y elige la palabra".
+Question englishMixedQuestion(Random r, Topic topic) =>
+    r.nextInt(3) == 0 ? englishWordQuestion(r, topic) : englishQuestion(r, topic);
+
+/// Mira el dibujo y elige cómo se dice en inglés.
+Question englishWordQuestion(Random r, Topic topic) {
+  final words = topic.words;
+  final target = words[r.nextInt(words.length)];
+  final others = (words.where((w) => w != target).toList()..shuffle(r)).take(2);
+  final options = [target, ...others]..shuffle(r);
+  return Question(
+    prompt: target.$2,
+    options: [for (final o in options) o.$1],
+    optionWords: [for (final o in options) o.$1],
+    answerIndex: options.indexOf(target),
+    speech: target.$1,
+    ask: 'What is this?',
+    speechLang: 'en',
   );
 }
