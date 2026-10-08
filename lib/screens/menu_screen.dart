@@ -93,9 +93,10 @@ class MathLevelsScreen extends StatelessWidget {
               BigButton(
                 label: label,
                 locked: !state.canPlayMath(max),
+                stars: state.canPlayMath(max) ? state.bestFor(mathKey(max)) : null,
                 onTap: () => state.canPlayMath(max)
                     ? Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => GameScreen(title: 'Sumar', makeQuestion: (r) => additionQuestion(r, max)),
+                        builder: (_) => GameScreen(title: 'Sumar', progressKey: mathKey(max), makeQuestion: (r) => additionQuestion(r, max)),
                       ))
                     : _lockedTap(context),
               ),
@@ -126,9 +127,10 @@ class EnglishTopicsScreen extends StatelessWidget {
               BigButton(
                 label: topic.label,
                 locked: !state.canPlayTopic(topic.key),
+                stars: state.canPlayTopic(topic.key) ? state.bestFor(topicKey(topic)) : null,
                 onTap: () => state.canPlayTopic(topic.key)
                     ? Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => GameScreen(title: 'Inglés', makeQuestion: (r) => englishQuestion(r, topic)),
+                        builder: (_) => GameScreen(title: 'Inglés', progressKey: topicKey(topic), makeQuestion: (r) => englishQuestion(r, topic)),
                       ))
                     : _lockedTap(context),
               ),
