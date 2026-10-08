@@ -10,6 +10,9 @@ Modelo **freemium**: gratis con publicidad apta para niños, y Premium (pago ún
 | Un anuncio en la pantalla final de cada partida | Sin publicidad |
 
 - Voz del teléfono: español latino (`es-US`) e inglés (`en-US`).
+- **Aprende de sus errores**: si se equivoca, no hay castigo. La voz le explica paso a paso
+  (en sumas cuenta los dibujos con él uno a uno; en inglés le dice cómo se llama lo que tocó y cuál era),
+  le señala la respuesta correcta y esa pregunta vuelve a salir unas rondas después como **repaso**.
 - Control parental (multiplicación) antes de entrar a Premium o comprar.
 - Anuncios AdMob en modo infantil: clasificación **G**, no personalizados, sin ID de publicidad y **nunca durante el juego**.
 

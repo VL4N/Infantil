@@ -17,7 +17,8 @@ void main() {
         expect(q.answer, '$sum');
         expect(q.options.toSet().length, 3, reason: 'opciones repetidas: ${q.options}');
         expect(q.options.every((o) => int.parse(o) >= 0), isTrue);
-        expect(q.visual != null, sum <= 10);
+        expect(q.addition!.sum, sum);
+        expect(q.addition!.drawable, sum <= 10);
       }
     }
   });
@@ -33,5 +34,36 @@ void main() {
         expect(q.speechLang, 'en');
       }
     }
+  });
+
+  test('al equivocarse en una suma pequeña, cuenta los dibujos uno a uno', () {
+    final q = Question(
+      prompt: '2 + 1 = ?', options: ['5', '3', '2'], answerIndex: 1,
+      speech: '2 más 1', speechLang: 'es', addition: const Addition(2, 1, '🍎'),
+    );
+    final steps = explainMistake(q, 0);
+    expect(steps.first.text, contains('Tocaste el 5'));
+    expect([for (final s in steps) if (s.count != null) s.count], [1, 2, 3, 3]);
+    expect(steps.where((s) => !s.highlightAnswer).map((s) => s.text), containsAll(['uno', 'dos', 'tres']));
+    expect(steps.last.highlightAnswer, isTrue);
+    expect(steps.last.text, contains('2 más 1 son 3'));
+  });
+
+  test('en sumas grandes cuenta hacia adelante desde el primer número', () {
+    final q = Question(
+      prompt: '12 + 3 = ?', options: ['15', '14', '17'], answerIndex: 0,
+      speech: '12 más 3', speechLang: 'es', addition: const Addition(12, 3, '⭐'),
+    );
+    final counts = [for (final s in explainMistake(q, 1)) if (s.count != null) s.count];
+    expect(counts, [12, 13, 14, 15, 15]);
+  });
+
+  test('en inglés dice cómo se llama lo que tocó y cuál era', () {
+    final q = englishQuestion(Random(3), topics.first);
+    final wrong = (q.answerIndex + 1) % 3;
+    final steps = explainMistake(q, wrong);
+    final english = [for (final s in steps) if (s.lang == 'en') s.text];
+    expect(english, [q.optionWords![wrong], q.speech]);
+    expect(steps.last.highlightAnswer, isTrue);
   });
 }

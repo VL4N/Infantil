@@ -11,15 +11,14 @@ Future<bool> parentalGate(BuildContext context, {Random? random}) async {
   final r = random ?? Random();
   final ok = await showDialog<bool>(
     context: context,
-    builder: (_) => _GateDialog(a: 6 + r.nextInt(4), b: 6 + r.nextInt(4)),
+    builder: (_) => _GateDialog(random: r),
   );
   return ok ?? false;
 }
 
 class _GateDialog extends StatefulWidget {
-  const _GateDialog({required this.a, required this.b});
-  final int a;
-  final int b;
+  const _GateDialog({required this.random});
+  final Random random;
 
   @override
   State<_GateDialog> createState() => _GateDialogState();
@@ -27,8 +26,32 @@ class _GateDialog extends StatefulWidget {
 
 class _GateDialogState extends State<_GateDialog> {
   final _controller = TextEditingController();
+  late int _a, _b;
+  bool _failed = false;
 
-  void _submit() => Navigator.pop(context, int.tryParse(_controller.text) == widget.a * widget.b);
+  @override
+  void initState() {
+    super.initState();
+    _newQuestion();
+  }
+
+  void _newQuestion() {
+    _a = 6 + widget.random.nextInt(4);
+    _b = 6 + widget.random.nextInt(4);
+  }
+
+  /// Si falla, avisa y pone otra pregunta (no muestra la respuesta: es un candado para adultos).
+  void _submit() {
+    if (int.tryParse(_controller.text) == _a * _b) {
+      Navigator.pop(context, true);
+      return;
+    }
+    setState(() {
+      _failed = true;
+      _controller.clear();
+      _newQuestion();
+    });
+  }
 
   @override
   void dispose() {
@@ -45,7 +68,7 @@ class _GateDialogState extends State<_GateDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('¿Cuánto es ${widget.a} × ${widget.b}?',
+          Text('¿Cuánto es $_a × $_b?',
               style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           TextField(
@@ -59,6 +82,11 @@ class _GateDialogState extends State<_GateDialog> {
             decoration: const InputDecoration(border: OutlineInputBorder()),
             onSubmitted: (_) => _submit(),
           ),
+          if (_failed) ...[
+            const SizedBox(height: 12),
+            const Text('Respuesta incorrecta. Prueba con esta otra.',
+                textAlign: TextAlign.center, style: TextStyle(color: AppColors.red, fontSize: 16)),
+          ],
         ],
       ),
       actions: [
