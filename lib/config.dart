@@ -14,9 +14,14 @@ class Config {
   // ---------- Publicidad (AdMob) ----------
   static const adsEnabled = true;
 
-  /// ID de bloque de anuncios de PRUEBA de Google. Antes de publicar, sustitúyelo
-  /// por el tuyo de AdMob (y el App ID en android/app/src/main/AndroidManifest.xml).
-  static const bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
+  /// Solo la versión para Google Play usa anuncios reales; se compila con
+  /// `--dart-define=PLAY_RELEASE=true`. Los APK de prueba muestran anuncios de
+  /// prueba: tocar tus propios anuncios reales puede hacer que AdMob cierre la cuenta.
+  static const playRelease = bool.fromEnvironment('PLAY_RELEASE');
+
+  static const _realBannerAdUnitId = 'ca-app-pub-4226625652685681/7459328744';
+  static const _testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
+  static const bannerAdUnitId = playRelease ? _realBannerAdUnitId : _testBannerAdUnitId;
 
   // ---------- Juego ----------
   static const roundsPerGame = 10;

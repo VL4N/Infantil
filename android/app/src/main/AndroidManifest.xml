@@ -29,10 +29,10 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- App ID de AdMob. Este es el de PRUEBA de Google: cámbialo por el tuyo antes de publicar. -->
+        <!-- App ID de AdMob de "Aprende Jugando". -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-4226625652685681~2963523846" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
