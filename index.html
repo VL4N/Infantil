@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#ffb703">
+  <title>Aprende Jugando</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <button id="btn-home" class="icon-btn" aria-label="Inicio" hidden>🏠</button>
+    <h1 id="title">Aprende Jugando</h1>
+    <div class="stars" aria-label="Estrellas">⭐ <span id="star-count">0</span></div>
+  </header>
+
+  <main>
+    <!-- Menú principal -->
+    <section id="screen-menu" class="screen active">
+      <p class="hello">¿Qué quieres aprender hoy?</p>
+      <button class="big-card math" data-go="math-levels">
+        <span class="card-emoji">➕</span><span>Sumar</span>
+      </button>
+      <button class="big-card english" data-go="english-topics">
+        <span class="card-emoji">🇬🇧</span><span>Inglés</span>
+      </button>
+    </section>
+
+    <!-- Niveles de suma -->
+    <section id="screen-math-levels" class="screen">
+      <p class="hello">Elige un nivel</p>
+      <div class="grid">
+        <button class="pill" data-math-max="5">🐣 Hasta 5</button>
+        <button class="pill" data-math-max="10">🐥 Hasta 10</button>
+        <button class="pill" data-math-max="20">🦅 Hasta 20</button>
+      </div>
+    </section>
+
+    <!-- Juego de sumas -->
+    <section id="screen-math" class="screen">
+      <div class="progress"><div id="math-bar"></div></div>
+      <div id="math-visual" class="visual" aria-hidden="true"></div>
+      <div id="math-question" class="question"></div>
+      <div id="math-options" class="options"></div>
+    </section>
+
+    <!-- Temas de inglés -->
+    <section id="screen-english-topics" class="screen">
+      <p class="hello">Elige un tema</p>
+      <div id="topic-list" class="grid"></div>
+    </section>
+
+    <!-- Juego de inglés -->
+    <section id="screen-english" class="screen">
+      <div class="progress"><div id="eng-bar"></div></div>
+      <p class="hint">Escucha y toca el dibujo correcto</p>
+      <button id="eng-speak" class="speak-btn">🔊 <span id="eng-word"></span></button>
+      <div id="eng-options" class="options pictures"></div>
+    </section>
+
+    <!-- Resultado -->
+    <section id="screen-done" class="screen">
+      <div class="trophy">🏆</div>
+      <p class="hello" id="done-text"></p>
+      <div class="grid">
+        <button class="pill" id="btn-again">🔁 Otra vez</button>
+        <button class="pill" data-go="menu">🏠 Inicio</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="feedback" class="feedback" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
