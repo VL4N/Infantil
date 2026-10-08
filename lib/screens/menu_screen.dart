@@ -6,6 +6,7 @@ import '../services/app_state.dart';
 import '../services/voice.dart';
 import '../theme.dart';
 import 'game_screen.dart';
+import 'memory_screen.dart';
 import 'parental_gate.dart';
 import 'premium_screen.dart';
 
@@ -58,6 +59,17 @@ class MenuScreen extends StatelessWidget {
             padding: const EdgeInsets.all(32),
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EnglishTopicsScreen())),
           ),
+          const SizedBox(height: 18),
+          BigButton(
+            label: '🃏  Parejas en inglés',
+            fontSize: 30,
+            color: AppColors.yellow,
+            padding: const EdgeInsets.all(26),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const EnglishTopicsScreen(memory: true)),
+            ),
+          ),
           const SizedBox(height: 24),
           ListenableBuilder(
             listenable: AppState.instance,
@@ -109,13 +121,16 @@ class MathLevelsScreen extends StatelessWidget {
 }
 
 class EnglishTopicsScreen extends StatelessWidget {
-  const EnglishTopicsScreen({super.key});
+  const EnglishTopicsScreen({super.key, this.memory = false});
+
+  /// Abre el juego de parejas en lugar de las preguntas.
+  final bool memory;
 
   @override
   Widget build(BuildContext context) {
     final state = AppState.instance;
     return Scaffold(
-      appBar: _appBar('Inglés'),
+      appBar: _appBar(memory ? 'Parejas' : 'Inglés'),
       body: ListenableBuilder(
         listenable: state,
         builder: (context, _) => ListView(
@@ -127,10 +142,14 @@ class EnglishTopicsScreen extends StatelessWidget {
               BigButton(
                 label: topic.label,
                 locked: !state.canPlayTopic(topic.key),
-                stars: state.canPlayTopic(topic.key) ? state.bestFor(topicKey(topic)) : null,
+                stars: state.canPlayTopic(topic.key)
+                    ? state.bestFor(memory ? memoryKey(topic) : topicKey(topic))
+                    : null,
                 onTap: () => state.canPlayTopic(topic.key)
                     ? Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => GameScreen(title: 'Inglés', progressKey: topicKey(topic), makeQuestion: (r) => englishMixedQuestion(r, topic)),
+                        builder: (_) => memory
+                            ? MemoryScreen(topic: topic, progressKey: memoryKey(topic))
+                            : GameScreen(title: 'Inglés', progressKey: topicKey(topic), makeQuestion: (r) => englishMixedQuestion(r, topic)),
                       ))
                     : _lockedTap(context),
               ),

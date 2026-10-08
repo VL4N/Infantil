@@ -110,12 +110,12 @@ class _GameScreenState extends State<GameScreen> {
     if (!mounted) return;
     if (_round >= Config.roundsPerGame) {
       final previousBest = AppState.instance.bestFor(widget.progressKey);
-      final earned = AppState.instance.recordGame(widget.progressKey, _correct);
+      final earned = AppState.instance.recordGame(widget.progressKey, AppState.starsFor(_correct));
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => ResultScreen(
-            correct: _correct,
+            detail: '$_correct de ${Config.roundsPerGame} a la primera.',
             english: _q.speechLang == 'en',
             earned: earned,
             previousBest: previousBest,

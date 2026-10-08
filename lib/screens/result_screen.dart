@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../config.dart';
 import '../services/ads.dart';
 import '../services/voice.dart';
 import '../theme.dart';
@@ -8,14 +7,15 @@ import '../theme.dart';
 class ResultScreen extends StatefulWidget {
   const ResultScreen({
     super.key,
-    required this.correct,
+    required this.detail,
     required this.english,
     required this.earned,
     required this.previousBest,
     required this.playAgain,
   });
 
-  final int correct;
+  /// Cómo le fue, p. ej. "8 de 10 a la primera."
+  final String detail;
   final bool english;
 
   /// Estrellas de esta partida (0 a 3) y el mejor resultado que había antes.
@@ -28,9 +28,9 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen> {
-  String get _message => widget.correct >= 8
+  String get _message => widget.earned >= 3
       ? '¡Eres una estrella!'
-      : widget.correct >= 5
+      : widget.earned >= 2
           ? '¡Muy bien!'
           : '¡Sigue practicando!';
 
@@ -52,7 +52,7 @@ class _ResultScreenState extends State<ResultScreen> {
           if (widget.earned > widget.previousBest && widget.previousBest > 0)
             const Text('¡Nuevo récord!', textAlign: TextAlign.center, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           Text(
-            '$_message\n${widget.correct} de ${Config.roundsPerGame} a la primera.',
+            '$_message\n${widget.detail}',
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 26),
           ),

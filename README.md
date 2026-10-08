@@ -13,6 +13,8 @@ Modelo **freemium**: gratis con publicidad apta para niños, y Premium (pago ún
   y, en el nivel "Hasta 5", "¿Cuántos hay?" para contar dibujos.
 - Inglés en dos formatos que se mezclan: "escucha y toca el dibujo" y "mira el dibujo y elige la palabra"
   (cada palabra tiene un 🔊 para escucharla antes de elegir).
+- **Parejas en inglés**: juego de memoria con 8 cartas para juntar cada dibujo con su palabra
+  (la palabra se lee en voz alta al destaparla). Usa los mismos temas y candados que Inglés.
 - Cada partida da de 0 a 3 estrellas; el mejor resultado de cada nivel y tema se ve en el menú.
 - Voz del teléfono: español latino (`es-US`) e inglés (`en-US`).
 - **Aprende de sus errores**: si se equivoca, no hay castigo. La voz le explica paso a paso
