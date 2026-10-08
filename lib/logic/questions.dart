@@ -105,11 +105,11 @@ Question additionQuestion(Random r, int max) {
   final sum = a + b;
   final obj = _objects[r.nextInt(_objects.length)];
 
-  final wrong = <int>{};
-  while (wrong.length < 2) {
-    final w = sum + (r.nextBool() ? 1 : -1) * (1 + r.nextInt(3));
-    if (w >= 0 && w != sum) wrong.add(w);
-  }
+  // Errores típicos: quedarse corto o pasarse al contar, o responder uno de los sumandos.
+  // Así la respuesta no es siempre el número del medio y adivinar no sirve.
+  final candidates = <int>{for (var d = -3; d <= 3; d++) sum + d, a, b}
+    ..removeWhere((w) => w == sum || w < 0);
+  final wrong = (candidates.toList()..shuffle(r)).take(2);
   final options = [sum, ...wrong]..shuffle(r);
   return Question(
     prompt: '$a + $b = ?',

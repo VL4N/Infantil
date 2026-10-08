@@ -75,7 +75,29 @@ void main() {
       await waitFor(tester);
     }
     expect(find.textContaining('10 de 10 a la primera'), findsOneWidget);
+    expect(find.text('★★★'), findsOneWidget);
     expect(AppState.instance.stars, 10);
+
+    // El mejor resultado queda guardado y se ve en el botón del nivel.
+    await tester.tap(find.text('🏠 Inicio'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('➕  Sumar'));
+    await tester.pumpAndSettle();
+    expect(find.descendant(of: find.widgetWithText(BigButton, '🐣 Hasta 5'), matching: find.text('★★★')), findsOneWidget);
+    expect(find.descendant(of: find.widgetWithText(BigButton, '🐥 Hasta 10'), matching: find.text('☆☆☆')), findsOneWidget);
+    await AppState.instance.load();
+    expect(AppState.instance.bestFor('suma-5'), 3);
+  });
+
+  test('las estrellas de una partida dependen de los aciertos a la primera', () {
+    expect([for (final c in [0, 1, 4, 5, 7, 8, 10]) AppState.starsFor(c)], [0, 1, 1, 2, 2, 3, 3]);
+  });
+
+  testWidgets('solo se guarda el mejor resultado', (tester) async {
+    await startApp(tester);
+    expect(AppState.instance.recordGame('ingles-animales', 6), 2);
+    expect(AppState.instance.recordGame('ingles-animales', 2), 1);
+    expect(AppState.instance.bestFor('ingles-animales'), 2);
   });
 
   testWidgets('si se equivoca, le explica, le señala la respuesta y luego repasa', (tester) async {

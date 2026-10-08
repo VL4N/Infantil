@@ -12,9 +12,12 @@ import 'result_screen.dart';
 /// Partida de [Config.roundsPerGame] preguntas (sumas o inglés).
 /// Si el niño se equivoca, la app le explica con voz y la pregunta vuelve más tarde como repaso.
 class GameScreen extends StatefulWidget {
-  const GameScreen({super.key, required this.title, required this.makeQuestion, this.random});
+  const GameScreen({super.key, required this.title, required this.progressKey, required this.makeQuestion, this.random});
 
   final String title;
+
+  /// Nivel o tema que se juega (p. ej. 'suma-5', 'ingles-animales'), para guardar su progreso.
+  final String progressKey;
   final QuestionMaker makeQuestion;
   final Random? random;
 
@@ -106,13 +109,17 @@ class _GameScreenState extends State<GameScreen> {
     await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
     if (_round >= Config.roundsPerGame) {
+      final previousBest = AppState.instance.bestFor(widget.progressKey);
+      final earned = AppState.instance.recordGame(widget.progressKey, _correct);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => ResultScreen(
             correct: _correct,
             english: _q.speechLang == 'en',
-            playAgain: () => GameScreen(title: widget.title, makeQuestion: widget.makeQuestion),
+            earned: earned,
+            previousBest: previousBest,
+            playAgain: () => GameScreen(title: widget.title, progressKey: widget.progressKey, makeQuestion: widget.makeQuestion),
           ),
         ),
       );

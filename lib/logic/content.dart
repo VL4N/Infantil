@@ -27,3 +27,7 @@ const topics = [
 ];
 
 const mathLevels = [(5, '🐣 Hasta 5'), (10, '🐥 Hasta 10'), (20, '🦅 Hasta 20')];
+
+/// Claves para guardar el progreso de cada nivel de suma y tema de inglés.
+String mathKey(int max) => 'suma-$max';
+String topicKey(Topic topic) => 'ingles-${topic.key}';

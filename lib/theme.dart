@@ -31,6 +31,7 @@ class BigButton extends StatelessWidget {
     this.textColor = AppColors.ink,
     this.fontSize = 26,
     this.locked = false,
+    this.stars,
     this.padding = const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
   });
 
@@ -40,6 +41,9 @@ class BigButton extends StatelessWidget {
   final Color textColor;
   final double fontSize;
   final bool locked;
+
+  /// Mejor resultado (0 a 3) que se muestra debajo del texto; null = no se muestra.
+  final int? stars;
   final EdgeInsets padding;
 
   @override
@@ -55,12 +59,16 @@ class BigButton extends StatelessWidget {
           onTap: onTap,
           child: Padding(
             padding: padding,
-            child: Center(
-              child: Text(
-                locked ? '$label 🔒' : label,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold, color: textColor),
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  locked ? '$label 🔒' : label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold, color: textColor),
+                ),
+                if (stars != null) StarRating(stars: stars!),
+              ],
             ),
           ),
         ),
@@ -80,5 +88,19 @@ class StarCounter extends StatelessWidget {
         child: Center(
           child: Text('⭐ $stars', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
         ),
+      );
+}
+
+/// Mejor resultado de un nivel o tema: ★★☆.
+class StarRating extends StatelessWidget {
+  const StarRating({super.key, required this.stars, this.size = 26});
+  final int stars;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Text(
+        '★' * stars + '☆' * (3 - stars),
+        semanticsLabel: '$stars de 3 estrellas',
+        style: TextStyle(fontSize: size, color: AppColors.yellow, letterSpacing: 4),
       );
 }

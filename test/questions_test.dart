@@ -23,6 +23,17 @@ void main() {
     }
   });
 
+  test('la respuesta correcta no es siempre el número del medio', () {
+    final r = Random(4);
+    final ranks = <int>{};
+    for (var i = 0; i < 300; i++) {
+      final q = additionQuestion(r, 10);
+      final sorted = q.options.map(int.parse).toList()..sort();
+      ranks.add(sorted.indexOf(int.parse(q.answer)));
+    }
+    expect(ranks, {0, 1, 2});
+  });
+
   test('inglés: el dibujo correcto corresponde a la palabra', () {
     final r = Random(2);
     for (final topic in topics) {
