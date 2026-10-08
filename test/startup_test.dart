@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets('la app se muestra aunque el motor de voz del teléfono no responda', (tester) async {
-    // main() cambia la pantalla de error; se restaura al terminar la prueba.
+    // startApp() cambia la pantalla de error; se restaura al terminar la prueba.
     final originalErrorBuilder = ErrorWidget.builder;
     // Teléfono cuyo motor de voz nunca termina de arrancar: ninguna llamada responde.
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
@@ -19,8 +19,8 @@ void main() {
     SharedPreferences.setMockInitialValues({});
 
     await tester.runAsync(() async {
-      // Antes, main() esperaba a la voz y nunca llegaba a mostrar la app (pantalla negra).
-      await app.main().timeout(const Duration(seconds: 5));
+      // Antes, el arranque esperaba a la voz y nunca llegaba a mostrar la app (pantalla negra).
+      await app.startApp().timeout(const Duration(seconds: 5));
     });
     await tester.pump();
 

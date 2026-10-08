@@ -9,6 +9,14 @@ import 'services/voice.dart';
 import 'theme.dart';
 
 Future<void> main() async {
+  await startApp();
+  // Tienda y anuncios cargan en segundo plano: nunca deben retrasar la primera pantalla.
+  Billing.instance.init();
+  Ads.init();
+}
+
+/// Lo necesario para mostrar la primera pantalla (separado de main() para probarlo).
+Future<void> startApp() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Si una pantalla falla, se muestra el error en vez de un recuadro vacío,
   // para poder mandar una captura y arreglarlo.
@@ -20,11 +28,9 @@ Future<void> main() async {
     // Si el progreso guardado no carga, se empieza de cero antes que no mostrar nada.
   }
   runApp(const AprendeJugandoApp());
-  // Voz, tienda y anuncios cargan en segundo plano: nunca deben retrasar la
-  // primera pantalla (si el motor de voz no responde, la app se quedaba en negro).
+  // La voz carga en segundo plano: si el motor de voz no responde, antes la app
+  // se quedaba en negro esperándolo.
   Voice.init();
-  Billing.instance.init();
-  Ads.init();
 }
 
 class AprendeJugandoApp extends StatelessWidget {
