@@ -4,6 +4,21 @@ import 'content.dart';
 
 const _objects = ['🍎', '⭐', '🐟', '🎈', '🍓', '🐞', '🚗', '🌸'];
 
+/// Cómo se pregunta por cada dibujo al contar: "¿Cuántas manzanas hay?".
+const _howMany = {
+  '🍎': '¿Cuántas manzanas hay?',
+  '⭐': '¿Cuántas estrellas hay?',
+  '🐟': '¿Cuántos peces hay?',
+  '🎈': '¿Cuántos globos hay?',
+  '🍓': '¿Cuántas fresas hay?',
+  '🐞': '¿Cuántas mariquitas hay?',
+  '🚗': '¿Cuántos carros hay?',
+  '🌸': '¿Cuántas flores hay?',
+};
+
+/// Todas las preguntas de contar (para grabar sus voces).
+Iterable<String> get howManyPhrases => _howMany.values;
+
 class Question {
   const Question({
     required this.prompt,
@@ -200,11 +215,11 @@ Question countQuestion(Random r, int max) {
   final obj = _objects[r.nextInt(_objects.length)];
   final options = _options(r, n, {for (var d = -2; d <= 2; d++) if (n + d > 0) n + d});
   return Question(
-    prompt: '¿Cuántos hay?',
+    prompt: _howMany[obj]!,
     addition: Addition(n, 0, obj, kind: AddKind.count),
     options: [for (final o in options) '$o'],
     answerIndex: options.indexOf(n),
-    speech: '¿Cuántos hay?',
+    speech: _howMany[obj]!,
     speechLang: 'es',
   );
 }

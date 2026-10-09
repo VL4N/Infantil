@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -144,19 +146,29 @@ class Voice {
     }
   }
 
+  /// Audio que está sonando: termina al acabar o cuando otro audio lo corta.
+  static Completer<void>? _playing;
+
+  static void _finishPlaying() {
+    final playing = _playing;
+    if (playing != null && !playing.isCompleted) playing.complete();
+  }
+
   static Future<void> _playClip(String clip) async {
+    _finishPlaying();
+    final playing = _playing = Completer<void>();
     try {
-      final player = _player ??= AudioPlayer();
-      await player.stop();
-      final done = player.onPlayerComplete.first;
-      await player.play(AssetSource(clip.substring('assets/'.length)));
-      await done.timeout(const Duration(seconds: 10));
+      final player = _player ??= AudioPlayer()..onPlayerComplete.listen((_) => _finishPlaying());
+      await player.stop().timeout(const Duration(seconds: 2));
+      await player.play(AssetSource(clip.substring('assets/'.length))).timeout(const Duration(seconds: 3));
+      await playing.future.timeout(const Duration(seconds: 10));
     } catch (_) {
       // Si el audio no se puede reproducir, se sigue sin voz antes que bloquear el juego.
     }
   }
 
   static Future<void> stop() async {
+    _finishPlaying();
     try {
       await _player?.stop().timeout(const Duration(seconds: 2));
     } catch (_) {}

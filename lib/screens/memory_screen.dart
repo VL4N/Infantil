@@ -53,10 +53,12 @@ class _MemoryScreenState extends State<MemoryScreen> {
         }
       case FlipResult.match:
         AppState.instance.addStar();
-        await Voice.say('Yes! ${card.word}', 'en');
-        if (!mounted || !_game.done) return;
+        // La partida se guarda en cuanto termina, antes de la voz, para no perderla si la voz se atasca.
+        final done = _game.done;
         final previousBest = AppState.instance.bestFor(widget.progressKey);
-        final earned = AppState.instance.recordGame(widget.progressKey, _game.stars);
+        final earned = done ? AppState.instance.recordGame(widget.progressKey, _game.stars) : 0;
+        await Voice.say('Yes! ${card.word}', 'en');
+        if (!mounted || !done) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(

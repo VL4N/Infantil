@@ -50,7 +50,7 @@ int mathAnswer(WidgetTester tester) {
   final n = RegExp(r'\d+').allMatches(prompt).map((m) => int.parse(m[0]!)).toList();
   if (prompt.contains('+ ?')) return n[1] - n[0];
   if (n.length == 2) return n[0] + n[1];
-  // "¿Cuántos hay?": se cuentan los dibujos.
+  // "¿Cuántas manzanas hay?": se cuentan los dibujos.
   return find.byKey(const Key('counted-object')).evaluate().length;
 }
 
