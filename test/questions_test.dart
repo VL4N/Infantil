@@ -5,6 +5,17 @@ import 'package:aprende_jugando/logic/questions.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  _countSaysWhat();
+
+  test('en una partida no se repiten preguntas ni palabras', () {
+    for (final (max, _) in mathLevels) {
+      _noRepeats('Sumar $max', (r) => mathQuestion(r, max));
+    }
+    for (final topic in topics) {
+      _noRepeats(topic.key, (r) => englishMixedQuestion(r, topic));
+    }
+  });
+
   test('las sumas respetan el nivel y tienen una sola respuesta correcta', () {
     final r = Random(1);
     for (final max in [5, 10, 20]) {
@@ -194,5 +205,25 @@ void main() {
     final english = [for (final s in steps) if (s.lang == 'en') s.text];
     expect(english, [q.optionWords![wrong], q.speech]);
     expect(steps.last.highlightAnswer, isTrue);
+  });
+}
+
+void _noRepeats(String name, QuestionMaker make) {
+  final r = Random(7);
+  for (var game = 0; game < 300; game++) {
+    final seen = <String>{};
+    final keys = [for (var i = 0; i < 10; i++) questionKey(freshQuestion(make, r, seen))];
+    expect(keys.toSet().length, keys.length, reason: '$name repite en una partida: $keys');
+  }
+}
+
+void _countSaysWhat() {
+  test('al contar, la voz dice qué se cuenta ("¿Cuántas manzanas hay?")', () {
+    final r = Random(3);
+    for (var i = 0; i < 200; i++) {
+      final q = countQuestion(r, 5);
+      expect(q.speech, matches(RegExp(r'^¿Cuánt[oa]s \w+ hay\?$')), reason: q.speech);
+      expect(q.prompt, q.speech);
+    }
   });
 }

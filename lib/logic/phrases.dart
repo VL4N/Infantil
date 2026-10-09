@@ -20,7 +20,7 @@ Set<(String, String)> allPhrases() {
     '¡Eres una estrella!',
     '¡Muy bien!',
     '¡Sigue practicando!',
-    '¿Cuántos hay?',
+    ...howManyPhrases,
     letsCount,
     'Casi. Tocaste',
     'Contemos juntos en inglés',

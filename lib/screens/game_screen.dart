@@ -38,6 +38,7 @@ class _GameScreenState extends State<GameScreen> {
   bool _locked = false;
   final Set<int> _wrong = {};
   final List<(int, Question)> _reviews = []; // (ronda en que vuelve, pregunta)
+  final Set<String> _seen = {}; // preguntas que ya salieron (para no repetirlas)
   String? _flash;
 
   // Explicación en curso.
@@ -66,7 +67,7 @@ class _GameScreenState extends State<GameScreen> {
       _q = _reviews.removeAt(i).$2;
       _isReview = true;
     } else {
-      _q = widget.makeQuestion(_random);
+      _q = freshQuestion(widget.makeQuestion, _random, _seen);
       _isReview = false;
     }
     _firstTry = true;
@@ -103,15 +104,17 @@ class _GameScreenState extends State<GameScreen> {
       _round++;
       _flash = _firstTry ? '⭐' : '👍';
     });
+    // La partida se guarda en cuanto termina, antes de la voz, para no perderla si la voz se atasca.
+    final finished = _round >= Config.roundsPerGame;
+    final previousBest = AppState.instance.bestFor(widget.progressKey);
+    final earned = finished ? AppState.instance.recordGame(widget.progressKey, AppState.starsFor(_correct)) : 0;
     await Voice.say(
       _q.speechLang == 'en' ? (_firstTry ? 'Yes! ${_q.speech}' : 'Very good! ${_q.speech}') : (_firstTry ? _q.answer : '¡Muy bien, ${_q.answer}!'),
       _q.speechLang,
     );
     await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
-    if (_round >= Config.roundsPerGame) {
-      final previousBest = AppState.instance.bestFor(widget.progressKey);
-      final earned = AppState.instance.recordGame(widget.progressKey, AppState.starsFor(_correct));
+    if (finished) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -208,7 +211,13 @@ class _GameScreenState extends State<GameScreen> {
                 else if (_counted != null)
                   _CountingOn(q.addition!, upTo: _counted!),
                 const SizedBox(height: 12),
-                Text(q.prompt, key: const Key('prompt'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 52, fontWeight: FontWeight.bold)),
+                Text(
+                  q.prompt,
+                  key: const Key('prompt'),
+                  textAlign: TextAlign.center,
+                  // "¿Cuántas manzanas hay?" es más largo que "2 + 3 = ?".
+                  style: TextStyle(fontSize: q.addition!.kind == AddKind.count ? 36 : 52, fontWeight: FontWeight.bold),
+                ),
               ],
               const SizedBox(height: 28),
               if (q.speechLang == 'en' && !q.pictureOptions)

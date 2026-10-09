@@ -1,7 +1,10 @@
 name: Android APK
 
+# Solo en la rama principal (o a mano): las ramas de trabajo se prueban antes con
+# `flutter analyze` y `flutter test`, y así no se gastan minutos compilando dos veces.
 on:
   push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -41,8 +44,8 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: assets/voz
-          key: voz-v1-claude-ljspeech-${{ steps.frases.outputs.hash }}
-          restore-keys: voz-v1-claude-ljspeech-
+          key: voz-v2-claude-ljspeech-${{ steps.frases.outputs.hash }}
+          restore-keys: voz-v2-claude-ljspeech-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
