@@ -1,7 +1,10 @@
 name: Android APK
 
+# Solo en la rama principal (o a mano): las ramas de trabajo se prueban antes con
+# `flutter analyze` y `flutter test`, y así no se gastan minutos compilando dos veces.
 on:
   push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
