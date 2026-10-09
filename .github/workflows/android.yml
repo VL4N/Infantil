@@ -41,8 +41,8 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: assets/voz
-          key: voz-v1-claude-ljspeech-${{ steps.frases.outputs.hash }}
-          restore-keys: voz-v1-claude-ljspeech-
+          key: voz-v2-claude-ljspeech-${{ steps.frases.outputs.hash }}
+          restore-keys: voz-v2-claude-ljspeech-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'

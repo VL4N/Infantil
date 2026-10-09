@@ -53,10 +53,14 @@ def main() -> None:
                 skipped += 1
                 continue
             wav = os.path.join(tmp, "frase.wav")
-            synthesize(voices[lang], text, wav, speed[lang])
+            # Con punto final la voz pronuncia entera una palabra suelta ("4" -> "cuatro.").
+            spoken = text if text[-1] in ".!?" else text + "."
+            synthesize(voices[lang], spoken, wav, speed[lang])
+            # Silencio al principio y al final: algunos teléfonos se comen el comienzo
+            # del audio al empezar a sonar (la "c" de "cuatro").
             subprocess.run(
-                ["ffmpeg", "-loglevel", "error", "-y", "-i", wav, "-ac", "1", "-ar", "22050",
-                 "-codec:a", "libmp3lame", "-b:a", "40k", out],
+                ["ffmpeg", "-loglevel", "error", "-y", "-i", wav, "-af", "adelay=250:all=1,apad=pad_dur=0.15",
+                 "-ac", "1", "-ar", "22050", "-codec:a", "libmp3lame", "-b:a", "40k", out],
                 check=True,
             )
             done += 1
