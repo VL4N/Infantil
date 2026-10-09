@@ -162,6 +162,25 @@ List<ExplainStep> explainMistake(Question q, int chosen) {
 
 typedef QuestionMaker = Question Function(Random random);
 
+/// Qué hace distinta a una pregunta: la suma, cuántos hay que contar o la palabra en inglés.
+/// Así en una partida no sale dos veces la misma fruta aunque cambie el tipo de pregunta.
+String questionKey(Question q) {
+  final add = q.addition;
+  if (add != null) return '${add.kind.name} ${add.a} ${add.b}';
+  if (q.count != null) return 'count ${q.count}';
+  return q.speech;
+}
+
+/// Una pregunta nueva que no haya salido todavía en la partida ([seen]).
+Question freshQuestion(QuestionMaker make, Random r, Set<String> seen) {
+  var q = make(r);
+  for (var i = 0; i < 100 && seen.contains(questionKey(q)); i++) {
+    q = make(r);
+  }
+  seen.add(questionKey(q));
+  return q;
+}
+
 /// Pregunta de un nivel de suma, mezclando formatos: en "Hasta 5" también se cuentan dibujos;
 /// en los niveles mayores también hay que encontrar el número que falta.
 Question mathQuestion(Random r, int max) {

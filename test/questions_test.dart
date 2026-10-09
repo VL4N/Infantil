@@ -5,6 +5,15 @@ import 'package:aprende_jugando/logic/questions.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('en una partida no se repiten preguntas ni palabras', () {
+    for (final (max, _) in mathLevels) {
+      _noRepeats('Sumar $max', (r) => mathQuestion(r, max));
+    }
+    for (final topic in topics) {
+      _noRepeats(topic.key, (r) => englishMixedQuestion(r, topic));
+    }
+  });
+
   test('las sumas respetan el nivel y tienen una sola respuesta correcta', () {
     final r = Random(1);
     for (final max in [5, 10, 20]) {
@@ -195,4 +204,13 @@ void main() {
     expect(english, [q.optionWords![wrong], q.speech]);
     expect(steps.last.highlightAnswer, isTrue);
   });
+}
+
+void _noRepeats(String name, QuestionMaker make) {
+  final r = Random(7);
+  for (var game = 0; game < 300; game++) {
+    final seen = <String>{};
+    final keys = [for (var i = 0; i < 10; i++) questionKey(freshQuestion(make, r, seen))];
+    expect(keys.toSet().length, keys.length, reason: '$name repite en una partida: $keys');
+  }
 }

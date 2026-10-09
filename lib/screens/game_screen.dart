@@ -38,6 +38,7 @@ class _GameScreenState extends State<GameScreen> {
   bool _locked = false;
   final Set<int> _wrong = {};
   final List<(int, Question)> _reviews = []; // (ronda en que vuelve, pregunta)
+  final Set<String> _seen = {}; // preguntas que ya salieron (para no repetirlas)
   String? _flash;
 
   // Explicación en curso.
@@ -66,7 +67,7 @@ class _GameScreenState extends State<GameScreen> {
       _q = _reviews.removeAt(i).$2;
       _isReview = true;
     } else {
-      _q = widget.makeQuestion(_random);
+      _q = freshQuestion(widget.makeQuestion, _random, _seen);
       _isReview = false;
     }
     _firstTry = true;
