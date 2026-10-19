@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'screens/menu_screen.dart';
+import 'screens/profile_screen.dart';
 import 'services/ads.dart';
 import 'services/app_state.dart';
 import 'services/billing.dart';
@@ -78,7 +79,7 @@ class _AprendeJugandoAppState extends State<AprendeJugandoApp> with WidgetsBindi
       title: 'Aprende Jugando',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(_palette),
-      home: const MenuScreen(),
+      home: AppState.instance.profiles.length > 1 ? const ProfilePickerScreen() : const MenuScreen(),
     );
   }
 }

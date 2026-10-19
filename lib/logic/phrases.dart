@@ -17,6 +17,7 @@ Set<(String, String)> allPhrases() {
     '¡Repasemos!',
     'Pide ayuda a papá o a mamá',
     'Busca las parejas',
+    '¿Quién va a jugar?',
     '¡Eres una estrella!',
     '¡Muy bien!',
     '¡Sigue practicando!',

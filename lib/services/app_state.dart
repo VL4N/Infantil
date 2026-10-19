@@ -4,12 +4,36 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config.dart';
 import '../logic/shop.dart';
 
+/// Un niño que juega en este teléfono. El primero (id 0) guarda su progreso con las claves
+/// de siempre, así no se pierde lo jugado antes de que hubiera perfiles.
+class Profile {
+  const Profile(this.id, this.name);
+  final int id;
+  final String name;
+}
+
 /// Estrellas, progreso por nivel/tema, resumen para papás y estado Premium, guardados en el teléfono.
+/// Todo es de cada niño (perfil), menos Premium y el recordatorio, que son del teléfono.
 class AppState extends ChangeNotifier {
   AppState._();
   static final instance = AppState._();
 
   SharedPreferences? _prefs;
+
+  /// Hasta cuántos niños pueden jugar en el mismo teléfono.
+  static const maxProfiles = 4;
+
+  final List<Profile> profiles = [];
+  int _profileId = 0;
+
+  Profile get profile => profiles.firstWhere((p) => p.id == _profileId, orElse: () => profiles.first);
+
+  /// Clave guardada del niño que está jugando.
+  String _k(String key) => _profileId == 0 ? key : 'p$_profileId:$key';
+
+  static final _otherProfileKey = RegExp(r'^p\d+:');
+  static bool _isGlobal(String key) =>
+      const {'premium', 'profiles', 'profile'}.contains(key) || key.startsWith('reminder');
 
   /// Estrellas que tiene para gastar en la tienda de Owlito.
   int stars = 0;
@@ -45,36 +69,107 @@ class AppState extends ChangeNotifier {
 
   Future<void> load() async {
     _prefs = await SharedPreferences.getInstance();
-    stars = _prefs!.getInt('stars') ?? 0;
+    premium = _prefs!.getBool('premium') ?? false;
+    profiles
+      ..clear()
+      ..addAll([
+        for (final p in _prefs!.getStringList('profiles') ?? const ['0|Jugador 1'])
+          Profile(int.parse(p.substring(0, p.indexOf('|'))), p.substring(p.indexOf('|') + 1)),
+      ]);
+    _profileId = _prefs!.getInt('profile') ?? profiles.first.id;
+    if (!profiles.any((p) => p.id == _profileId)) _profileId = profiles.first.id;
+    _loadProfile();
+  }
+
+  /// Lee el progreso del niño que está jugando.
+  void _loadProfile() {
+    final prefs = _prefs!;
+    stars = prefs.getInt(_k('stars')) ?? 0;
     // Antes de la tienda solo se guardaba 'stars': entonces todas eran ganadas.
-    starsEarned = _prefs!.getInt('starsEarned') ?? stars;
+    starsEarned = prefs.getInt(_k('starsEarned')) ?? stars;
     owned
       ..clear()
-      ..addAll(_prefs!.getStringList('owned') ?? const []);
-    wearing = _prefs!.getString('wearing');
-    feathers = _prefs!.getString('feathers');
-    premium = _prefs!.getBool('premium') ?? false;
+      ..addAll(prefs.getStringList(_k('owned')) ?? const []);
+    wearing = prefs.getString(_k('wearing'));
+    feathers = prefs.getString(_k('feathers'));
     best.clear();
     played.clear();
     misses.clear();
-    for (final key in _prefs!.getKeys()) {
-      if (key.startsWith('best:')) best[key.substring(5)] = _prefs!.getInt(key) ?? 0;
-      if (key.startsWith('played:')) played[key.substring(7)] = _prefs!.getInt(key) ?? 0;
-      if (key.startsWith('miss:')) misses[key.substring(5)] = _prefs!.getInt(key) ?? 0;
+    for (final key in prefs.getKeys()) {
+      final String k;
+      if (_profileId == 0) {
+        // El primer niño no tiene prefijo: se saltan las claves de los demás ("p1:", "p2:"…).
+        if (_otherProfileKey.hasMatch(key)) continue;
+        k = key;
+      } else {
+        if (!key.startsWith('p$_profileId:')) continue;
+        k = key.substring('p$_profileId:'.length);
+      }
+      if (k.startsWith('best:')) best[k.substring(5)] = prefs.getInt(key) ?? 0;
+      if (k.startsWith('played:')) played[k.substring(7)] = prefs.getInt(key) ?? 0;
+      if (k.startsWith('miss:')) misses[k.substring(5)] = prefs.getInt(key) ?? 0;
     }
-    _gamesDay = _prefs!.getString('gamesDay') ?? '';
-    _gamesOnDay = _prefs!.getInt('gamesOnDay') ?? 0;
+    _gamesDay = prefs.getString(_k('gamesDay')) ?? '';
+    _gamesOnDay = prefs.getInt(_k('gamesOnDay')) ?? 0;
     days
       ..clear()
-      ..addAll(_prefs!.getStringList('days') ?? const []);
+      ..addAll(prefs.getStringList(_k('days')) ?? const []);
     notifyListeners();
+  }
+
+  void _saveProfiles() => _prefs?.setStringList('profiles', [for (final p in profiles) '${p.id}|${p.name}']);
+
+  /// Cambia al niño que va a jugar.
+  void switchProfile(int id) {
+    if (!profiles.any((p) => p.id == id)) return;
+    _profileId = id;
+    _prefs?.setInt('profile', id);
+    if (_prefs != null) {
+      _loadProfile();
+    } else {
+      notifyListeners();
+    }
+  }
+
+  /// Agrega un niño (hasta [maxProfiles]). Devuelve su id, o null si ya no caben.
+  int? addProfile(String name) {
+    if (profiles.length >= maxProfiles) return null;
+    final id = profiles.map((p) => p.id).reduce((a, b) => a > b ? a : b) + 1;
+    profiles.add(Profile(id, name.trim().isEmpty ? 'Jugador ${profiles.length + 1}' : name.trim()));
+    _saveProfiles();
+    notifyListeners();
+    return id;
+  }
+
+  void renameProfile(int id, String name) {
+    final i = profiles.indexWhere((p) => p.id == id);
+    if (i < 0 || name.trim().isEmpty) return;
+    profiles[i] = Profile(id, name.trim());
+    _saveProfiles();
+    notifyListeners();
+  }
+
+  /// Borra un niño y todo su progreso (siempre queda al menos uno).
+  void removeProfile(int id) {
+    if (profiles.length <= 1 || !profiles.any((p) => p.id == id)) return;
+    profiles.removeWhere((p) => p.id == id);
+    for (final key in _prefs?.getKeys().toList() ?? const <String>[]) {
+      final mine = id == 0 ? !_isGlobal(key) && !_otherProfileKey.hasMatch(key) : key.startsWith('p$id:');
+      if (mine) _prefs!.remove(key);
+    }
+    _saveProfiles();
+    if (_profileId == id) {
+      switchProfile(profiles.first.id);
+    } else {
+      notifyListeners();
+    }
   }
 
   void addStar() {
     stars++;
     starsEarned++;
-    _prefs?.setInt('stars', stars);
-    _prefs?.setInt('starsEarned', starsEarned);
+    _prefs?.setInt(_k('stars'), stars);
+    _prefs?.setInt(_k('starsEarned'), starsEarned);
     notifyListeners();
   }
 
@@ -83,8 +178,8 @@ class AppState extends ChangeNotifier {
     if (owned.contains(id) || stars < price) return false;
     stars -= price;
     owned.add(id);
-    _prefs?.setInt('stars', stars);
-    _prefs?.setStringList('owned', owned.toList());
+    _prefs?.setInt(_k('stars'), stars);
+    _prefs?.setStringList(_k('owned'), owned.toList());
     wear(id);
     return true;
   }
@@ -95,10 +190,10 @@ class AppState extends ChangeNotifier {
     if (item == null || !owned.contains(id)) return;
     if (item.isFeathers) {
       feathers = id;
-      _prefs?.setString('feathers', id);
+      _prefs?.setString(_k('feathers'), id);
     } else {
       wearing = id;
-      _prefs?.setString('wearing', id);
+      _prefs?.setString(_k('wearing'), id);
     }
     notifyListeners();
   }
@@ -107,8 +202,8 @@ class AppState extends ChangeNotifier {
   void takeOffAll() {
     wearing = null;
     feathers = null;
-    _prefs?.remove('wearing');
-    _prefs?.remove('feathers');
+    _prefs?.remove(_k('wearing'));
+    _prefs?.remove(_k('feathers'));
     notifyListeners();
   }
 
@@ -132,16 +227,16 @@ class AppState extends ChangeNotifier {
   int recordGame(String key, int earned) {
     if (earned > bestFor(key)) {
       best[key] = earned;
-      _prefs?.setInt('best:$key', earned);
+      _prefs?.setInt(_k('best:$key'), earned);
     }
     played[key] = (played[key] ?? 0) + 1;
-    _prefs?.setInt('played:$key', played[key]!);
+    _prefs?.setInt(_k('played:$key'), played[key]!);
     final today = _day(now());
-    if (days.add(today)) _prefs?.setStringList('days', days.toList());
+    if (days.add(today)) _prefs?.setStringList(_k('days'), days.toList());
     _gamesOnDay = gamesToday + 1;
     _gamesDay = today;
-    _prefs?.setString('gamesDay', today);
-    _prefs?.setInt('gamesOnDay', _gamesOnDay);
+    _prefs?.setString(_k('gamesDay'), today);
+    _prefs?.setInt(_k('gamesOnDay'), _gamesOnDay);
     notifyListeners();
     return earned;
   }
@@ -149,7 +244,7 @@ class AppState extends ChangeNotifier {
   /// Anota que se equivocó con una palabra en inglés.
   void recordMiss(String word) {
     misses[word] = (misses[word] ?? 0) + 1;
-    _prefs?.setInt('miss:$word', misses[word]!);
+    _prefs?.setInt(_k('miss:$word'), misses[word]!);
   }
 
   /// Palabras en inglés con más errores, de más a menos.

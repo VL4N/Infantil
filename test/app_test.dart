@@ -360,6 +360,46 @@ void main() {
     expect(state.wearing, 'gorro');
   });
 
+  testWidgets('perfiles: cada niño tiene su progreso y lo de antes queda en el primero', (tester) async {
+    // Progreso guardado antes de que hubiera perfiles.
+    await startApp(tester, prefs: {'stars': 7, 'best:suma-5': 2, 'played:suma-5': 1});
+    final state = AppState.instance;
+    expect((state.profiles.length, state.profile.name, state.stars), (1, 'Jugador 1', 7));
+
+    final ana = state.addProfile('Ana')!;
+    state.switchProfile(ana);
+    expect((state.profile.name, state.stars, state.bestFor('suma-5'), state.played.length), ('Ana', 0, 0, 0));
+    state.addStar();
+    state.recordGame('ingles-frutas', 1);
+    state.recordMiss('apple');
+
+    state.switchProfile(0);
+    expect((state.stars, state.bestFor('suma-5'), state.bestFor('ingles-frutas'), state.misses.isEmpty), (7, 2, 0, true));
+
+    // Se guarda al reabrir la app, con el niño que estaba jugando.
+    state.switchProfile(ana);
+    await state.load();
+    expect((state.profile.name, state.stars, state.bestFor('ingles-frutas'), state.misses['apple']), ('Ana', 1, 1, 1));
+
+    // Al borrar a Ana se borra su progreso y vuelve el primero.
+    state.removeProfile(ana);
+    expect((state.profiles.length, state.profile.id, state.stars), (1, 0, 7));
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getKeys().where((k) => k.startsWith('p$ana:')), isEmpty);
+    expect(prefs.getInt('best:suma-5'), 2);
+  });
+
+  testWidgets('con varios niños, al abrir se elige quién juega', (tester) async {
+    await startApp(tester, prefs: {'profiles': ['0|Leo', '1|Ana'], 'p1:stars': 3});
+    await tester.pumpAndSettle();
+    expect(find.text('¿Quién va a jugar?'), findsOneWidget);
+    expect(spoken, contains('¿Quién va a jugar?'));
+    await tester.tap(find.text('Ana'));
+    await tester.pumpAndSettle();
+    expect(find.text('Juega: Ana'), findsOneWidget);
+    expect(find.text('3'), findsOneWidget, reason: 'las estrellas de Ana');
+  });
+
   test('las estrellas de una partida dependen de los aciertos a la primera', () {
     expect([for (final c in [0, 1, 4, 5, 7, 8, 10]) AppState.starsFor(c)], [0, 1, 1, 2, 2, 3, 3]);
   });

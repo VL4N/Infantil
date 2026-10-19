@@ -10,6 +10,7 @@ import 'memory_screen.dart';
 import 'parental_gate.dart';
 import 'parents_screen.dart';
 import 'premium_screen.dart';
+import 'profile_screen.dart';
 import 'shop_screen.dart';
 
 Future<void> openPremium(BuildContext context) async {
@@ -65,6 +66,7 @@ class MenuScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                 children: [
                   _Header(night: p.night, onStars: shop.onTap),
+                  if (AppState.instance.profiles.length > 1) _WhoPlays(),
                   const SizedBox(height: 18),
                   if (p.night) ..._nightBody(context, games) else ..._dayBody(context, games),
                   const SizedBox(height: 20),
@@ -182,6 +184,28 @@ class _Header extends StatelessWidget {
               onTap: onStars,
               child: StarCounter(stars: AppState.instance.stars),
             ),
+          ),
+        ],
+      );
+}
+
+/// Con varios niños: quién está jugando, y el botón para cambiar.
+class _WhoPlays extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Flexible(
+            child: Text('Juega: ${AppState.instance.profile.name}',
+                overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const ProfilePickerScreen()),
+              (_) => false,
+            ),
+            child: Text('Cambiar', style: TextStyle(fontSize: 18, color: context.palette.ink, decoration: TextDecoration.underline)),
           ),
         ],
       );
