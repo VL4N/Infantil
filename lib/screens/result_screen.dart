@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/ads.dart';
+import '../services/app_state.dart';
 import '../services/voice.dart';
 import '../theme.dart';
 
@@ -12,6 +13,7 @@ class ResultScreen extends StatefulWidget {
     required this.earned,
     required this.previousBest,
     required this.playAgain,
+    this.starsWon = 0,
   });
 
   /// Cómo le fue, p. ej. "8 de 10 a la primera."
@@ -22,6 +24,9 @@ class ResultScreen extends StatefulWidget {
   final int earned;
   final int previousBest;
   final Widget Function() playAgain;
+
+  /// Estrellas que sumó en esta partida al contador (una por acierto a la primera o por pareja).
+  final int starsWon;
 
   @override
   State<ResultScreen> createState() => _ResultScreenState();
@@ -56,6 +61,16 @@ class _ResultScreenState extends State<ResultScreen> {
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 26),
           ),
+          if (widget.starsWon > 0) ...[
+            const SizedBox(height: 12),
+            Text(
+              '+${widget.starsWon} ${widget.starsWon == 1 ? 'estrella' : 'estrellas'} para la tienda.'
+              ' Ahora tienes ${AppState.instance.stars}.',
+              key: const Key('stars-won'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+          ],
           const SizedBox(height: 20),
           // Único lugar con publicidad: al terminar, nunca durante el juego.
           const Center(child: AdBanner()),

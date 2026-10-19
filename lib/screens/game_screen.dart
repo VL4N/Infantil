@@ -123,6 +123,7 @@ class _GameScreenState extends State<GameScreen> {
             english: _q.speechLang == 'en',
             earned: earned,
             previousBest: previousBest,
+            starsWon: _correct,
             playAgain: () => GameScreen(title: widget.title, progressKey: widget.progressKey, makeQuestion: widget.makeQuestion),
           ),
         ),

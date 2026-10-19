@@ -9,7 +9,16 @@ class AppState extends ChangeNotifier {
   static final instance = AppState._();
 
   SharedPreferences? _prefs;
+
+  /// Estrellas que tiene para gastar en la tienda de Owlito.
   int stars = 0;
+
+  /// Todas las estrellas que ganó desde que instaló la app (no bajan al comprar).
+  int starsEarned = 0;
+
+  /// Cosas de la tienda que ya compró, y la que lleva puesta Owlito (null: ninguna).
+  final Set<String> owned = {};
+  String? wearing;
   bool premium = false;
 
   /// Mejor resultado (0 a 3 estrellas) de cada nivel de suma o tema de inglés.
@@ -30,6 +39,12 @@ class AppState extends ChangeNotifier {
   Future<void> load() async {
     _prefs = await SharedPreferences.getInstance();
     stars = _prefs!.getInt('stars') ?? 0;
+    // Antes de la tienda solo se guardaba 'stars': entonces todas eran ganadas.
+    starsEarned = _prefs!.getInt('starsEarned') ?? stars;
+    owned
+      ..clear()
+      ..addAll(_prefs!.getStringList('owned') ?? const []);
+    wearing = _prefs!.getString('wearing');
     premium = _prefs!.getBool('premium') ?? false;
     best.clear();
     played.clear();
@@ -49,7 +64,28 @@ class AppState extends ChangeNotifier {
 
   void addStar() {
     stars++;
+    starsEarned++;
     _prefs?.setInt('stars', stars);
+    _prefs?.setInt('starsEarned', starsEarned);
+    notifyListeners();
+  }
+
+  /// Compra algo de la tienda (y Owlito se lo pone). Devuelve false si no le alcanzan las estrellas.
+  bool buy(String id, int price) {
+    if (owned.contains(id) || stars < price) return false;
+    stars -= price;
+    owned.add(id);
+    _prefs?.setInt('stars', stars);
+    _prefs?.setStringList('owned', owned.toList());
+    wear(id);
+    return true;
+  }
+
+  /// Owlito se pone algo que ya compró (o se lo quita con null).
+  void wear(String? id) {
+    if (id != null && !owned.contains(id)) return;
+    wearing = id;
+    id == null ? _prefs?.remove('wearing') : _prefs?.setString('wearing', id);
     notifyListeners();
   }
 

@@ -34,7 +34,7 @@ void main() {
             const MethodChannel('flutter_tts'),
             (_) async => 1,
           );
-          SharedPreferences.setMockInitialValues({'premium': true});
+          SharedPreferences.setMockInitialValues({'premium': true, 'stars': 40, 'owned': ['gorro'], 'wearing': 'gorro'});
           await AppState.instance.load();
           await tester.pumpWidget(const AprendeJugandoApp());
           await tester.pumpAndSettle();
@@ -75,6 +75,10 @@ void main() {
 
           // Juego de parejas.
           await open('Parejas');
+          await back();
+
+          // Tienda de Owlito.
+          await open('Tienda');
           await back();
         });
       }

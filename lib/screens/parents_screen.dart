@@ -22,7 +22,7 @@ class ParentsScreen extends StatelessWidget {
         children: [
           Text('📅 Días jugados: ${state.days.length}', style: body),
           Text('🎮 Partidas terminadas: ${state.played.values.fold(0, (a, b) => a + b)}', style: body),
-          Text('⭐ Estrellas ganadas: ${state.stars}', style: body),
+          Text('⭐ Estrellas ganadas: ${state.starsEarned} (para gastar: ${state.stars})', style: body),
           const SizedBox(height: 24),
           const Text('Lo que practicó', style: title),
           const SizedBox(height: 8),
