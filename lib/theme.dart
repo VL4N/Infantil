@@ -278,20 +278,24 @@ class StarRating extends StatelessWidget {
 
 /// Owlito, el búho de la app. De día es café; de noche, morado.
 class Owl extends StatelessWidget {
-  const Owl({super.key, this.size = 100, this.night = false});
+  const Owl({super.key, this.size = 100, this.night = false, this.wearing});
   final double size;
   final bool night;
+
+  /// Lo que lleva puesto de la tienda (ver logic/shop.dart), o null.
+  final String? wearing;
 
   @override
   Widget build(BuildContext context) => Semantics(
         label: 'Owlito, el búho',
-        child: CustomPaint(size: Size(size, size * 112 / 104), painter: _OwlPainter(night)),
+        child: CustomPaint(size: Size(size, size * 112 / 104), painter: _OwlPainter(night, wearing)),
       );
 }
 
 class _OwlPainter extends CustomPainter {
-  _OwlPainter(this.night);
+  _OwlPainter(this.night, this.wearing);
   final bool night;
+  final String? wearing;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -325,10 +329,56 @@ class _OwlPainter extends CustomPainter {
         feet,
       );
     }
+    _paintAccessory(canvas);
+  }
+
+  void _paintAccessory(Canvas canvas) {
+    Paint fill(int c) => Paint()..color = Color(c);
+    switch (wearing) {
+      case 'gorro':
+        canvas.drawPath(Path()..moveTo(38, 24)..lineTo(66, 24)..lineTo(52, -6)..close(), fill(0xFFE5508E));
+        canvas.drawCircle(const Offset(48, 14), 2.6, fill(0xFFFFC93C));
+        canvas.drawCircle(const Offset(56, 18), 2.6, fill(0xFFFFC93C));
+        canvas.drawCircle(const Offset(52, 5), 2.4, fill(0xFFFFFFFF));
+        canvas.drawCircle(const Offset(52, -7), 5, fill(0xFFFFC93C));
+      case 'lentes':
+        final glass = fill(0xFF22223B);
+        canvas.drawRRect(RRect.fromLTRBR(20, 36, 50, 56, const Radius.circular(8)), glass);
+        canvas.drawRRect(RRect.fromLTRBR(54, 36, 84, 56, const Radius.circular(8)), glass);
+        canvas.drawRect(const Rect.fromLTRB(48, 41, 56, 45), glass);
+        canvas.drawLine(const Offset(25, 41), const Offset(31, 41), Paint()
+          ..color = const Color(0x88FFFFFF)
+          ..strokeWidth = 3
+          ..strokeCap = StrokeCap.round);
+      case 'mono':
+        final red = fill(0xFFE5484D);
+        canvas.drawPath(Path()..moveTo(52, 84)..lineTo(36, 76)..lineTo(36, 92)..close(), red);
+        canvas.drawPath(Path()..moveTo(52, 84)..lineTo(68, 76)..lineTo(68, 92)..close(), red);
+        canvas.drawCircle(const Offset(52, 84), 5, fill(0xFFB8323A));
+      case 'bufanda':
+        final blue = fill(0xFF2EC4A6);
+        canvas.drawRRect(RRect.fromLTRBR(22, 72, 82, 84, const Radius.circular(6)), blue);
+        canvas.drawRRect(RRect.fromLTRBR(60, 76, 72, 104, const Radius.circular(5)), blue);
+        final stripe = fill(0xFFFFFFFF);
+        for (final x in [32.0, 44.0, 56.0, 68.0]) {
+          canvas.drawRect(Rect.fromLTWH(x, 72, 4, 12), stripe);
+        }
+        canvas.drawRect(const Rect.fromLTWH(60, 94, 12, 4), stripe);
+      case 'corona':
+        canvas.drawPath(
+          Path()
+            ..moveTo(34, 26)..lineTo(34, 8)..lineTo(43, 17)..lineTo(52, 2)
+            ..lineTo(61, 17)..lineTo(70, 8)..lineTo(70, 26)..close(),
+          fill(0xFFFFC93C),
+        );
+        canvas.drawCircle(const Offset(52, 18), 3.2, fill(0xFFE5508E));
+        canvas.drawCircle(const Offset(41, 21), 2.4, fill(0xFF2EC4A6));
+        canvas.drawCircle(const Offset(63, 21), 2.4, fill(0xFF2EC4A6));
+    }
   }
 
   @override
-  bool shouldRepaint(_OwlPainter old) => old.night != night;
+  bool shouldRepaint(_OwlPainter old) => old.night != night || old.wearing != wearing;
 }
 
 /// Cielo de noche detrás del menú: estrellas y luna.

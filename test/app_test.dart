@@ -17,7 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Voz simulada: responde al instante, como si ya hubiera terminado de hablar.
 final spoken = <String>[];
 
-Future<void> startApp(WidgetTester tester, {bool premium = false}) async {
+Future<void> startApp(WidgetTester tester, {bool premium = false, Map<String, Object> prefs = const {}}) async {
   spoken.clear();
   tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(const MethodChannel('flutter_tts'), (call) async {
     if (call.method == 'speak') spoken.add('${call.arguments is Map ? call.arguments['text'] : call.arguments}');
@@ -25,7 +25,7 @@ Future<void> startApp(WidgetTester tester, {bool premium = false}) async {
   });
   Voice.useClips = false;
   await Voice.init();
-  SharedPreferences.setMockInitialValues({'premium': premium});
+  SharedPreferences.setMockInitialValues({'premium': premium, ...prefs});
   await AppState.instance.load();
   await tester.pumpWidget(const AprendeJugandoApp());
 }
@@ -94,8 +94,11 @@ void main() {
     expect(find.textContaining('10 de 10 a la primera'), findsOneWidget);
     expect(find.text('★★★'), findsOneWidget);
     expect(AppState.instance.stars, 10);
+    expect(find.textContaining('+10 estrellas para la tienda. Ahora tienes 10.'), findsOneWidget);
 
     // El mejor resultado queda guardado y se ve en el botón del nivel.
+    await tester.ensureVisible(find.text('🏠 Inicio'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('🏠 Inicio'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Sumar'));
@@ -276,6 +279,43 @@ void main() {
     await tester.tap(find.byKey(Key('option-${(q.answerIndex + 1) % 3}')));
     await waitFor(tester, seconds: 8);
     expect(AppState.instance.misses, {q.speech: 1});
+  });
+
+  testWidgets('tienda: con las estrellas se compran cosas para Owlito', (tester) async {
+    await startApp(tester, prefs: {'stars': 20});
+    final state = AppState.instance;
+    expect(state.starsEarned, 20, reason: 'las estrellas de antes de la tienda cuentan como ganadas');
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Tienda'), 100);
+    await tester.ensureVisible(find.text('Tienda'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tienda'));
+    await tester.pumpAndSettle();
+    expect(find.text('Tienes 20 estrellas para gastar'), findsOneWidget);
+
+    // No le alcanza para la corona (80).
+    await tester.scrollUntilVisible(find.byKey(const Key('item-corona')), 100);
+    expect(find.descendant(of: find.byKey(const Key('item-corona')), matching: find.text('60')), findsOneWidget);
+    expect(state.buy('corona', 80), isFalse);
+
+    // Compra el gorro (15): se descuentan, Owlito se lo pone y las ganadas no bajan.
+    await tester.scrollUntilVisible(find.byKey(const Key('item-gorro')), -100);
+    await tester.tap(find.descendant(of: find.byKey(const Key('item-gorro')), matching: find.text('Comprar')));
+    await tester.pumpAndSettle();
+    expect(state.stars, 5);
+    expect(state.starsEarned, 20);
+    expect(state.wearing, 'gorro');
+    expect(find.descendant(of: find.byKey(const Key('item-gorro')), matching: find.text('Puesto')), findsOneWidget);
+    expect(state.buy('gorro', 15), isFalse, reason: 'no se compra dos veces');
+
+    // Al ganar más, el contador sube en las dos cuentas; se guarda al reabrir.
+    state.addStar();
+    expect((state.stars, state.starsEarned), (6, 21));
+    await state.load();
+    expect((state.stars, state.starsEarned, state.wearing), (6, 21, 'gorro'));
+    expect(state.owned, {'gorro'});
+    state.wear(null);
+    expect(state.wearing, isNull);
   });
 
   test('las estrellas de una partida dependen de los aciertos a la primera', () {

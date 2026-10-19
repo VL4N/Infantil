@@ -10,6 +10,7 @@ import 'memory_screen.dart';
 import 'parental_gate.dart';
 import 'parents_screen.dart';
 import 'premium_screen.dart';
+import 'shop_screen.dart';
 
 Future<void> openPremium(BuildContext context) async {
   if (await parentalGate(context) && context.mounted) {
@@ -47,6 +48,8 @@ class MenuScreen extends StatelessWidget {
           () => _open(context, const EnglishTopicsScreen())),
       _Game('Parejas', 'Memoria en inglés', p.memory, p.memoryInk, const _CardsIcon(),
           () => _open(context, const EnglishTopicsScreen(memory: true))),
+      _Game('Tienda', 'Gasta tus estrellas en Owlito', p.star, const Color(0xFF3B2A55), const _StoreIcon(),
+          () => _open(context, const ShopScreen())),
     ];
     return Scaffold(
       body: Stack(
@@ -58,7 +61,7 @@ class MenuScreen extends StatelessWidget {
               builder: (context, _) => ListView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                 children: [
-                  _Header(night: p.night),
+                  _Header(night: p.night, onStars: games[3].onTap),
                   const SizedBox(height: 18),
                   if (p.night) ..._nightBody(context, games) else ..._dayBody(context, games),
                   const SizedBox(height: 20),
@@ -120,6 +123,8 @@ class MenuScreen extends StatelessWidget {
           ],
         ),
       ),
+      const SizedBox(height: 16),
+      _GameButton(games[3], wide: true),
     ];
   }
 
@@ -128,7 +133,7 @@ class MenuScreen extends StatelessWidget {
     final p = context.palette;
     return [
       const SizedBox(height: 8),
-      const Center(child: Owl(size: 110, night: true)),
+      Center(child: Owl(size: 110, night: true, wearing: AppState.instance.wearing)),
       const SizedBox(height: 10),
       const Text('¡Hola! ¿Qué aprendemos hoy?',
           textAlign: TextAlign.center, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, height: 1.15)),
@@ -152,18 +157,29 @@ class _Game {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.night});
+  const _Header({required this.night, required this.onStars});
   final bool night;
+
+  /// Tocar las estrellas abre la tienda.
+  final VoidCallback onStars;
 
   @override
   Widget build(BuildContext context) => Row(
         children: [
-          if (!night) ...[const Owl(size: 44), const SizedBox(width: 8)],
+          if (!night) ...[Owl(size: 44, wearing: AppState.instance.wearing), const SizedBox(width: 8)],
           Expanded(
             child: Text('Aprende Jugando',
                 style: TextStyle(fontSize: 22, fontWeight: night ? FontWeight.w900 : FontWeight.w700)),
           ),
-          StarCounter(stars: AppState.instance.stars),
+          Semantics(
+            button: true,
+            label: 'Tienda de Owlito',
+            child: InkWell(
+              borderRadius: BorderRadius.circular(99),
+              onTap: onStars,
+              child: StarCounter(stars: AppState.instance.stars),
+            ),
+          ),
         ],
       );
 }
@@ -307,6 +323,13 @@ class _CardsIcon extends StatelessWidget {
   const _CardsIcon();
   @override
   Widget build(BuildContext context) => Icon(Icons.style_rounded, size: 40, color: _iconInk(context, context.palette.memory));
+}
+
+class _StoreIcon extends StatelessWidget {
+  const _StoreIcon();
+  @override
+  Widget build(BuildContext context) =>
+      Icon(Icons.storefront_rounded, size: 40, color: _iconInk(context, shade(context.palette.star, .2)));
 }
 
 class _ParentLinks extends StatelessWidget {

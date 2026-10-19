@@ -65,6 +65,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
             builder: (_) => ResultScreen(
               earned: earned,
               previousBest: previousBest,
+              starsWon: _game.pairs,
               detail: 'Encontraste las ${_game.pairs} parejas en ${_game.tries} intentos.',
               english: true,
               playAgain: () => MemoryScreen(topic: widget.topic, progressKey: widget.progressKey),
