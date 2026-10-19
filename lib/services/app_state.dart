@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config.dart';
+import '../logic/shop.dart';
 
 /// Estrellas, progreso por nivel/tema, resumen para papás y estado Premium, guardados en el teléfono.
 class AppState extends ChangeNotifier {
@@ -19,6 +20,12 @@ class AppState extends ChangeNotifier {
   /// Cosas de la tienda que ya compró, y la que lleva puesta Owlito (null: ninguna).
   final Set<String> owned = {};
   String? wearing;
+
+  /// Color de plumas que compró y tiene puesto (null: el de siempre).
+  String? feathers;
+
+  /// Los colores de esas plumas, para dibujar a Owlito.
+  (int, int, int)? get featherColors => shopItem(feathers)?.feathers;
   bool premium = false;
 
   /// Mejor resultado (0 a 3 estrellas) de cada nivel de suma o tema de inglés.
@@ -45,6 +52,7 @@ class AppState extends ChangeNotifier {
       ..clear()
       ..addAll(_prefs!.getStringList('owned') ?? const []);
     wearing = _prefs!.getString('wearing');
+    feathers = _prefs!.getString('feathers');
     premium = _prefs!.getBool('premium') ?? false;
     best.clear();
     played.clear();
@@ -81,11 +89,26 @@ class AppState extends ChangeNotifier {
     return true;
   }
 
-  /// Owlito se pone algo que ya compró (o se lo quita con null).
-  void wear(String? id) {
-    if (id != null && !owned.contains(id)) return;
-    wearing = id;
-    id == null ? _prefs?.remove('wearing') : _prefs?.setString('wearing', id);
+  /// Owlito se pone algo que ya compró: un accesorio o un color de plumas.
+  void wear(String id) {
+    final item = shopItem(id);
+    if (item == null || !owned.contains(id)) return;
+    if (item.isFeathers) {
+      feathers = id;
+      _prefs?.setString('feathers', id);
+    } else {
+      wearing = id;
+      _prefs?.setString('wearing', id);
+    }
+    notifyListeners();
+  }
+
+  /// Owlito vuelve a como era: sin accesorio y con sus plumas de siempre.
+  void takeOffAll() {
+    wearing = null;
+    feathers = null;
+    _prefs?.remove('wearing');
+    _prefs?.remove('feathers');
     notifyListeners();
   }
 

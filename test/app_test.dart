@@ -346,8 +346,18 @@ void main() {
     await state.load();
     expect((state.stars, state.starsEarned, state.wearing), (6, 21, 'gorro'));
     expect(state.owned, {'gorro'});
-    state.wear(null);
-    expect(state.wearing, isNull);
+    // Plumas de colores: van aparte del accesorio.
+    state.addStar();
+    for (var i = 0; i < 20; i++) {
+      state.addStar();
+    }
+    expect(state.buy('azul', 20), isTrue);
+    expect((state.wearing, state.feathers), ('gorro', 'azul'));
+    expect(state.featherColors, isNotNull);
+    state.takeOffAll();
+    expect((state.wearing, state.feathers), (null, null));
+    state.wear('gorro');
+    expect(state.wearing, 'gorro');
   });
 
   test('las estrellas de una partida dependen de los aciertos a la primera', () {

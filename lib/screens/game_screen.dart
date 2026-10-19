@@ -316,7 +316,7 @@ class _HappyOwl extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (star) Icon(Icons.star_rounded, size: 70, color: p.star, shadows: const [Shadow(blurRadius: 8, color: Color(0x55000000))]),
-          Owl(size: 130, night: p.night, wearing: AppState.instance.wearing),
+          Owl(size: 130, night: p.night, wearing: AppState.instance.wearing, feathers: AppState.instance.featherColors),
         ],
       ),
     );

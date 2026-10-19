@@ -24,7 +24,7 @@ class ShopScreen extends StatelessWidget {
         builder: (context, _) => ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            Center(child: Owl(size: 130, night: p.night, wearing: state.wearing)),
+            Center(child: Owl(size: 130, night: p.night, wearing: state.wearing, feathers: state.featherColors)),
             const SizedBox(height: 12),
             Text(
               'Tienes ${state.stars} ${state.stars == 1 ? 'estrella' : 'estrellas'} para gastar',
@@ -49,11 +49,11 @@ class ShopScreen extends StatelessWidget {
                 );
               },
             ),
-            if (state.wearing != null) ...[
+            if (state.wearing != null || state.feathers != null) ...[
               const SizedBox(height: 16),
               Center(
                 child: TextButton(
-                  onPressed: () => state.wear(null),
+                  onPressed: state.takeOffAll,
                   child: Text('Quitarle todo a Owlito', style: TextStyle(fontSize: 16, color: p.ink)),
                 ),
               ),
@@ -74,7 +74,7 @@ class _ItemCard extends StatelessWidget {
     final state = AppState.instance;
     final p = context.palette;
     final owned = state.owned.contains(item.id);
-    final wearing = state.wearing == item.id;
+    final wearing = state.wearing == item.id || state.feathers == item.id;
     final missing = item.price - state.stars;
     final String label;
     var price = 0; // se muestra con una estrella al lado
@@ -116,7 +116,9 @@ class _ItemCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Owl(size: 72, night: p.night, wearing: item.id),
+          item.isFeathers
+              ? Owl(size: 72, night: p.night, feathers: item.feathers)
+              : Owl(size: 72, night: p.night, wearing: item.id),
           const SizedBox(height: 6),
           Text(item.name,
               textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: p.cardInk)),

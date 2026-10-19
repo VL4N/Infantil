@@ -286,24 +286,28 @@ class StarRating extends StatelessWidget {
 
 /// Owlito, el búho de la app. De día es café; de noche, morado.
 class Owl extends StatelessWidget {
-  const Owl({super.key, this.size = 100, this.night = false, this.wearing});
+  const Owl({super.key, this.size = 100, this.night = false, this.wearing, this.feathers});
   final double size;
   final bool night;
 
   /// Lo que lleva puesto de la tienda (ver logic/shop.dart), o null.
   final String? wearing;
 
+  /// Colores de plumas comprados (orejas, cuerpo, pecho), o null para los de siempre.
+  final (int, int, int)? feathers;
+
   @override
   Widget build(BuildContext context) => Semantics(
         label: 'Owlito, el búho',
-        child: CustomPaint(size: Size(size, size * 112 / 104), painter: _OwlPainter(night, wearing)),
+        child: CustomPaint(size: Size(size, size * 112 / 104), painter: _OwlPainter(night, wearing, feathers)),
       );
 }
 
 class _OwlPainter extends CustomPainter {
-  _OwlPainter(this.night, this.wearing);
+  _OwlPainter(this.night, this.wearing, this.feathers);
   final bool night;
   final String? wearing;
+  final (int, int, int)? feathers;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -312,9 +316,10 @@ class _OwlPainter extends CustomPainter {
     final ears = Path()
       ..moveTo(22, 26)..lineTo(30, 6)..lineTo(42, 22)..close()
       ..moveTo(82, 26)..lineTo(74, 6)..lineTo(62, 22)..close();
-    canvas.drawPath(ears, fill(night ? 0xFF6E5BD8 : 0xFF8A5A3B));
-    canvas.drawOval(Rect.fromCenter(center: const Offset(52, 64), width: 80, height: 88), fill(night ? 0xFF8270F0 : 0xFFA86B45));
-    canvas.drawOval(Rect.fromCenter(center: const Offset(52, 78), width: 52, height: 56), fill(night ? 0xFFB9AFFF : 0xFFF3D9B1));
+    final (earC, bodyC, bellyC) = feathers ?? (night ? (0xFF6E5BD8, 0xFF8270F0, 0xFFB9AFFF) : (0xFF8A5A3B, 0xFFA86B45, 0xFFF3D9B1));
+    canvas.drawPath(ears, fill(earC));
+    canvas.drawOval(Rect.fromCenter(center: const Offset(52, 64), width: 80, height: 88), fill(bodyC));
+    canvas.drawOval(Rect.fromCenter(center: const Offset(52, 78), width: 52, height: 56), fill(bellyC));
     final eye = fill(night ? 0xFFFFE9A8 : 0xFFFFFFFF);
     canvas.drawCircle(const Offset(36, 46), 15, eye);
     canvas.drawCircle(const Offset(68, 46), 15, eye);
@@ -386,7 +391,7 @@ class _OwlPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_OwlPainter old) => old.night != night || old.wearing != wearing;
+  bool shouldRepaint(_OwlPainter old) => old.night != night || old.wearing != wearing || old.feathers != feathers;
 }
 
 /// Cielo de noche detrás del menú: estrellas y luna.

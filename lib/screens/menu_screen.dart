@@ -136,7 +136,7 @@ class MenuScreen extends StatelessWidget {
     final p = context.palette;
     return [
       const SizedBox(height: 8),
-      Center(child: Owl(size: 110, night: true, wearing: AppState.instance.wearing)),
+      Center(child: Owl(size: 110, night: true, wearing: AppState.instance.wearing, feathers: AppState.instance.featherColors)),
       const SizedBox(height: 10),
       const Text('¡Hola! ¿Qué aprendemos hoy?',
           textAlign: TextAlign.center, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, height: 1.15)),
@@ -169,7 +169,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
         children: [
-          if (!night) ...[Owl(size: 44, wearing: AppState.instance.wearing), const SizedBox(width: 8)],
+          if (!night) ...[Owl(size: 44, wearing: AppState.instance.wearing, feathers: AppState.instance.featherColors), const SizedBox(width: 8)],
           Expanded(
             child: Text('Aprende Jugando',
                 style: TextStyle(fontSize: 22, fontWeight: night ? FontWeight.w900 : FontWeight.w700)),
