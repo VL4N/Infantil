@@ -17,11 +17,13 @@ Set<(String, String)> allPhrases() {
     '¡Repasemos!',
     'Pide ayuda a papá o a mamá',
     'Busca las parejas',
+    '¿Quién va a jugar?',
     '¡Eres una estrella!',
     '¡Muy bien!',
     '¡Sigue practicando!',
     ...howManyPhrases,
     letsCount,
+    countWhatsLeft,
     'Casi. Tocaste',
     'Contemos juntos en inglés',
     'Este dibujo en inglés se dice',
@@ -36,12 +38,12 @@ Set<(String, String)> allPhrases() {
   }
 
   // Números: en palabras (al contar) y en cifras (al acertar), y lo que tocó al equivocarse.
-  const maxNumber = 23; // la suma más grande (20) + 3 de las opciones incorrectas
-  for (var n = 0; n <= maxNumber; n++) {
+  for (var n = 0; n <= maxOption; n++) {
     es(numberWord(n));
     es('$n');
     es('¡Muy bien, $n!');
     es(touchedNumber('$n'));
+    es(touchTheNumber(n));
   }
 
   // Sumas de todos los niveles.
@@ -57,6 +59,20 @@ Set<(String, String)> allPhrases() {
       es('Empezamos en el $a, y contamos $b más.');
       es('$a más $b son $s. ¡Toca el $s!');
     }
+  }
+
+  // Restas de todos los niveles (frases cortas, para no grabar todas las combinaciones).
+  for (var a = 2; a <= maxSum; a++) {
+    es('Tenemos $a.');
+    es('Empezamos en el $a.');
+    for (var b = 1; b < a; b++) {
+      es('$a menos $b');
+      es('$a menos $b son ${a - b}.');
+    }
+  }
+  for (var b = 1; b < maxSum; b++) {
+    es('Quitamos $b.');
+    es('Contamos $b hacia atrás.');
   }
 
   // Inglés: cada palabra sola, y las felicitaciones con la palabra.

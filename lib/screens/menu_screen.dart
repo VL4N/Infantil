@@ -10,6 +10,7 @@ import 'memory_screen.dart';
 import 'parental_gate.dart';
 import 'parents_screen.dart';
 import 'premium_screen.dart';
+import 'profile_screen.dart';
 import 'shop_screen.dart';
 
 Future<void> openPremium(BuildContext context) async {
@@ -44,13 +45,16 @@ class MenuScreen extends StatelessWidget {
     final games = [
       _Game('Sumar', 'Hasta 5 · 10 · 20', p.math, p.mathInk, const _PlusIcon(),
           () => _open(context, const MathLevelsScreen())),
-      _Game('Inglés', '7 temas', p.english, p.englishInk, const _AbcIcon(),
+      _Game('Restar', 'Hasta 5 · 10 · 20', p.subtract, p.subtractInk, const _MinusIcon(),
+          () => _open(context, const MathLevelsScreen(subtract: true))),
+      _Game('Inglés', '${topics.length} temas', p.english, p.englishInk, const _AbcIcon(),
           () => _open(context, const EnglishTopicsScreen())),
       _Game('Parejas', 'Memoria en inglés', p.memory, p.memoryInk, const _CardsIcon(),
           () => _open(context, const EnglishTopicsScreen(memory: true))),
       _Game('Tienda', 'Gasta tus estrellas en Owlito', p.star, const Color(0xFF3B2A55), const _StoreIcon(),
           () => _open(context, const ShopScreen())),
     ];
+    final shop = games.last;
     return Scaffold(
       body: Stack(
         children: [
@@ -61,7 +65,8 @@ class MenuScreen extends StatelessWidget {
               builder: (context, _) => ListView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                 children: [
-                  _Header(night: p.night, onStars: games[3].onTap),
+                  _Header(night: p.night, onStars: shop.onTap),
+                  if (AppState.instance.profiles.length > 1) _WhoPlays(),
                   const SizedBox(height: 18),
                   if (p.night) ..._nightBody(context, games) else ..._dayBody(context, games),
                   const SizedBox(height: 20),
@@ -111,20 +116,20 @@ class MenuScreen extends StatelessWidget {
       const SizedBox(height: 18),
       const Text('¿Qué jugamos?', textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
       const SizedBox(height: 12),
-      _GameButton(games[0], wide: true),
-      const SizedBox(height: 16),
-      IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(child: _GameButton(games[1])),
-            const SizedBox(width: 14),
-            Expanded(child: _GameButton(games[2])),
-          ],
+      for (final pair in [games.sublist(0, 2), games.sublist(2, 4)]) ...[
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: _GameButton(pair[0])),
+              const SizedBox(width: 14),
+              Expanded(child: _GameButton(pair[1])),
+            ],
+          ),
         ),
-      ),
-      const SizedBox(height: 16),
-      _GameButton(games[3], wide: true),
+        const SizedBox(height: 16),
+      ],
+      _GameButton(games[4], wide: true),
     ];
   }
 
@@ -133,7 +138,7 @@ class MenuScreen extends StatelessWidget {
     final p = context.palette;
     return [
       const SizedBox(height: 8),
-      Center(child: Owl(size: 110, night: true, wearing: AppState.instance.wearing)),
+      Center(child: Owl(size: 110, night: true, wearing: AppState.instance.wearing, feathers: AppState.instance.featherColors)),
       const SizedBox(height: 10),
       const Text('¡Hola! ¿Qué aprendemos hoy?',
           textAlign: TextAlign.center, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, height: 1.15)),
@@ -166,7 +171,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
         children: [
-          if (!night) ...[Owl(size: 44, wearing: AppState.instance.wearing), const SizedBox(width: 8)],
+          if (!night) ...[Owl(size: 44, wearing: AppState.instance.wearing, feathers: AppState.instance.featherColors), const SizedBox(width: 8)],
           Expanded(
             child: Text('Aprende Jugando',
                 style: TextStyle(fontSize: 22, fontWeight: night ? FontWeight.w900 : FontWeight.w700)),
@@ -179,6 +184,28 @@ class _Header extends StatelessWidget {
               onTap: onStars,
               child: StarCounter(stars: AppState.instance.stars),
             ),
+          ),
+        ],
+      );
+}
+
+/// Con varios niños: quién está jugando, y el botón para cambiar.
+class _WhoPlays extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Flexible(
+            child: Text('Juega: ${AppState.instance.profile.name}',
+                overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const ProfilePickerScreen()),
+              (_) => false,
+            ),
+            child: Text('Cambiar', style: TextStyle(fontSize: 18, color: context.palette.ink, decoration: TextDecoration.underline)),
           ),
         ],
       );
@@ -312,6 +339,13 @@ class _PlusIcon extends StatelessWidget {
   Widget build(BuildContext context) => Icon(Icons.add_rounded, size: 40, color: _iconInk(context, context.palette.math));
 }
 
+class _MinusIcon extends StatelessWidget {
+  const _MinusIcon();
+  @override
+  Widget build(BuildContext context) =>
+      Icon(Icons.remove_rounded, size: 40, color: _iconInk(context, shade(context.palette.subtract, .12)));
+}
+
 class _AbcIcon extends StatelessWidget {
   const _AbcIcon();
   @override
@@ -356,13 +390,16 @@ class _ParentLinks extends StatelessWidget {
 }
 
 class MathLevelsScreen extends StatelessWidget {
-  const MathLevelsScreen({super.key});
+  const MathLevelsScreen({super.key, this.subtract = false});
+
+  /// Niveles de restas en lugar de sumas.
+  final bool subtract;
 
   @override
   Widget build(BuildContext context) {
     final state = AppState.instance;
     return Scaffold(
-      appBar: _appBar('Sumar'),
+      appBar: _appBar(subtract ? 'Restar' : 'Sumar'),
       body: ListenableBuilder(
         listenable: state,
         builder: (context, _) => ListView(
@@ -374,10 +411,12 @@ class MathLevelsScreen extends StatelessWidget {
               BigButton(
                 label: label,
                 locked: !state.canPlayMath(max),
-                stars: state.canPlayMath(max) ? state.bestFor(mathKey(max)) : null,
+                stars: state.canPlayMath(max) ? state.bestFor(subtract ? subtractKey(max) : mathKey(max)) : null,
                 onTap: () => state.canPlayMath(max)
                     ? Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => GameScreen(title: 'Sumar', progressKey: mathKey(max), makeQuestion: (r) => mathQuestion(r, max)),
+                        builder: (_) => subtract
+                            ? GameScreen(title: 'Restar', progressKey: subtractKey(max), makeQuestion: (r) => subtractionQuestion(r, max))
+                            : GameScreen(title: 'Sumar', progressKey: mathKey(max), makeQuestion: (r) => mathQuestion(r, max)),
                       ))
                     : _lockedTap(context),
               ),

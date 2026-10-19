@@ -40,12 +40,34 @@ const topics = [
     ('hello', '👋'), ('good morning', '🌅'), ('good night', '🌙'), ('thank you', '🙏'),
     ('yes', '👍'), ('no', '👎'), ('I love you', '❤️'), ('happy birthday', '🎂'),
   ]),
+  // Dibujos de emojis antiguos, para que se vean también en teléfonos con Android 7.
+  Topic('comida', '🍞 Comida', [
+    ('bread', '🍞'), ('milk', '🥛'), ('egg', '🥚'), ('cheese', '🧀'), ('rice', '🍚'),
+    ('pizza', '🍕'), ('cake', '🍰'), ('chicken', '🍗'), ('soup', '🍲'), ('ice cream', '🍦'),
+  ]),
+  Topic('casa', '🏠 Casa', [
+    ('house', '🏠'), ('bed', '🛏️'), ('door', '🚪'), ('sofa', '🛋️'), ('bathtub', '🛁'),
+    ('toilet', '🚽'), ('key', '🔑'), ('clock', '⏰'), ('TV', '📺'), ('light', '💡'),
+  ]),
+  Topic('escuela', '🎒 Escuela', [
+    ('school', '🏫'), ('book', '📖'), ('pencil', '✏️'), ('backpack', '🎒'), ('scissors', '✂️'),
+    ('crayon', '🖍️'), ('ruler', '📏'), ('paper', '📄'), ('computer', '💻'), ('bus', '🚌'),
+  ]),
+  Topic('clima', '🌦️ Clima', [
+    ('sun', '☀️'), ('rain', '🌧️'), ('cloud', '☁️'), ('snow', '❄️'),
+    ('wind', '🌬️'), ('rainbow', '🌈'), ('storm', '⛈️'), ('umbrella', '☂️'),
+  ]),
+  Topic('acciones', '🏃 Acciones', [
+    ('run', '🏃'), ('swim', '🏊'), ('sleep', '😴'), ('read', '📚'), ('sing', '🎤'),
+    ('dance', '💃'), ('write', '✍️'), ('play', '⚽'), ('eat', '🍴'), ('drink', '🍹'),
+  ]),
 ];
 
 const mathLevels = [(5, '🐣 Hasta 5'), (10, '🐥 Hasta 10'), (20, '🦅 Hasta 20')];
 
 /// Claves para guardar el progreso de cada nivel de suma y tema de inglés.
 String mathKey(int max) => 'suma-$max';
+String subtractKey(int max) => 'resta-$max';
 String topicKey(Topic topic) => 'ingles-${topic.key}';
 String memoryKey(Topic topic) => 'parejas-${topic.key}';
 
@@ -54,9 +76,9 @@ String progressLabel(String key) {
   final dash = key.indexOf('-');
   final kind = dash < 0 ? '' : key.substring(0, dash);
   final rest = key.substring(dash + 1);
-  if (kind == 'suma') {
+  if (kind == 'suma' || kind == 'resta') {
     final level = mathLevels.where((l) => '${l.$1}' == rest).firstOrNull;
-    return 'Sumar ${level?.$2 ?? rest}';
+    return '${kind == 'suma' ? 'Sumar' : 'Restar'} ${level?.$2 ?? rest}';
   }
   final topic = topics.where((t) => t.key == rest).firstOrNull;
   return '${kind == 'parejas' ? 'Parejas' : 'Inglés'} ${topic?.label ?? rest}';

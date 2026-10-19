@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../logic/content.dart';
 import '../services/app_state.dart';
+import '../services/reminder.dart';
 import '../theme.dart';
+import 'profile_screen.dart';
 
 /// Resumen para papás (detrás de la pregunta para adultos): qué practicó y qué le cuesta.
 class ParentsScreen extends StatelessWidget {
@@ -45,6 +47,134 @@ class ParentsScreen extends StatelessWidget {
             'Consejo: repasen juntos esas palabras en voz alta y jueguen ese tema en Parejas.',
             style: TextStyle(fontSize: 16, color: context.palette.ink),
           ),
+          const SizedBox(height: 32),
+          const _Profiles(),
+          const SizedBox(height: 32),
+          const _ReminderSetting(),
+        ],
+      ),
+    );
+  }
+}
+
+/// Niños que juegan en este teléfono: cada uno con su progreso, estrellas y tienda.
+class _Profiles extends StatelessWidget {
+  const _Profiles();
+
+  @override
+  Widget build(BuildContext context) {
+    final state = AppState.instance;
+    return ListenableBuilder(
+      listenable: state,
+      builder: (context, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('Niños que juegan', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          const Text('Cada uno tiene su propio progreso y sus estrellas. Este resumen es del que está jugando.',
+              style: TextStyle(fontSize: 15)),
+          for (final p in state.profiles)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(p.name, style: const TextStyle(fontSize: 18)),
+              subtitle: p.id == state.profile.id ? const Text('Está jugando ahora') : null,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: 'Cambiar nombre',
+                    icon: const Icon(Icons.edit_rounded),
+                    onPressed: () async {
+                      final name = await askName(context, initial: p.name);
+                      if (name != null) state.renameProfile(p.id, name);
+                    },
+                  ),
+                  if (state.profiles.length > 1)
+                    IconButton(
+                      tooltip: 'Borrar',
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      onPressed: () async {
+                        final ok = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('¿Borrar a ${p.name}?'),
+                            content: const Text('Se borra su progreso, sus estrellas y lo que compró en la tienda.'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+                              FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Borrar')),
+                            ],
+                          ),
+                        );
+                        if (ok == true) state.removeProfile(p.id);
+                      },
+                    ),
+                ],
+              ),
+            ),
+          if (state.profiles.length < AppState.maxProfiles)
+            OutlinedButton.icon(
+              icon: const Icon(Icons.person_add_alt_1_rounded),
+              label: const Text('Agregar otro niño o niña'),
+              onPressed: () async {
+                final name = await askName(context);
+                if (name != null) state.addProfile(name);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Aviso diario en el teléfono para jugar un ratito, a la hora que elijan los papás.
+class _ReminderSetting extends StatelessWidget {
+  const _ReminderSetting();
+
+  Future<void> _set(BuildContext context, {required bool on, int? hour}) async {
+    final state = AppState.instance;
+    if (!on) {
+      await Reminder.disable();
+      state.setReminder(on: false, hour: hour);
+      return;
+    }
+    final ok = await Reminder.enable(hour ?? state.reminderHour);
+    state.setReminder(on: ok, hour: hour);
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Para el recordatorio, permite las notificaciones de la app en los ajustes del teléfono.'),
+      ));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = AppState.instance;
+    return ListenableBuilder(
+      listenable: state,
+      builder: (context, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SwitchListTile(
+            key: const Key('reminder-switch'),
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Recordatorio diario', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            subtitle: const Text('Un aviso al día: "¡Owlito te espera!"'),
+            value: state.reminderOn,
+            onChanged: (on) => _set(context, on: on),
+          ),
+          if (state.reminderOn)
+            Row(
+              children: [
+                const Text('Hora:', style: TextStyle(fontSize: 18)),
+                const SizedBox(width: 12),
+                DropdownButton<int>(
+                  value: state.reminderHour,
+                  items: [
+                    for (var h = 8; h <= 20; h++) DropdownMenuItem(value: h, child: Text('${h > 12 ? h - 12 : h}:00 ${h < 12 ? 'a. m.' : 'p. m.'}')),
+                  ],
+                  onChanged: (h) => _set(context, on: true, hour: h),
+                ),
+              ],
+            ),
         ],
       ),
     );

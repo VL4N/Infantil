@@ -65,9 +65,18 @@ void main() {
           }
           await back();
 
+          // Restas: niveles.
+          await open('Restar');
+          for (final level in ['Hasta 5', 'Hasta 20']) {
+            await open(level);
+            await back();
+          }
+          await back();
+
           // Inglés: cada tema.
           await open('Inglés');
-          for (final topic in ['Animales', 'Colores', 'Saludos', 'Familia']) {
+          // En el orden de la lista (solo se hace scroll hacia abajo).
+          for (final topic in ['Animales', 'Colores', 'Familia', 'Saludos', 'Acciones']) {
             await open(topic);
             await back();
           }

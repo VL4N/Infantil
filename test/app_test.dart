@@ -7,6 +7,9 @@ import 'package:aprende_jugando/screens/game_screen.dart';
 import 'package:aprende_jugando/screens/memory_screen.dart';
 import 'dart:math';
 import 'package:aprende_jugando/services/app_state.dart';
+import 'package:aprende_jugando/screens/parents_screen.dart';
+import 'package:aprende_jugando/services/reminder.dart';
+import 'package:aprende_jugando/services/sfx.dart';
 import 'package:aprende_jugando/services/voice.dart';
 import 'package:aprende_jugando/theme.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +27,7 @@ Future<void> startApp(WidgetTester tester, {bool premium = false, Map<String, Ob
     return 1;
   });
   Voice.useClips = false;
+  Sfx.enabled = false;
   await Voice.init();
   SharedPreferences.setMockInitialValues({'premium': premium, ...prefs});
   await AppState.instance.load();
@@ -49,6 +53,7 @@ int mathAnswer(WidgetTester tester) {
   final prompt = tester.widget<Text>(find.byKey(const Key('prompt'))).data!;
   final n = RegExp(r'\d+').allMatches(prompt).map((m) => int.parse(m[0]!)).toList();
   if (prompt.contains('+ ?')) return n[1] - n[0];
+  if (prompt.contains('−')) return n[0] - n[1];
   if (n.length == 2) return n[0] + n[1];
   // "¿Cuántas manzanas hay?": se cuentan los dibujos.
   return find.byKey(const Key('counted-object')).evaluate().length;
@@ -89,6 +94,11 @@ void main() {
 
     for (var i = 0; i < Config.roundsPerGame; i++) {
       await tester.tap(find.widgetWithText(InkWell, '${mathAnswer(tester)}'));
+      if (i == 0) {
+        // Al acertar, Owlito salta de alegría.
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(find.byKey(const Key('happy-owl')), findsOneWidget);
+      }
       await waitFor(tester);
     }
     expect(find.textContaining('10 de 10 a la primera'), findsOneWidget);
@@ -129,6 +139,30 @@ void main() {
     await waitFor(tester, seconds: 20);
     expect(spoken.last, contains('¡Toca el $answer!'));
     if (a + answer <= 10) expect(find.byKey(const Key('counted-object')), findsNWidgets(a + answer));
+  });
+
+  testWidgets('restas: los que se van se ven tachados y al equivocarse cuenta lo que queda', (tester) async {
+    await startApp(tester);
+    await tester.pumpWidget(MaterialApp(
+      home: GameScreen(title: 'Restar', progressKey: 'resta-10', makeQuestion: (r) => subtractionQuestion(r, 10)),
+    ));
+    await tester.pumpAndSettle();
+    final prompt = tester.widget<Text>(find.byKey(const Key('prompt'))).data!;
+    final n = RegExp(r'\d+').allMatches(prompt).map((m) => int.parse(m[0]!)).toList();
+    final (a, b) = (n[0], n[1]);
+    expect(spoken.last, '$a menos $b');
+    expect(find.byKey(const Key('counted-object')), findsNWidgets(a));
+    expect(find.byKey(const Key('removed-object')), findsNWidgets(b));
+
+    final answer = mathAnswer(tester);
+    expect(answer, a - b);
+    final wrong = find.descendant(
+      of: find.byWidgetPredicate((w) => w is BigButton && w.label != '$answer' && w.key.toString().contains('option')),
+      matching: find.byType(InkWell),
+    ).first;
+    await tester.tap(wrong);
+    await waitFor(tester, seconds: 20);
+    expect(spoken, containsAllInOrder(['Tenemos $a.', 'Quitamos $b.', 'Contemos los que quedan.', '$a menos $b son $answer.', '¡Toca el $answer!']));
   });
 
   testWidgets('inglés: mira el dibujo, escucha las palabras y elige', (tester) async {
@@ -314,8 +348,80 @@ void main() {
     await state.load();
     expect((state.stars, state.starsEarned, state.wearing), (6, 21, 'gorro'));
     expect(state.owned, {'gorro'});
-    state.wear(null);
-    expect(state.wearing, isNull);
+    // Plumas de colores: van aparte del accesorio.
+    state.addStar();
+    for (var i = 0; i < 20; i++) {
+      state.addStar();
+    }
+    expect(state.buy('azul', 20), isTrue);
+    expect((state.wearing, state.feathers), ('gorro', 'azul'));
+    expect(state.featherColors, isNotNull);
+    state.takeOffAll();
+    expect((state.wearing, state.feathers), (null, null));
+    state.wear('gorro');
+    expect(state.wearing, 'gorro');
+  });
+
+  testWidgets('perfiles: cada niño tiene su progreso y lo de antes queda en el primero', (tester) async {
+    // Progreso guardado antes de que hubiera perfiles.
+    await startApp(tester, prefs: {'stars': 7, 'best:suma-5': 2, 'played:suma-5': 1});
+    final state = AppState.instance;
+    expect((state.profiles.length, state.profile.name, state.stars), (1, 'Jugador 1', 7));
+
+    final ana = state.addProfile('Ana')!;
+    state.switchProfile(ana);
+    expect((state.profile.name, state.stars, state.bestFor('suma-5'), state.played.length), ('Ana', 0, 0, 0));
+    state.addStar();
+    state.recordGame('ingles-frutas', 1);
+    state.recordMiss('apple');
+
+    state.switchProfile(0);
+    expect((state.stars, state.bestFor('suma-5'), state.bestFor('ingles-frutas'), state.misses.isEmpty), (7, 2, 0, true));
+
+    // Se guarda al reabrir la app, con el niño que estaba jugando.
+    state.switchProfile(ana);
+    await state.load();
+    expect((state.profile.name, state.stars, state.bestFor('ingles-frutas'), state.misses['apple']), ('Ana', 1, 1, 1));
+
+    // Al borrar a Ana se borra su progreso y vuelve el primero.
+    state.removeProfile(ana);
+    expect((state.profiles.length, state.profile.id, state.stars), (1, 0, 7));
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getKeys().where((k) => k.startsWith('p$ana:')), isEmpty);
+    expect(prefs.getInt('best:suma-5'), 2);
+  });
+
+  testWidgets('con varios niños, al abrir se elige quién juega', (tester) async {
+    await startApp(tester, prefs: {'profiles': ['0|Leo', '1|Ana'], 'p1:stars': 3});
+    await tester.pumpAndSettle();
+    expect(find.text('¿Quién va a jugar?'), findsOneWidget);
+    expect(spoken, contains('¿Quién va a jugar?'));
+    await tester.tap(find.text('Ana'));
+    await tester.pumpAndSettle();
+    expect(find.text('Juega: Ana'), findsOneWidget);
+    expect(find.text('3'), findsOneWidget, reason: 'las estrellas de Ana');
+  });
+
+  testWidgets('recordatorio diario: los papás lo activan y eligen la hora', (tester) async {
+    await startApp(tester);
+    final calls = <int?>[];
+    Reminder.debugSchedule = (hour) async {
+      calls.add(hour);
+      return true;
+    };
+    addTearDown(() => Reminder.debugSchedule = null);
+    await tester.pumpWidget(const MaterialApp(home: ParentsScreen()));
+    await tester.scrollUntilVisible(find.byKey(const Key('reminder-switch')), 200);
+    await tester.tap(find.byKey(const Key('reminder-switch')));
+    await tester.pumpAndSettle();
+    expect(AppState.instance.reminderOn, isTrue);
+    expect(calls, [17]);
+    await tester.tap(find.byKey(const Key('reminder-switch')));
+    await tester.pumpAndSettle();
+    expect(AppState.instance.reminderOn, isFalse);
+    expect(calls, [17, null]);
+    await AppState.instance.load();
+    expect(AppState.instance.reminderOn, isFalse);
   });
 
   test('las estrellas de una partida dependen de los aciertos a la primera', () {

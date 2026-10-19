@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../logic/content.dart';
 import '../logic/memory.dart';
 import '../services/app_state.dart';
+import '../services/sfx.dart';
 import '../services/voice.dart';
 import '../theme.dart';
 import 'result_screen.dart';
@@ -41,6 +42,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
     if (result == null) return;
     final card = _game.cards[i];
     setState(() {});
+    result == FlipResult.match ? Sfx.acierto() : Sfx.toque();
     switch (result) {
       case FlipResult.first:
       case FlipResult.miss:

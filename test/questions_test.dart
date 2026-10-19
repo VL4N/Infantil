@@ -5,11 +5,47 @@ import 'package:aprende_jugando/logic/questions.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('las restas respetan el nivel, no dan negativos y explican contando lo que queda', () {
+    final r = Random(11);
+    for (final (max, _) in mathLevels) {
+      for (var i = 0; i < 500; i++) {
+        final q = subtractionQuestion(r, max);
+        final add = q.addition!;
+        expect(add.a, inInclusiveRange(2, max));
+        expect(add.b, inInclusiveRange(1, add.a - 1));
+        expect(q.answer, '${add.a - add.b}');
+        expect(q.prompt, '${add.a} − ${add.b} = ?');
+        expect(q.options.toSet().length, 3);
+        expect(q.options.every((o) => int.parse(o) >= 0 && int.parse(o) <= maxOption), isTrue);
+        final wrong = (q.answerIndex + 1) % 3;
+        final steps = explainMistake(q, wrong);
+        expect(steps.last.text, '¡Toca el ${add.result}!');
+        expect(steps.last.highlightAnswer, isTrue);
+        if (add.drawable) {
+          // Cuenta 1, 2, 3… hasta lo que queda.
+          expect([for (final s in steps) if (s.count != null && !s.highlightAnswer) s.count],
+              [for (var n = 1; n <= add.result; n++) n]);
+        } else {
+          // Cuenta hacia atrás desde el primero.
+          expect(steps.where((s) => s.text == numberWord(add.result)).length, 1);
+        }
+      }
+    }
+    // Un error típico es sumar en vez de restar: a veces sale como opción.
+    var sumOffered = false;
+    for (var i = 0; i < 300 && !sumOffered; i++) {
+      final q = subtractionQuestion(r, 10);
+      sumOffered = q.options.contains('${q.addition!.sum}');
+    }
+    expect(sumOffered, isTrue);
+  });
+
   _countSaysWhat();
 
   test('en una partida no se repiten preguntas ni palabras', () {
     for (final (max, _) in mathLevels) {
       _noRepeats('Sumar $max', (r) => mathQuestion(r, max));
+      if (max > 5) _noRepeats('Restar $max', (r) => subtractionQuestion(r, max));
     }
     for (final topic in topics) {
       _noRepeats(topic.key, (r) => englishMixedQuestion(r, topic));

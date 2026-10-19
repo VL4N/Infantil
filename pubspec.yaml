@@ -39,6 +39,8 @@ dependencies:
   flutter_tts: ^4.2.5
   shared_preferences: ^2.5.6
   audioplayers: ^6.8.1
+  flutter_local_notifications: ^22.3.2
+  timezone: ^0.11.2
 
 dev_dependencies:
   flutter_test:
@@ -69,6 +71,7 @@ flutter:
   # (tool/generar_voces.py) y no se guardan en el repositorio.
   assets:
     - assets/voz/
+    - assets/sonidos/
 
   # Letras de la app (licencia SIL OFL, ver assets/fonts/OFL-*.txt):
   # Fredoka de día ("Caramelo") y Nunito de noche ("Noche estrellada").

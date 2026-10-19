@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icono de la notificación del recordatorio: la silueta de Owlito (Android la pinta de un color). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="104"
+    android:viewportHeight="112">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M22,26 L30,6 L42,22 Q52,19 62,22 L74,6 L82,26 Q92,40 92,64 Q92,108 52,108 Q12,108 12,64 Q12,40 22,26 Z M36,32 A14,14 0 1,0 36.01,32 Z M68,32 A14,14 0 1,0 68.01,32 Z" />
+</vector>

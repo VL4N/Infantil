@@ -1,12 +1,12 @@
 # Aprende Jugando 🧒
 
-App Android (Flutter) para que peques de 3 a 7 años practiquen **sumas** e **inglés**.
+App Android (Flutter) para que peques de 3 a 7 años practiquen **sumas**, **restas** e **inglés**.
 Modelo **freemium**: gratis con publicidad apta para niños, y Premium (pago único por Google Play) sin anuncios y con todo el contenido.
 
 | Gratis | Premium |
 |---|---|
-| Sumas hasta 5 y hasta 10 | Sumas hasta 20 |
-| Inglés: animales y frutas | Inglés: colores, números, cuerpo, ropa, familia y saludos |
+| Sumas y restas hasta 5 y hasta 10 | Sumas y restas hasta 20 |
+| Inglés: animales y frutas | Inglés: colores, números, cuerpo, ropa, familia, saludos, comida, casa, escuela, clima y acciones |
 | Un anuncio en la pantalla final de cada partida | Sin publicidad |
 
 - Sumas en tres formatos que se mezclan en cada partida: "2 + 3 = ?", "2 + ? = 5" (cuánto falta)
@@ -16,7 +16,14 @@ Modelo **freemium**: gratis con publicidad apta para niños, y Premium (pago ún
   y elegir el número en inglés (hasta 5; hasta 10 en el tema Números).
 - **Parejas en inglés**: juego de memoria con 8 cartas para juntar cada dibujo con su palabra
   (la palabra se lee en voz alta al destaparla). Usa los mismos temas y candados que Inglés.
+- **Restas** ("5 − 2 = ?"): los dibujos que se van aparecen tachados; si se equivoca, cuenta con él
+  los que quedan (o hacia atrás, en números grandes).
 - Cada partida da de 0 a 3 estrellas; el mejor resultado de cada nivel y tema se ve en el menú.
+- Cada respuesta correcta a la primera (y cada pareja) suma una estrella para la **Tienda de Owlito**:
+  gorro, lentes, corbatín, bufanda, corona y plumas de colores para el búho.
+- Al acertar suena una campanita y Owlito salta de alegría (sonidos propios, `tool/generar_sonidos.py`).
+- **Varios niños** en el mismo teléfono (hasta 4), cada uno con su progreso y sus estrellas.
+- **Recordatorio diario** opcional ("¡Owlito te espera!"), que activan los papás y eligen la hora.
 - Voz del teléfono: español latino (`es-US`) e inglés (`en-US`).
 - **Aprende de sus errores**: si se equivoca, no hay castigo. La voz le explica paso a paso
   (en sumas cuenta los dibujos con él uno a uno; en inglés le dice cómo se llama lo que tocó y cuál era),

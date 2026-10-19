@@ -32,12 +32,15 @@ void main() {
     }
   }
 
-  test('todas las frases de las sumas están grabadas', () {
+  test('todas las frases de las sumas y restas están grabadas', () {
     final r = Random(7);
     final missing = <String>{};
     for (final (max, _) in mathLevels) {
       for (var i = 0; i < 3000; i++) {
         for (final p in spoken(mathQuestion(r, max))) {
+          if (!catalog.contains(p)) missing.add('${p.$2}: ${p.$1}');
+        }
+        for (final p in spoken(subtractionQuestion(r, max))) {
           if (!catalog.contains(p)) missing.add('${p.$2}: ${p.$1}');
         }
       }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../config.dart';
 import '../logic/questions.dart';
 import '../services/app_state.dart';
+import '../services/sfx.dart';
 import '../services/voice.dart';
 import '../theme.dart';
 import 'result_screen.dart';
@@ -99,6 +100,7 @@ class _GameScreenState extends State<GameScreen> {
       _correct++;
       AppState.instance.addStar();
     }
+    Sfx.acierto();
     setState(() {
       _locked = true;
       _round++;
@@ -261,15 +263,7 @@ class _GameScreenState extends State<GameScreen> {
           ),
           if (_flash != null)
             IgnorePointer(
-              child: Center(
-                child: TweenAnimationBuilder<double>(
-                  key: ValueKey('$_round$_flash'),
-                  tween: Tween(begin: 0.5, end: 1),
-                  duration: const Duration(milliseconds: 300),
-                  builder: (_, s, child) => Transform.scale(scale: s, child: child),
-                  child: Text(_flash!, style: const TextStyle(fontSize: 110)),
-                ),
-              ),
+              child: Center(child: _HappyOwl(key: ValueKey('$_round$_flash'), star: _flash == '⭐')),
             ),
         ],
       ),
@@ -301,22 +295,62 @@ class _GameScreenState extends State<GameScreen> {
   }
 }
 
+/// Al acertar, Owlito salta de alegría (con una estrella si fue a la primera).
+class _HappyOwl extends StatelessWidget {
+  const _HappyOwl({super.key, required this.star});
+  final bool star;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return TweenAnimationBuilder<double>(
+      key: const Key('happy-owl'),
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 700),
+      builder: (_, t, child) => Transform.translate(
+        // Dos saltitos: sube y baja dos veces.
+        offset: Offset(0, -40 * (sin(t * 2 * pi)).abs() * (1 - t * .4)),
+        child: Transform.scale(scale: .6 + .4 * Curves.easeOutBack.transform(min(1, t * 2.5)), child: child),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (star) Icon(Icons.star_rounded, size: 70, color: p.star, shadows: const [Shadow(blurRadius: 8, color: Color(0x55000000))]),
+          Owl(size: 130, night: p.night, wearing: AppState.instance.wearing, feathers: AppState.instance.featherColors),
+        ],
+      ),
+    );
+  }
+}
+
 /// Dibujos de la suma. Al explicar, se numeran uno a uno mientras la voz cuenta.
 class _CountingPicture extends StatelessWidget {
   const _CountingPicture(this.add, {this.counted});
   final Addition add;
   final int? counted;
 
-  Widget _item(int n, Color accent) {
-    final done = counted != null && n <= counted!;
-    final current = counted == n;
+  Widget _item(int n, Color accent, {bool removed = false}) {
+    final done = !removed && counted != null && n <= counted!;
+    final current = !removed && counted == n;
+    final picture = Text(add.object, key: const Key('counted-object'), style: const TextStyle(fontSize: 34));
     return AnimatedScale(
       scale: current ? 1.3 : 1,
       duration: const Duration(milliseconds: 200),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(add.object, key: const Key('counted-object'), style: const TextStyle(fontSize: 34)),
+          if (removed)
+            // En la resta, los que se van se ven tachados.
+            Stack(
+              key: const Key('removed-object'),
+              alignment: Alignment.center,
+              children: [
+                Opacity(opacity: .35, child: picture),
+                const Icon(Icons.close_rounded, size: 40, color: AppColors.red),
+              ],
+            )
+          else
+            picture,
           SizedBox(
             height: 26,
             child: done
@@ -340,6 +374,15 @@ class _CountingPicture extends StatelessWidget {
         );
     if (add.kind == AddKind.count) {
       return Row(mainAxisAlignment: MainAxisAlignment.center, children: [group(1, add.a)]);
+    }
+    if (add.kind == AddKind.sub) {
+      return Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 4,
+        children: [
+          for (var n = 1; n <= add.a; n++) _item(n, accent, removed: n > add.result),
+        ],
+      );
     }
     // En "2 + ? = 5" el segundo grupo está escondido hasta que se cuenta en la explicación.
     final revealed = add.kind == AddKind.missing ? ((counted ?? 0) - add.a).clamp(0, add.b) : add.b;
@@ -374,14 +417,25 @@ class _CountingOn extends StatelessWidget {
       spacing: 6,
       runSpacing: 6,
       children: [
-        for (var n = add.a; n <= upTo; n++)
-          Chip(
-            backgroundColor: n == add.a ? p.accent : (n == upTo ? AppColors.yellow : p.card),
-            label: Text(
-              n == add.a ? '$n' : '+1 → $n',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: n == add.a ? p.accentInk : (n == upTo ? const Color(0xFF3B2A55) : p.cardInk)),
+        if (add.kind == AddKind.sub)
+          // Resta grande: contar hacia atrás desde el primer número (15 → 14 → 13…).
+          for (var n = add.a; n >= upTo; n--)
+            Chip(
+              backgroundColor: n == add.a ? p.accent : (n == upTo ? AppColors.yellow : p.card),
+              label: Text(
+                n == add.a ? '$n' : '−1 → $n',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: n == add.a ? p.accentInk : (n == upTo ? const Color(0xFF3B2A55) : p.cardInk)),
+              ),
+            )
+        else
+          for (var n = add.a; n <= upTo; n++)
+            Chip(
+              backgroundColor: n == add.a ? p.accent : (n == upTo ? AppColors.yellow : p.card),
+              label: Text(
+                n == add.a ? '$n' : '+1 → $n',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: n == add.a ? p.accentInk : (n == upTo ? const Color(0xFF3B2A55) : p.cardInk)),
+              ),
             ),
-          ),
       ],
     );
   }
