@@ -62,7 +62,6 @@ class _GateDialogState extends State<_GateDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: AppColors.bg,
       scrollable: true,
       title: const Text('Pregunta para adultos', textAlign: TextAlign.center, style: TextStyle(fontSize: 18)),
       content: Column(

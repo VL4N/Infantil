@@ -111,7 +111,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
     final matched = _game.matched.contains(i);
     return Material(
       key: Key('card-$i'),
-      color: matched ? AppColors.green : (up ? Colors.white : AppColors.blue),
+      color: matched ? AppColors.green : (up ? Colors.white : context.palette.accent),
       borderRadius: BorderRadius.circular(20),
       elevation: 3,
       child: InkWell(
@@ -126,7 +126,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
                 style: TextStyle(
                   fontSize: up && card.showsPicture ? 56 : 34,
                   fontWeight: FontWeight.bold,
-                  color: matched ? Colors.white : AppColors.ink,
+                  color: matched ? Colors.white : const Color(0xFF3B2A55),
                 ),
               ),
             ),

@@ -57,7 +57,7 @@ int mathAnswer(WidgetTester tester) {
 void main() {
   testWidgets('el nivel de pago pide la pregunta para adultos', (tester) async {
     await startApp(tester);
-    await tester.tap(find.text('➕  Sumar'));
+    await tester.tap(find.text('Sumar'));
     await tester.pumpAndSettle();
     expect(find.text('🦅 Hasta 20 🔒'), findsOneWidget);
     expect(find.text('🐣 Hasta 5'), findsOneWidget);
@@ -75,14 +75,14 @@ void main() {
 
   testWidgets('con Premium no hay candados', (tester) async {
     await startApp(tester, premium: true);
-    await tester.tap(find.text('🇬🇧  Inglés'));
+    await tester.tap(find.text('Inglés'));
     await tester.pumpAndSettle();
     expect(find.textContaining('🔒'), findsNothing);
   });
 
   testWidgets('una partida completa de sumas termina con estrellas', (tester) async {
     await startApp(tester);
-    await tester.tap(find.text('➕  Sumar'));
+    await tester.tap(find.text('Sumar'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('🐣 Hasta 5'));
     await tester.pumpAndSettle();
@@ -98,7 +98,7 @@ void main() {
     // El mejor resultado queda guardado y se ve en el botón del nivel.
     await tester.tap(find.text('🏠 Inicio'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('➕  Sumar'));
+    await tester.tap(find.text('Sumar'));
     await tester.pumpAndSettle();
     expect(find.descendant(of: find.widgetWithText(BigButton, '🐣 Hasta 5'), matching: find.text('★★★')), findsOneWidget);
     expect(find.descendant(of: find.widgetWithText(BigButton, '🐥 Hasta 10'), matching: find.text('☆☆☆')), findsOneWidget);
@@ -158,7 +158,7 @@ void main() {
 
   testWidgets('parejas: se juega desde el menú y guarda las estrellas', (tester) async {
     await startApp(tester);
-    await tester.tap(find.text('🃏  Parejas en inglés'));
+    await tester.tap(find.text('Parejas'));
     await tester.pumpAndSettle();
     expect(find.text('🍎 Frutas'), findsOneWidget);
     expect(find.text('🎨 Colores 🔒'), findsOneWidget);
@@ -244,8 +244,10 @@ void main() {
     addTearDown(() => state.now = DateTime.now);
 
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('📊 Resumen para papás'), 100);
-    await tester.tap(find.text('📊 Resumen para papás'));
+    await tester.scrollUntilVisible(find.text('Resumen para papás'), 100);
+    await tester.ensureVisible(find.text('Resumen para papás'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Resumen para papás'));
     await tester.pumpAndSettle();
     await answerGate(tester, correctly: true);
 

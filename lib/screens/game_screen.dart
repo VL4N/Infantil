@@ -175,7 +175,7 @@ class _GameScreenState extends State<GameScreen> {
                   value: _round / Config.roundsPerGame,
                   minHeight: 14,
                   color: AppColors.green,
-                  backgroundColor: Colors.white,
+                  backgroundColor: context.palette.track,
                 ),
               ),
               const SizedBox(height: 12),
@@ -200,8 +200,8 @@ class _GameScreenState extends State<GameScreen> {
                 const SizedBox(height: 12),
                 BigButton(
                   label: '🔊 ${q.prompt}',
-                  color: AppColors.blue,
-                  textColor: Colors.white,
+                  color: context.palette.accent,
+                  textColor: context.palette.accentInk,
                   fontSize: 32,
                   onTap: _explaining ? null : () => Voice.say(q.speech, 'en'),
                 ),
@@ -233,7 +233,7 @@ class _GameScreenState extends State<GameScreen> {
                           key: Key('listen-$i'),
                           label: '🔊',
                           fontSize: 28,
-                          color: AppColors.blue,
+                          color: context.palette.accent,
                           padding: const EdgeInsets.all(18),
                           onTap: _explaining ? null : () => Voice.say(q.options[i], 'en'),
                         ),
@@ -283,16 +283,20 @@ class _GameScreenState extends State<GameScreen> {
           label: _q.options[i],
           fontSize: fontSize,
           color: _optionColor(i),
-          textColor: _wrong.contains(i) || (_locked && i == _q.answerIndex) ? Colors.white : AppColors.ink,
+          textColor: _wrong.contains(i) || (_locked && i == _q.answerIndex)
+              ? Colors.white
+              : i == _q.answerIndex && _highlightAnswer
+                  ? const Color(0xFF3B2A55)
+                  : null,
           onTap: () => _tap(i),
         ),
       );
 
-  Color _optionColor(int i) {
-    if (_wrong.contains(i)) return Colors.orange.shade300;
+  Color? _optionColor(int i) {
+    if (_wrong.contains(i)) return AppColors.orange;
     if (i == _q.answerIndex && _locked) return AppColors.green;
     if (i == _q.answerIndex && _highlightAnswer) return AppColors.yellow;
-    return Colors.white;
+    return null;
   }
 }
 
@@ -302,7 +306,7 @@ class _CountingPicture extends StatelessWidget {
   final Addition add;
   final int? counted;
 
-  Widget _item(int n) {
+  Widget _item(int n, Color accent) {
     final done = counted != null && n <= counted!;
     final current = counted == n;
     return AnimatedScale(
@@ -315,7 +319,7 @@ class _CountingPicture extends StatelessWidget {
           SizedBox(
             height: 26,
             child: done
-                ? Text('$n', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.blue))
+                ? Text('$n', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: accent))
                 : null,
           ),
         ],
@@ -325,11 +329,12 @@ class _CountingPicture extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = context.palette.accent;
     Widget group(int from, int count) => Flexible(
           child: Wrap(
             alignment: WrapAlignment.center,
             spacing: 4,
-            children: [for (var n = from; n < from + count; n++) _item(n)],
+            children: [for (var n = from; n < from + count; n++) _item(n, accent)],
           ),
         );
     if (add.kind == AddKind.count) {
@@ -341,12 +346,12 @@ class _CountingPicture extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         group(1, add.a),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10),
-          child: Text('+', style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: AppColors.blue)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Text('+', style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: accent)),
         ),
         if (revealed == 0)
-          const Text('?', style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: AppColors.blue))
+          Text('?', style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: accent))
         else
           group(add.a + 1, revealed),
       ],
@@ -362,6 +367,7 @@ class _CountingOn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.palette;
     return Wrap(
       alignment: WrapAlignment.center,
       spacing: 6,
@@ -369,10 +375,10 @@ class _CountingOn extends StatelessWidget {
       children: [
         for (var n = add.a; n <= upTo; n++)
           Chip(
-            backgroundColor: n == add.a ? AppColors.blue : (n == upTo ? AppColors.yellow : Colors.white),
+            backgroundColor: n == add.a ? p.accent : (n == upTo ? AppColors.yellow : p.card),
             label: Text(
               n == add.a ? '$n' : '+1 → $n',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: n == add.a ? Colors.white : AppColors.ink),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: n == add.a ? p.accentInk : (n == upTo ? const Color(0xFF3B2A55) : p.cardInk)),
             ),
           ),
       ],
@@ -401,7 +407,7 @@ class _CountingInEnglish extends StatelessWidget {
                 SizedBox(
                   height: 24,
                   child: counted != null && i < counted!
-                      ? Text(englishNumbers[i], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.blue))
+                      ? Text(englishNumbers[i], style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: context.palette.accent))
                       : null,
                 ),
               ],

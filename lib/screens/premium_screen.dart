@@ -39,8 +39,8 @@ class PremiumScreen extends StatelessWidget {
             if (billing.error != null)
               Text(billing.error!, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.red, fontSize: 16)),
             const SizedBox(height: 12),
-            const Text('El pago se hace de forma segura con Google Play.',
-                textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.black54)),
+            Text('El pago se hace de forma segura con Google Play.',
+                textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: context.palette.inkSoft)),
           ],
         ),
       ),

@@ -19,7 +19,7 @@ void main() {
     // main() cambia la pantalla de error; se restaura al final de la prueba.
     final originalErrorBuilder = ErrorWidget.builder;
     await app.main();
-    await waitFor(tester, find.text('¿Qué quieres aprender hoy?'));
+    await waitFor(tester, find.text('Aprende Jugando'));
 
     // Sumas.
     await tester.tap(find.textContaining('Sumar'));
@@ -29,7 +29,7 @@ void main() {
     await tester.pageBack();
     await tester.pump(const Duration(seconds: 1));
     await tester.pageBack();
-    await waitFor(tester, find.text('¿Qué quieres aprender hoy?'));
+    await waitFor(tester, find.text('Aprende Jugando'));
 
     // Inglés.
     await tester.tap(find.textContaining('Inglés').first);
