@@ -7,6 +7,7 @@ import 'package:aprende_jugando/screens/game_screen.dart';
 import 'package:aprende_jugando/screens/memory_screen.dart';
 import 'dart:math';
 import 'package:aprende_jugando/services/app_state.dart';
+import 'package:aprende_jugando/services/sfx.dart';
 import 'package:aprende_jugando/services/voice.dart';
 import 'package:aprende_jugando/theme.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,7 @@ Future<void> startApp(WidgetTester tester, {bool premium = false, Map<String, Ob
     return 1;
   });
   Voice.useClips = false;
+  Sfx.enabled = false;
   await Voice.init();
   SharedPreferences.setMockInitialValues({'premium': premium, ...prefs});
   await AppState.instance.load();
@@ -90,6 +92,11 @@ void main() {
 
     for (var i = 0; i < Config.roundsPerGame; i++) {
       await tester.tap(find.widgetWithText(InkWell, '${mathAnswer(tester)}'));
+      if (i == 0) {
+        // Al acertar, Owlito salta de alegría.
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(find.byKey(const Key('happy-owl')), findsOneWidget);
+      }
       await waitFor(tester);
     }
     expect(find.textContaining('10 de 10 a la primera'), findsOneWidget);

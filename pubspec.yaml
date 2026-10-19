@@ -69,6 +69,7 @@ flutter:
   # (tool/generar_voces.py) y no se guardan en el repositorio.
   assets:
     - assets/voz/
+    - assets/sonidos/
 
   # Letras de la app (licencia SIL OFL, ver assets/fonts/OFL-*.txt):
   # Fredoka de día ("Caramelo") y Nunito de noche ("Noche estrellada").

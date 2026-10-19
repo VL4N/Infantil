@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../logic/shop.dart';
 import '../services/app_state.dart';
+import '../services/sfx.dart';
 import '../services/voice.dart';
 import '../theme.dart';
 
@@ -92,7 +93,10 @@ class _ItemCard extends StatelessWidget {
       label = 'Comprar';
       price = item.price;
       onTap = () {
-        if (state.buy(item.id, item.price)) Voice.say('¡Muy bien!', 'es');
+        if (state.buy(item.id, item.price)) {
+          Sfx.celebracion();
+          Voice.say('¡Muy bien!', 'es');
+        }
       };
     } else {
       label = 'Te faltan';

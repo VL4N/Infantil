@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/ads.dart';
 import '../services/app_state.dart';
+import '../services/sfx.dart';
 import '../services/voice.dart';
 import '../theme.dart';
 
@@ -42,6 +43,7 @@ class _ResultScreenState extends State<ResultScreen> {
   @override
   void initState() {
     super.initState();
+    Sfx.celebracion();
     widget.english ? Voice.say('Great job!', 'en') : Voice.say(_message, 'es');
   }
 
