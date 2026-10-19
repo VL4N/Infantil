@@ -24,7 +24,7 @@ void main() {
     });
     await tester.pump();
 
-    expect(find.text('¿Qué quieres aprender hoy?'), findsOneWidget);
+    expect(find.text('Aprende Jugando'), findsOneWidget);
 
     // Sin voz lista, hablar no bloquea el juego.
     await tester.runAsync(() => Voice.say('hola', 'es').timeout(const Duration(seconds: 1)));

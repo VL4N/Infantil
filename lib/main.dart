@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -33,15 +35,49 @@ Future<void> startApp() async {
   Voice.init();
 }
 
-class AprendeJugandoApp extends StatelessWidget {
+class AprendeJugandoApp extends StatefulWidget {
   const AprendeJugandoApp({super.key});
+
+  @override
+  State<AprendeJugandoApp> createState() => _AprendeJugandoAppState();
+}
+
+/// De día la app usa el estilo "Caramelo" y de noche "Noche estrellada": se revisa la hora
+/// cada minuto y al volver a la app.
+class _AprendeJugandoAppState extends State<AprendeJugandoApp> with WidgetsBindingObserver {
+  Palette _palette = Palette.at(DateTime.now());
+  Timer? _clock;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _clock = Timer.periodic(const Duration(minutes: 1), (_) => _checkTime());
+  }
+
+  @override
+  void dispose() {
+    _clock?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _checkTime();
+  }
+
+  void _checkTime() {
+    final palette = Palette.at(DateTime.now());
+    if (palette != _palette) setState(() => _palette = palette);
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Aprende Jugando',
       debugShowCheckedModeBanner: false,
-      theme: buildTheme(),
+      theme: buildTheme(_palette),
       home: const MenuScreen(),
     );
   }
@@ -57,14 +93,14 @@ class ErrorInfo extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.ltr,
       child: ColoredBox(
-        color: AppColors.bg,
+        color: Palette.day.bg,
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
               '😕 Algo falló. Haz una captura y envíala:\n\n$message',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16, color: AppColors.ink, decoration: TextDecoration.none),
+              style: TextStyle(fontSize: 16, color: Palette.day.ink, decoration: TextDecoration.none),
             ),
           ),
         ),

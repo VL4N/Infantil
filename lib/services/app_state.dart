@@ -39,6 +39,8 @@ class AppState extends ChangeNotifier {
       if (key.startsWith('played:')) played[key.substring(7)] = _prefs!.getInt(key) ?? 0;
       if (key.startsWith('miss:')) misses[key.substring(5)] = _prefs!.getInt(key) ?? 0;
     }
+    _gamesDay = _prefs!.getString('gamesDay') ?? '';
+    _gamesOnDay = _prefs!.getInt('gamesOnDay') ?? 0;
     days
       ..clear()
       ..addAll(_prefs!.getStringList('days') ?? const []);
@@ -52,6 +54,16 @@ class AppState extends ChangeNotifier {
   }
 
   /// Estrellas de una partida según los aciertos a la primera (de [Config.roundsPerGame]).
+  /// Partidas por día para ganar la medalla del día (en la pantalla de inicio).
+  static const dailyGoal = 5;
+  String _gamesDay = '';
+  int _gamesOnDay = 0;
+
+  /// Partidas terminadas hoy.
+  int get gamesToday => _gamesDay == _day(now()) ? _gamesOnDay : 0;
+
+  static String _day(DateTime t) => '${t.year}-${'${t.month}'.padLeft(2, '0')}-${'${t.day}'.padLeft(2, '0')}';
+
   static int starsFor(int correct) => correct >= 8 ? 3 : correct >= 5 ? 2 : correct >= 1 ? 1 : 0;
 
   int bestFor(String key) => best[key] ?? 0;
@@ -65,9 +77,12 @@ class AppState extends ChangeNotifier {
     }
     played[key] = (played[key] ?? 0) + 1;
     _prefs?.setInt('played:$key', played[key]!);
-    final t = now();
-    final today = '${t.year}-${'${t.month}'.padLeft(2, '0')}-${'${t.day}'.padLeft(2, '0')}';
+    final today = _day(now());
     if (days.add(today)) _prefs?.setStringList('days', days.toList());
+    _gamesOnDay = gamesToday + 1;
+    _gamesDay = today;
+    _prefs?.setString('gamesDay', today);
+    _prefs?.setInt('gamesOnDay', _gamesOnDay);
     notifyListeners();
     return earned;
   }

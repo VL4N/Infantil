@@ -1,34 +1,166 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
+/// Colores que no cambian entre el día y la noche (acierto, pista, error).
 class AppColors {
-  static const bg = Color(0xFFFFF8E7);
-  static const ink = Color(0xFF2B2D42);
-  static const yellow = Color(0xFFFFB703);
-  static const blue = Color(0xFF219EBC);
-  static const green = Color(0xFF52B788);
-  static const red = Color(0xFFEF476F);
+  static const green = Color(0xFF2FB36B);
+  static const yellow = Color(0xFFFFC93C);
+  static const red = Color(0xFFE5484D);
+  static const orange = Color(0xFFFFA45C);
 }
 
-ThemeData buildTheme() => ThemeData(
+/// Estilo de la app: "Caramelo" de día y "Noche estrellada" de noche (de 19:00 a 6:59).
+@immutable
+class Palette extends ThemeExtension<Palette> {
+  const Palette({
+    required this.night,
+    required this.font,
+    required this.bg,
+    required this.ink,
+    required this.inkSoft,
+    required this.card,
+    required this.cardInk,
+    required this.cardBorder,
+    required this.math,
+    required this.mathInk,
+    required this.english,
+    required this.englishInk,
+    required this.memory,
+    required this.memoryInk,
+    required this.accent,
+    required this.accentInk,
+    required this.star,
+    required this.track,
+  });
+
+  final bool night;
+  final String font;
+  final Color bg;
+  final Color ink;
+  final Color inkSoft;
+
+  /// Botones y tarjetas normales.
+  final Color card;
+  final Color cardInk;
+  final Color? cardBorder;
+
+  /// Color de cada juego (Sumar, Inglés, Parejas) y de su texto encima.
+  final Color math;
+  final Color mathInk;
+  final Color english;
+  final Color englishInk;
+  final Color memory;
+  final Color memoryInk;
+
+  /// Botones de escuchar, números al contar, cartas boca abajo.
+  final Color accent;
+  final Color accentInk;
+  final Color star;
+
+  /// Fondo de barras de progreso.
+  final Color track;
+
+  static const day = Palette(
+    night: false,
+    font: 'Fredoka',
+    bg: Color(0xFFFDEBF3),
+    ink: Color(0xFF3B2A55),
+    inkSoft: Color(0xFF7A3A5E),
+    card: Color(0xFFFFFFFF),
+    cardInk: Color(0xFF3B2A55),
+    cardBorder: null,
+    math: Color(0xFFE5508E),
+    mathInk: Color(0xFFFFFFFF),
+    english: Color(0xFF2EC4A6),
+    englishInk: Color(0xFF10372F),
+    memory: Color(0xFF8162F0),
+    memoryInk: Color(0xFFFFFFFF),
+    accent: Color(0xFF8162F0),
+    accentInk: Color(0xFFFFFFFF),
+    star: Color(0xFFFFC93C),
+    track: Color(0xFFFFFFFF),
+  );
+
+  static const nightStyle = Palette(
+    night: true,
+    font: 'Nunito',
+    bg: Color(0xFF1B1F4B),
+    ink: Color(0xFFFFFFFF),
+    inkSoft: Color(0xFFC9CCF5),
+    card: Color(0xFF2C3270),
+    cardInk: Color(0xFFFFFFFF),
+    cardBorder: Color(0xFF3D4494),
+    math: Color(0xFFFFD45C),
+    mathInk: Color(0xFF1B1F4B),
+    english: Color(0xFF5EE1C9),
+    englishInk: Color(0xFF1B1F4B),
+    memory: Color(0xFFFF8A70),
+    memoryInk: Color(0xFF1B1F4B),
+    accent: Color(0xFF5EE1C9),
+    accentInk: Color(0xFF1B1F4B),
+    star: Color(0xFFFFD45C),
+    track: Color(0xFF2C3270),
+  );
+
+  /// Para las pruebas: fuerza el día (false) o la noche (true).
+  static bool? debugNight;
+
+  static bool isNightAt(DateTime t) => t.hour >= 19 || t.hour < 7;
+
+  static Palette at(DateTime t) => (debugNight ?? isNightAt(t)) ? nightStyle : day;
+
+  @override
+  Palette copyWith() => this;
+
+  @override
+  Palette lerp(Palette? other, double t) => t < 0.5 || other == null ? this : other;
+}
+
+extension PaletteOf on BuildContext {
+  Palette get palette => Theme.of(this).extension<Palette>() ?? Palette.day;
+}
+
+/// Un color más oscuro, para el "relieve" de los botones.
+Color shade(Color c, [double amount = 0.16]) {
+  final hsl = HSLColor.fromColor(c);
+  return hsl.withLightness(math.max(0, hsl.lightness - amount)).toColor();
+}
+
+ThemeData buildTheme(Palette p) => ThemeData(
       useMaterial3: true,
-      scaffoldBackgroundColor: AppColors.bg,
-      colorScheme: ColorScheme.fromSeed(seedColor: AppColors.yellow, surface: AppColors.bg),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.yellow,
-        foregroundColor: AppColors.ink,
-        centerTitle: true,
-        titleTextStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.ink),
+      fontFamily: p.font,
+      brightness: p.night ? Brightness.dark : Brightness.light,
+      scaffoldBackgroundColor: p.bg,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: p.accent,
+        brightness: p.night ? Brightness.dark : Brightness.light,
+        surface: p.bg,
       ),
+      textTheme: ThemeData(brightness: p.night ? Brightness.dark : Brightness.light)
+          .textTheme
+          .apply(fontFamily: p.font, bodyColor: p.ink, displayColor: p.ink)
+          .copyWith(bodyMedium: TextStyle(fontFamily: p.font, color: p.ink, fontWeight: FontWeight.w600)),
+      appBarTheme: AppBarTheme(
+        backgroundColor: p.bg,
+        foregroundColor: p.ink,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: TextStyle(fontFamily: p.font, fontSize: 24, fontWeight: FontWeight.w800, color: p.ink),
+      ),
+      dialogTheme: DialogThemeData(backgroundColor: p.night ? p.card : Colors.white),
+      extensions: [p],
     );
 
-/// Botón grande y redondeado, fácil de tocar para un niño.
+/// Botón grande y redondeado, con relieve, fácil de tocar para un niño.
 class BigButton extends StatelessWidget {
   const BigButton({
     super.key,
     required this.label,
     required this.onTap,
-    this.color = Colors.white,
-    this.textColor = AppColors.ink,
+    this.color,
+    this.textColor,
     this.fontSize = 26,
     this.locked = false,
     this.stars,
@@ -37,8 +169,10 @@ class BigButton extends StatelessWidget {
 
   final String label;
   final VoidCallback? onTap;
-  final Color color;
-  final Color textColor;
+
+  /// Sin color: el de las tarjetas del estilo actual (blanco de día, azul de noche).
+  final Color? color;
+  final Color? textColor;
   final double fontSize;
   final bool locked;
 
@@ -48,27 +182,41 @@ class BigButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.palette;
+    final bg = color ?? p.card;
+    final border = color == null ? p.cardBorder : null;
+    final base = color == null && !p.night ? const Color(0xFFF3C6DA) : shade(bg);
+    final radius = BorderRadius.circular(26);
     return Opacity(
       opacity: locked ? 0.6 : 1,
-      child: Material(
-        color: color,
-        borderRadius: BorderRadius.circular(24),
-        elevation: 3,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(24),
-          onTap: onTap,
-          child: Padding(
-            padding: padding,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  locked ? '$label 🔒' : label,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold, color: textColor),
-                ),
-                if (stars != null) StarRating(stars: stars!),
-              ],
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          // Relieve: el botón "flota" sobre una base más oscura.
+          boxShadow: [BoxShadow(color: border ?? base, offset: const Offset(0, 6))],
+        ),
+        child: Material(
+          color: bg,
+          shape: RoundedRectangleBorder(
+            borderRadius: radius,
+            side: border == null ? BorderSide.none : BorderSide(color: border, width: 2),
+          ),
+          child: InkWell(
+            borderRadius: radius,
+            onTap: onTap,
+            child: Padding(
+              padding: padding,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    locked ? '$label 🔒' : label,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w700, color: textColor ?? p.cardInk),
+                  ),
+                  if (stars != null) StarRating(stars: stars!),
+                ],
+              ),
             ),
           ),
         ),
@@ -77,18 +225,38 @@ class BigButton extends StatelessWidget {
   }
 }
 
-/// Contador de estrellas para la barra superior.
+/// Contador de estrellas: una pastilla con la estrella y el total.
 class StarCounter extends StatelessWidget {
   const StarCounter({super.key, required this.stars});
   final int stars;
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(right: 16),
-        child: Center(
-          child: Text('⭐ $stars', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final fg = p.night ? p.star : const Color(0xFF3B2A55);
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(10, 4, 14, 4),
+          decoration: BoxDecoration(
+            color: p.night ? p.card : p.star,
+            borderRadius: BorderRadius.circular(99),
+            border: p.night ? Border.all(color: p.star, width: 2) : null,
+            boxShadow: p.night ? null : [BoxShadow(color: shade(p.star, .12), offset: const Offset(0, 3))],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.star_rounded, size: 22, color: p.night ? p.star : Colors.white),
+              const SizedBox(width: 4),
+              Text('$stars', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: fg)),
+            ],
+          ),
         ),
-      );
+      ),
+    );
+  }
 }
 
 /// Mejor resultado de un nivel o tema: ★★☆.
@@ -98,9 +266,93 @@ class StarRating extends StatelessWidget {
   final double size;
 
   @override
-  Widget build(BuildContext context) => Text(
-        '★' * stars + '☆' * (3 - stars),
-        semanticsLabel: '$stars de 3 estrellas',
-        style: TextStyle(fontSize: size, color: AppColors.yellow, letterSpacing: 4),
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Text(
+      '★' * stars + '☆' * (3 - stars),
+      semanticsLabel: '$stars de 3 estrellas',
+      style: TextStyle(fontSize: size, color: p.night ? p.star : const Color(0xFFE0A51A), letterSpacing: 4),
+    );
+  }
+}
+
+/// Owlito, el búho de la app. De día es café; de noche, morado.
+class Owl extends StatelessWidget {
+  const Owl({super.key, this.size = 100, this.night = false});
+  final double size;
+  final bool night;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        label: 'Owlito, el búho',
+        child: CustomPaint(size: Size(size, size * 112 / 104), painter: _OwlPainter(night)),
       );
+}
+
+class _OwlPainter extends CustomPainter {
+  _OwlPainter(this.night);
+  final bool night;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.scale(size.width / 104, size.height / 112);
+    Paint fill(int c) => Paint()..color = Color(c);
+    final ears = Path()
+      ..moveTo(22, 26)..lineTo(30, 6)..lineTo(42, 22)..close()
+      ..moveTo(82, 26)..lineTo(74, 6)..lineTo(62, 22)..close();
+    canvas.drawPath(ears, fill(night ? 0xFF6E5BD8 : 0xFF8A5A3B));
+    canvas.drawOval(Rect.fromCenter(center: const Offset(52, 64), width: 80, height: 88), fill(night ? 0xFF8270F0 : 0xFFA86B45));
+    canvas.drawOval(Rect.fromCenter(center: const Offset(52, 78), width: 52, height: 56), fill(night ? 0xFFB9AFFF : 0xFFF3D9B1));
+    final eye = fill(night ? 0xFFFFE9A8 : 0xFFFFFFFF);
+    canvas.drawCircle(const Offset(36, 46), 15, eye);
+    canvas.drawCircle(const Offset(68, 46), 15, eye);
+    final pupil = fill(night ? 0xFF1B1F4B : 0xFF1F3B2D);
+    canvas.drawCircle(const Offset(38, 47), 7, pupil);
+    canvas.drawCircle(const Offset(66, 47), 7, pupil);
+    canvas.drawCircle(const Offset(40, 44), 2.2, fill(0xFFFFFFFF));
+    canvas.drawCircle(const Offset(68, 44), 2.2, fill(0xFFFFFFFF));
+    canvas.drawPath(Path()..moveTo(46, 58)..lineTo(58, 58)..lineTo(52, 68)..close(), fill(0xFFF2A12B));
+    if (!night) {
+      final feet = Paint()
+        ..color = const Color(0xFFF2A12B)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(
+        Path()
+          ..moveTo(38, 108)..lineTo(44, 100)..lineTo(50, 108)
+          ..moveTo(54, 108)..lineTo(60, 100)..lineTo(66, 108),
+        feet,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_OwlPainter old) => old.night != night;
+}
+
+/// Cielo de noche detrás del menú: estrellas y luna.
+class NightSky extends StatelessWidget {
+  const NightSky({super.key});
+
+  @override
+  Widget build(BuildContext context) => const IgnorePointer(child: CustomPaint(painter: _SkyPainter(), size: Size.infinite));
+}
+
+class _SkyPainter extends CustomPainter {
+  const _SkyPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final dot = Paint()..color = const Color(0xB3FFFFFF);
+    for (final (x, y, r) in [(.10, 90.0, 2.0), (.30, 130.0, 1.6), (.54, 70.0, 2.2), (.9, 150.0, 1.8), (.2, 200.0, 1.4), (.72, 260.0, 1.5)]) {
+      canvas.drawCircle(Offset(w * x, y), r, dot);
+    }
+    canvas.drawCircle(Offset(w - 60, 120), 30, Paint()..color = const Color(0xFFFFE9A8));
+    canvas.drawCircle(Offset(w - 46, 110), 27, Paint()..color = const Color(0xFF1B1F4B));
+  }
+
+  @override
+  bool shouldRepaint(_SkyPainter old) => false;
 }

@@ -41,9 +41,9 @@ class ParentsScreen extends StatelessWidget {
           for (final w in hardest)
             Text('• ${w.key}: ${w.value == 1 ? '1 error' : '${w.value} errores'}', style: body),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Consejo: repasen juntos esas palabras en voz alta y jueguen ese tema en Parejas.',
-            style: TextStyle(fontSize: 16, color: AppColors.ink),
+            style: TextStyle(fontSize: 16, color: context.palette.ink),
           ),
         ],
       ),

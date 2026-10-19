@@ -44,6 +44,13 @@ Voces (permiten uso comercial):
 - Español: **es_MX "claude" (high)**, licencia Apache-2.0 ([HirCoir/Piper-TTS-Spanish](https://huggingface.co/spaces/HirCoir/Piper-TTS-Spanish)).
 - Inglés: **en_US "ljspeech" (high)**, dataset LJ Speech de dominio público.
 
+## Diseño
+
+De día (7:00 a 18:59) la app usa el estilo "Caramelo" (rosa, menta y lila, letra Fredoka) y de
+noche (19:00 a 6:59) el estilo "Noche estrellada" (azul oscuro con luna y estrellas, letra Nunito).
+Los colores están en `lib/theme.dart` (`Palette.day` y `Palette.nightStyle`). Las letras están en
+`assets/fonts/` con su licencia SIL Open Font License.
+
 ## Estructura
 
 ```
