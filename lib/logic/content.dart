@@ -40,6 +40,27 @@ const topics = [
     ('hello', '👋'), ('good morning', '🌅'), ('good night', '🌙'), ('thank you', '🙏'),
     ('yes', '👍'), ('no', '👎'), ('I love you', '❤️'), ('happy birthday', '🎂'),
   ]),
+  // Dibujos de emojis antiguos, para que se vean también en teléfonos con Android 7.
+  Topic('comida', '🍞 Comida', [
+    ('bread', '🍞'), ('milk', '🥛'), ('egg', '🥚'), ('cheese', '🧀'), ('rice', '🍚'),
+    ('pizza', '🍕'), ('cake', '🍰'), ('chicken', '🍗'), ('soup', '🍲'), ('ice cream', '🍦'),
+  ]),
+  Topic('casa', '🏠 Casa', [
+    ('house', '🏠'), ('bed', '🛏️'), ('door', '🚪'), ('sofa', '🛋️'), ('bathtub', '🛁'),
+    ('toilet', '🚽'), ('key', '🔑'), ('clock', '⏰'), ('TV', '📺'), ('light', '💡'),
+  ]),
+  Topic('escuela', '🎒 Escuela', [
+    ('school', '🏫'), ('book', '📖'), ('pencil', '✏️'), ('backpack', '🎒'), ('scissors', '✂️'),
+    ('crayon', '🖍️'), ('ruler', '📏'), ('paper', '📄'), ('computer', '💻'), ('bus', '🚌'),
+  ]),
+  Topic('clima', '🌦️ Clima', [
+    ('sun', '☀️'), ('rain', '🌧️'), ('cloud', '☁️'), ('snow', '❄️'),
+    ('wind', '🌬️'), ('rainbow', '🌈'), ('storm', '⛈️'), ('umbrella', '☂️'),
+  ]),
+  Topic('acciones', '🏃 Acciones', [
+    ('run', '🏃'), ('swim', '🏊'), ('sleep', '😴'), ('read', '📚'), ('sing', '🎤'),
+    ('dance', '💃'), ('write', '✍️'), ('play', '⚽'), ('eat', '🍴'), ('drink', '🍹'),
+  ]),
 ];
 
 const mathLevels = [(5, '🐣 Hasta 5'), (10, '🐥 Hasta 10'), (20, '🦅 Hasta 20')];

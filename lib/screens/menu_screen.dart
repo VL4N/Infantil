@@ -46,7 +46,7 @@ class MenuScreen extends StatelessWidget {
           () => _open(context, const MathLevelsScreen())),
       _Game('Restar', 'Hasta 5 · 10 · 20', p.subtract, p.subtractInk, const _MinusIcon(),
           () => _open(context, const MathLevelsScreen(subtract: true))),
-      _Game('Inglés', '7 temas', p.english, p.englishInk, const _AbcIcon(),
+      _Game('Inglés', '${topics.length} temas', p.english, p.englishInk, const _AbcIcon(),
           () => _open(context, const EnglishTopicsScreen())),
       _Game('Parejas', 'Memoria en inglés', p.memory, p.memoryInk, const _CardsIcon(),
           () => _open(context, const EnglishTopicsScreen(memory: true))),
