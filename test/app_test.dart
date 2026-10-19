@@ -49,6 +49,7 @@ int mathAnswer(WidgetTester tester) {
   final prompt = tester.widget<Text>(find.byKey(const Key('prompt'))).data!;
   final n = RegExp(r'\d+').allMatches(prompt).map((m) => int.parse(m[0]!)).toList();
   if (prompt.contains('+ ?')) return n[1] - n[0];
+  if (prompt.contains('−')) return n[0] - n[1];
   if (n.length == 2) return n[0] + n[1];
   // "¿Cuántas manzanas hay?": se cuentan los dibujos.
   return find.byKey(const Key('counted-object')).evaluate().length;
@@ -129,6 +130,30 @@ void main() {
     await waitFor(tester, seconds: 20);
     expect(spoken.last, contains('¡Toca el $answer!'));
     if (a + answer <= 10) expect(find.byKey(const Key('counted-object')), findsNWidgets(a + answer));
+  });
+
+  testWidgets('restas: los que se van se ven tachados y al equivocarse cuenta lo que queda', (tester) async {
+    await startApp(tester);
+    await tester.pumpWidget(MaterialApp(
+      home: GameScreen(title: 'Restar', progressKey: 'resta-10', makeQuestion: (r) => subtractionQuestion(r, 10)),
+    ));
+    await tester.pumpAndSettle();
+    final prompt = tester.widget<Text>(find.byKey(const Key('prompt'))).data!;
+    final n = RegExp(r'\d+').allMatches(prompt).map((m) => int.parse(m[0]!)).toList();
+    final (a, b) = (n[0], n[1]);
+    expect(spoken.last, '$a menos $b');
+    expect(find.byKey(const Key('counted-object')), findsNWidgets(a));
+    expect(find.byKey(const Key('removed-object')), findsNWidgets(b));
+
+    final answer = mathAnswer(tester);
+    expect(answer, a - b);
+    final wrong = find.descendant(
+      of: find.byWidgetPredicate((w) => w is BigButton && w.label != '$answer' && w.key.toString().contains('option')),
+      matching: find.byType(InkWell),
+    ).first;
+    await tester.tap(wrong);
+    await waitFor(tester, seconds: 20);
+    expect(spoken, containsAllInOrder(['Tenemos $a.', 'Quitamos $b.', 'Contemos los que quedan.', '$a menos $b son $answer.', '¡Toca el $answer!']));
   });
 
   testWidgets('inglés: mira el dibujo, escucha las palabras y elige', (tester) async {

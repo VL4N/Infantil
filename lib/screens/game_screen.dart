@@ -307,16 +307,28 @@ class _CountingPicture extends StatelessWidget {
   final Addition add;
   final int? counted;
 
-  Widget _item(int n, Color accent) {
-    final done = counted != null && n <= counted!;
-    final current = counted == n;
+  Widget _item(int n, Color accent, {bool removed = false}) {
+    final done = !removed && counted != null && n <= counted!;
+    final current = !removed && counted == n;
+    final picture = Text(add.object, key: const Key('counted-object'), style: const TextStyle(fontSize: 34));
     return AnimatedScale(
       scale: current ? 1.3 : 1,
       duration: const Duration(milliseconds: 200),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(add.object, key: const Key('counted-object'), style: const TextStyle(fontSize: 34)),
+          if (removed)
+            // En la resta, los que se van se ven tachados.
+            Stack(
+              key: const Key('removed-object'),
+              alignment: Alignment.center,
+              children: [
+                Opacity(opacity: .35, child: picture),
+                const Icon(Icons.close_rounded, size: 40, color: AppColors.red),
+              ],
+            )
+          else
+            picture,
           SizedBox(
             height: 26,
             child: done
@@ -340,6 +352,15 @@ class _CountingPicture extends StatelessWidget {
         );
     if (add.kind == AddKind.count) {
       return Row(mainAxisAlignment: MainAxisAlignment.center, children: [group(1, add.a)]);
+    }
+    if (add.kind == AddKind.sub) {
+      return Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 4,
+        children: [
+          for (var n = 1; n <= add.a; n++) _item(n, accent, removed: n > add.result),
+        ],
+      );
     }
     // En "2 + ? = 5" el segundo grupo está escondido hasta que se cuenta en la explicación.
     final revealed = add.kind == AddKind.missing ? ((counted ?? 0) - add.a).clamp(0, add.b) : add.b;
@@ -374,14 +395,25 @@ class _CountingOn extends StatelessWidget {
       spacing: 6,
       runSpacing: 6,
       children: [
-        for (var n = add.a; n <= upTo; n++)
-          Chip(
-            backgroundColor: n == add.a ? p.accent : (n == upTo ? AppColors.yellow : p.card),
-            label: Text(
-              n == add.a ? '$n' : '+1 → $n',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: n == add.a ? p.accentInk : (n == upTo ? const Color(0xFF3B2A55) : p.cardInk)),
+        if (add.kind == AddKind.sub)
+          // Resta grande: contar hacia atrás desde el primer número (15 → 14 → 13…).
+          for (var n = add.a; n >= upTo; n--)
+            Chip(
+              backgroundColor: n == add.a ? p.accent : (n == upTo ? AppColors.yellow : p.card),
+              label: Text(
+                n == add.a ? '$n' : '−1 → $n',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: n == add.a ? p.accentInk : (n == upTo ? const Color(0xFF3B2A55) : p.cardInk)),
+              ),
+            )
+        else
+          for (var n = add.a; n <= upTo; n++)
+            Chip(
+              backgroundColor: n == add.a ? p.accent : (n == upTo ? AppColors.yellow : p.card),
+              label: Text(
+                n == add.a ? '$n' : '+1 → $n',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: n == add.a ? p.accentInk : (n == upTo ? const Color(0xFF3B2A55) : p.cardInk)),
+              ),
             ),
-          ),
       ],
     );
   }

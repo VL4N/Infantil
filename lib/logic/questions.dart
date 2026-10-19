@@ -68,6 +68,9 @@ enum AddKind {
 
   /// "¿Cuántos hay?": contar dibujos (para los más pequeños). Usa solo [Addition.a].
   count,
+
+  /// "5 − 2 = ?": resta. Hay [Addition.a] dibujos y se quitan [Addition.b].
+  sub,
 }
 
 class Addition {
@@ -79,8 +82,11 @@ class Addition {
 
   int get sum => a + b;
 
-  /// Con pocos objetos se cuentan los dibujos; con más, se cuenta hacia adelante.
-  bool get drawable => sum <= 10;
+  /// El resultado: la suma, o en una resta lo que queda.
+  int get result => kind == AddKind.sub ? a - b : a + b;
+
+  /// Con pocos objetos se cuentan los dibujos; con más, se cuenta hacia adelante (o hacia atrás).
+  bool get drawable => (kind == AddKind.sub ? a : sum) <= 10;
 }
 
 /// Un paso de la explicación cuando el niño se equivoca.
@@ -105,6 +111,8 @@ String numberWord(int n) => n >= 0 && n < _numberWords.length ? _numberWords[n] 
 /// (ver logic/phrases.dart), así que se evita juntar dos números variables en una frase.
 String touchedNumber(String option) => 'Casi. Tocaste el $option.';
 const letsCount = '¡Vamos a contar juntos!';
+const countWhatsLeft = 'Contemos los que quedan.';
+String touchTheNumber(int n) => '¡Toca el $n!';
 
 /// Explicación con voz de una respuesta equivocada, para aprender en ese momento.
 List<ExplainStep> explainMistake(Question q, int chosen) {
@@ -115,6 +123,24 @@ List<ExplainStep> explainMistake(Question q, int chosen) {
       const ExplainStep(letsCount, 'es'),
       for (var i = 1; i <= add.a; i++) ExplainStep(numberWord(i), 'es', count: i),
       ExplainStep('Hay ${add.a}. ¡Toca el ${add.a}!', 'es', count: add.a, highlightAnswer: true),
+    ];
+  }
+  if (add != null && add.kind == AddKind.sub) {
+    final r = add.result;
+    return [
+      ExplainStep(touchedNumber(q.options[chosen]), 'es'),
+      if (add.drawable) ...[
+        ExplainStep('Tenemos ${add.a}.', 'es'),
+        ExplainStep('Quitamos ${add.b}.', 'es'),
+        const ExplainStep(countWhatsLeft, 'es'),
+        for (var i = 1; i <= r; i++) ExplainStep(numberWord(i), 'es', count: i),
+      ] else ...[
+        ExplainStep('Empezamos en el ${add.a}.', 'es', count: add.a),
+        ExplainStep('Contamos ${add.b} hacia atrás.', 'es', count: add.a),
+        for (var i = add.a - 1; i >= r; i--) ExplainStep(numberWord(i), 'es', count: i),
+      ],
+      ExplainStep('${add.a} menos ${add.b} son $r.', 'es', count: r, highlightAnswer: true),
+      ExplainStep(touchTheNumber(r), 'es', count: r, highlightAnswer: true),
     ];
   }
   if (add != null && add.kind == AddKind.missing) {
@@ -259,6 +285,32 @@ Question additionQuestion(Random r, int max) {
     speechLang: 'es',
   );
 }
+
+/// Resta: hay [a] dibujos y se van [b]. Siempre queda al menos uno.
+Question subtractionQuestion(Random r, int max) {
+  final a = 2 + r.nextInt(max - 1);
+  final b = 1 + r.nextInt(a - 1);
+  final rest = a - b;
+  final obj = _objects[r.nextInt(_objects.length)];
+  // Errores típicos: contar uno de más o de menos, responder uno de los números o sumar en vez de restar.
+  final options = _options(r, rest, {
+    for (var d = -3; d <= 3; d++) rest + d,
+    a,
+    b,
+    if (a + b <= maxOption) a + b,
+  });
+  return Question(
+    prompt: '$a − $b = ?',
+    addition: Addition(a, b, obj, kind: AddKind.sub),
+    options: [for (final o in options) '$o'],
+    answerIndex: options.indexOf(rest),
+    speech: '$a menos $b',
+    speechLang: 'es',
+  );
+}
+
+/// El número más grande que puede salir como opción (la suma de 20 más 3).
+const maxOption = 23;
 
 Question englishQuestion(Random r, Topic topic) {
   final words = topic.words;

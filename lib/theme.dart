@@ -24,6 +24,8 @@ class Palette extends ThemeExtension<Palette> {
     required this.cardBorder,
     required this.math,
     required this.mathInk,
+    required this.subtract,
+    required this.subtractInk,
     required this.english,
     required this.englishInk,
     required this.memory,
@@ -48,6 +50,8 @@ class Palette extends ThemeExtension<Palette> {
   /// Color de cada juego (Sumar, Inglés, Parejas) y de su texto encima.
   final Color math;
   final Color mathInk;
+  final Color subtract;
+  final Color subtractInk;
   final Color english;
   final Color englishInk;
   final Color memory;
@@ -72,6 +76,8 @@ class Palette extends ThemeExtension<Palette> {
     cardBorder: null,
     math: Color(0xFFE5508E),
     mathInk: Color(0xFFFFFFFF),
+    subtract: Color(0xFFFF9F45),
+    subtractInk: Color(0xFF3B2A55),
     english: Color(0xFF2EC4A6),
     englishInk: Color(0xFF10372F),
     memory: Color(0xFF8162F0),
@@ -93,6 +99,8 @@ class Palette extends ThemeExtension<Palette> {
     cardBorder: Color(0xFF3D4494),
     math: Color(0xFFFFD45C),
     mathInk: Color(0xFF1B1F4B),
+    subtract: Color(0xFFB9AFFF),
+    subtractInk: Color(0xFF1B1F4B),
     english: Color(0xFF5EE1C9),
     englishInk: Color(0xFF1B1F4B),
     memory: Color(0xFFFF8A70),
