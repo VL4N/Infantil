@@ -70,6 +70,8 @@ class AppState extends ChangeNotifier {
   Future<void> load() async {
     _prefs = await SharedPreferences.getInstance();
     premium = _prefs!.getBool('premium') ?? false;
+    reminderOn = _prefs!.getBool('reminderOn') ?? false;
+    reminderHour = _prefs!.getInt('reminderHour') ?? 17;
     profiles
       ..clear()
       ..addAll([
@@ -250,6 +252,18 @@ class AppState extends ChangeNotifier {
   /// Palabras en inglés con más errores, de más a menos.
   List<MapEntry<String, int>> hardestWords([int count = 5]) =>
       (misses.entries.toList()..sort((a, b) => b.value.compareTo(a.value))).take(count).toList();
+
+  /// Recordatorio diario (del teléfono, no de cada niño).
+  bool reminderOn = false;
+  int reminderHour = 17;
+
+  void setReminder({required bool on, int? hour}) {
+    reminderOn = on;
+    reminderHour = hour ?? reminderHour;
+    _prefs?.setBool('reminderOn', on);
+    _prefs?.setInt('reminderHour', reminderHour);
+    notifyListeners();
+  }
 
   void setPremium(bool value) {
     if (premium == value) return;

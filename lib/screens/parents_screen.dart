@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../logic/content.dart';
 import '../services/app_state.dart';
+import '../services/reminder.dart';
 import '../theme.dart';
 import 'profile_screen.dart';
 
@@ -48,6 +49,8 @@ class ParentsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 32),
           const _Profiles(),
+          const SizedBox(height: 32),
+          const _ReminderSetting(),
         ],
       ),
     );
@@ -115,6 +118,62 @@ class _Profiles extends StatelessWidget {
                 final name = await askName(context);
                 if (name != null) state.addProfile(name);
               },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Aviso diario en el teléfono para jugar un ratito, a la hora que elijan los papás.
+class _ReminderSetting extends StatelessWidget {
+  const _ReminderSetting();
+
+  Future<void> _set(BuildContext context, {required bool on, int? hour}) async {
+    final state = AppState.instance;
+    if (!on) {
+      await Reminder.disable();
+      state.setReminder(on: false, hour: hour);
+      return;
+    }
+    final ok = await Reminder.enable(hour ?? state.reminderHour);
+    state.setReminder(on: ok, hour: hour);
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Para el recordatorio, permite las notificaciones de la app en los ajustes del teléfono.'),
+      ));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = AppState.instance;
+    return ListenableBuilder(
+      listenable: state,
+      builder: (context, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SwitchListTile(
+            key: const Key('reminder-switch'),
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Recordatorio diario', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            subtitle: const Text('Un aviso al día: "¡Owlito te espera!"'),
+            value: state.reminderOn,
+            onChanged: (on) => _set(context, on: on),
+          ),
+          if (state.reminderOn)
+            Row(
+              children: [
+                const Text('Hora:', style: TextStyle(fontSize: 18)),
+                const SizedBox(width: 12),
+                DropdownButton<int>(
+                  value: state.reminderHour,
+                  items: [
+                    for (var h = 8; h <= 20; h++) DropdownMenuItem(value: h, child: Text('${h > 12 ? h - 12 : h}:00 ${h < 12 ? 'a. m.' : 'p. m.'}')),
+                  ],
+                  onChanged: (h) => _set(context, on: true, hour: h),
+                ),
+              ],
             ),
         ],
       ),

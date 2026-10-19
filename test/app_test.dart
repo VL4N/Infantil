@@ -7,6 +7,8 @@ import 'package:aprende_jugando/screens/game_screen.dart';
 import 'package:aprende_jugando/screens/memory_screen.dart';
 import 'dart:math';
 import 'package:aprende_jugando/services/app_state.dart';
+import 'package:aprende_jugando/screens/parents_screen.dart';
+import 'package:aprende_jugando/services/reminder.dart';
 import 'package:aprende_jugando/services/sfx.dart';
 import 'package:aprende_jugando/services/voice.dart';
 import 'package:aprende_jugando/theme.dart';
@@ -398,6 +400,28 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Juega: Ana'), findsOneWidget);
     expect(find.text('3'), findsOneWidget, reason: 'las estrellas de Ana');
+  });
+
+  testWidgets('recordatorio diario: los papás lo activan y eligen la hora', (tester) async {
+    await startApp(tester);
+    final calls = <int?>[];
+    Reminder.debugSchedule = (hour) async {
+      calls.add(hour);
+      return true;
+    };
+    addTearDown(() => Reminder.debugSchedule = null);
+    await tester.pumpWidget(const MaterialApp(home: ParentsScreen()));
+    await tester.scrollUntilVisible(find.byKey(const Key('reminder-switch')), 200);
+    await tester.tap(find.byKey(const Key('reminder-switch')));
+    await tester.pumpAndSettle();
+    expect(AppState.instance.reminderOn, isTrue);
+    expect(calls, [17]);
+    await tester.tap(find.byKey(const Key('reminder-switch')));
+    await tester.pumpAndSettle();
+    expect(AppState.instance.reminderOn, isFalse);
+    expect(calls, [17, null]);
+    await AppState.instance.load();
+    expect(AppState.instance.reminderOn, isFalse);
   });
 
   test('las estrellas de una partida dependen de los aciertos a la primera', () {

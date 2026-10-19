@@ -3,10 +3,22 @@
 
     <!-- Google Play Familias: las apps para niños no deben usar el ID de publicidad. -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
+    <!-- Recordatorio diario: volver a programarlo después de reiniciar el teléfono. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <application
         android:label="Aprende Jugando"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- Recordatorio diario (flutter_local_notifications). -->
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".MainActivity"
             android:exported="true"
