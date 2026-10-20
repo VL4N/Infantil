@@ -15,7 +15,13 @@ Te pedirá una contraseña (anótala) y tus datos (nombre, ciudad, país `EC`). 
 
 Después conviértelo a texto para guardarlo en GitHub:
 
-- **Windows (PowerShell):** `[Convert]::ToBase64String([IO.File]::ReadAllBytes("upload-keystore.jks")) | Set-Clipboard`
+- **Windows (PowerShell):** guarda el texto en un archivo y ábrelo con el Bloc de notas:
+  ```
+  [Convert]::ToBase64String([IO.File]::ReadAllBytes("$HOME\Documents\upload-keystore.jks")) | Out-File -Encoding ascii "$HOME\Documents\clave.txt"
+  notepad "$HOME\Documents\clave.txt"
+  ```
+  En el Bloc de notas: **Ctrl+A** y **Ctrl+C**. El texto empieza con `MII` y es una sola línea muy larga.
+  Después de guardarlo en GitHub, borra `clave.txt`.
 - **Mac:** `base64 -i upload-keystore.jks | pbcopy`
 - **Linux:** `base64 -w0 upload-keystore.jks`
 
