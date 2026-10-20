@@ -86,7 +86,15 @@ jobs:
             echo "::notice::No hay clave de subida guardada en GitHub: no se crea el archivo para Google Play."
             exit 0
           fi
-          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          # Al copiar el texto en Windows a veces se cuelan espacios o saltos de línea: se quitan.
+          if ! printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > android/app/upload-keystore.jks; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 no es un texto válido: vuelve a copiarlo con el comando de la guía y pégalo de nuevo en el secreto."
+            exit 1
+          fi
+          if ! keytool -list -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null; then
+            echo "::error::La clave no abre con ANDROID_KEYSTORE_PASSWORD y el alias ANDROID_KEY_ALIAS: revisa esos dos secretos."
+            exit 1
+          fi
           {
             echo "storeFile=upload-keystore.jks"
             echo "storePassword=$KEYSTORE_PASSWORD"
