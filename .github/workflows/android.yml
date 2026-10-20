@@ -5,6 +5,10 @@ name: Android APK
 on:
   push:
     branches: [main]
+    # Cambios solo en textos o en la página de privacidad no necesitan un APK nuevo.
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
   workflow_dispatch:
 
 permissions:
