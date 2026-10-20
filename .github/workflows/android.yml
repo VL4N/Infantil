@@ -76,6 +76,8 @@ jobs:
       # El número de compilación sube solo, porque Google Play exige uno nuevo en cada subida.
       - name: AAB para Google Play
         id: aab
+        # Si la clave de Google Play falla, igual se publica el APK de prueba (el error queda marcado).
+        continue-on-error: true
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
