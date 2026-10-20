@@ -52,41 +52,46 @@ rama `main`, carpeta `/docs`, y **Save**. A los pocos minutos queda en:
 
 **Descripción breve** (máx. 80 caracteres):
 
-> Sumas e inglés para niños de 3 a 7 años, con voz y sin castigos al equivocarse.
+> Sumas, restas e inglés para niños de 3 a 7 años, con voz y sin castigos.
 
 **Descripción completa:**
 
-> Aprende Jugando es una app para que niñas y niños de 3 a 7 años practiquen sumas e inglés jugando, con un búho que los acompaña.
+> Aprende Jugando es una app para que niñas y niños de 3 a 7 años practiquen sumas, restas e inglés jugando, con Owlito, un búho que los acompaña.
 >
-> ➕ SUMAS
-> • "2 + 3 = ?", "2 + ? = 5" y contar dibujos.
+> ➕ SUMAS Y ➖ RESTAS
+> • "2 + 3 = ?", "2 + ? = 5", "5 − 2 = ?" y contar dibujos.
 > • Niveles hasta 5, hasta 10 y hasta 20.
 >
 > 🇬🇧 INGLÉS
 > • Escucha y toca el dibujo, o mira el dibujo y elige la palabra.
 > • "How many?": cuenta y elige el número en inglés.
 > • Parejas: juego de memoria para juntar cada dibujo con su palabra.
-> • Temas: animales, frutas, colores, números, cuerpo, ropa, familia y saludos.
+> • 13 temas: animales, frutas, colores, números, cuerpo, ropa, familia, saludos, comida, casa, escuela, clima y acciones.
 >
 > 💡 APRENDE DE SUS ERRORES
-> Si se equivoca no hay castigo: la voz le explica paso a paso, le muestra la respuesta correcta y esa pregunta vuelve a salir más tarde como repaso.
+> Si se equivoca no hay castigo: una voz natural le explica paso a paso, le muestra la respuesta correcta y esa pregunta vuelve a salir más tarde como repaso.
 >
-> ⭐ PROGRESO
-> Cada partida da hasta 3 estrellas y el menú muestra el mejor resultado de cada nivel.
+> ⭐ ESTRELLAS Y TIENDA DE OWLITO
+> Cada respuesta correcta da una estrella para vestir a Owlito: gorros, lentes, corona y plumas de colores.
+>
+> 🌙 DE DÍA Y DE NOCHE
+> De día la app es colorida y de noche cambia sola a colores suaves para cansar menos la vista.
 >
 > 👨‍👩‍👧 PARA PAPÁS Y MAMÁS
+> • Varios niños en el mismo teléfono, cada uno con su progreso.
 > • Resumen con los días jugados, los resultados y las palabras que más le cuestan.
+> • Recordatorio diario opcional.
 > • Control parental antes de comprar o entrar a la zona de papás.
-> • Sin cuentas, sin chat y sin pedir datos personales.
+> • Sin cuentas, sin chat y sin pedir datos personales. Funciona sin internet.
 >
 > GRATIS Y PREMIUM
-> Gratis: sumas hasta 5 y hasta 10, inglés con animales y frutas, y un anuncio apto para niños solo al terminar cada partida (nunca durante el juego).
+> Gratis: sumas y restas hasta 5 y hasta 10, inglés con animales y frutas, y un anuncio apto para niños solo al terminar cada partida (nunca durante el juego).
 > Premium (pago único): todos los niveles y temas, y sin publicidad.
 
 **Gráficos que pide la ficha:**
 - Icono 512×512: `assets/icon/play_store_512.png` (ya está).
 - Imagen destacada 1024×500: falta.
-- Capturas del teléfono: mínimo 2 (menú, una suma, una pregunta de inglés, el juego de parejas).
+- Capturas del teléfono: mínimo 2 (menú de día, menú de noche, una resta, una pregunta de inglés, la tienda de Owlito).
 
 ## 5. Respuestas para los cuestionarios de Play Console
 
