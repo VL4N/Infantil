@@ -8,6 +8,10 @@ class Config {
   /// ID del producto "único" (no consumible) creado en Play Console.
   static const premiumProductId = 'premium_unlock';
 
+  /// Código para que los revisores de Google Play (y verificadores) abran Premium sin pagar.
+  /// Aquí solo está su huella SHA-256; el código se da solo en Play Console.
+  static const reviewCodeSha256 = 'bc14e06668cf4fe507e7431ecde9b538fd7c39e2909059e4655f146fd63b78e5';
+
   /// Precio que se muestra si la tienda aún no respondió. El real lo pone Google Play.
   static const fallbackPrice = 'US\$ 2,99';
 
