@@ -45,7 +45,8 @@ jobs:
           dart run tool/export_phrases.dart > frases.tsv
           echo "Frases: $(wc -l < frases.tsv)"
           echo "hash=$(sha256sum frases.tsv | cut -c1-16)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
+      - uses: actions/cache/restore@v4
+        id: voz
         with:
           path: assets/voz
           key: voz-v3-32k-claude-ljspeech-${{ steps.frases.outputs.hash }}
@@ -67,6 +68,13 @@ jobs:
           python tool/generar_voces.py frases.tsv modelos/es_MX-claude-high.onnx modelos/en_US-ljspeech-high.onnx assets/voz
           echo "Audios: $(ls assets/voz/*.mp3 | wc -l), tamaño: $(du -sh assets/voz | cut -f1)"
           test "$(ls assets/voz/*.mp3 | wc -l)" -eq "$(wc -l < frases.tsv)"
+      # Se guardan apenas se graban: si algo falla después (p. ej. al descargar herramientas
+      # de Android), la próxima compilación no tiene que volver a grabarlas.
+      - uses: actions/cache/save@v4
+        if: steps.voz.outputs.cache-hit != 'true'
+        with:
+          path: assets/voz
+          key: voz-v3-32k-claude-ljspeech-${{ steps.frases.outputs.hash }}
       # APK de prueba (firmado con clave de depuración) para instalar en el teléfono.
       - run: flutter build apk --release
       - run: mv build/app/outputs/flutter-apk/app-release.apk AprendeJugando.apk
