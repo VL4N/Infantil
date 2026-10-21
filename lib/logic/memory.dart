@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'content.dart';
 
-/// Una carta del juego de parejas: el dibujo o la palabra en inglés.
+/// Una carta del juego de parejas: el dibujo o la palabra (en el idioma que aprende).
 class MemoryCard {
   const MemoryCard(this.word, this.picture, {required this.showsPicture});
   final String word;
@@ -14,13 +14,13 @@ class MemoryCard {
 
 enum FlipResult { first, match, miss }
 
-/// Juego de parejas: cada dibujo se junta con su palabra en inglés.
+/// Juego de parejas: cada dibujo se junta con su palabra.
 class MemoryGame {
   MemoryGame(Random r, Topic topic, {this.pairs = 4})
       : cards = [
-          for (final (word, picture) in (topic.words.toList()..shuffle(r)).take(pairs)) ...[
-            MemoryCard(word, picture, showsPicture: true),
-            MemoryCard(word, picture, showsPicture: false),
+          for (final word in (topic.words.toList()..shuffle(r)).take(pairs)) ...[
+            MemoryCard(word.text, word.picture, showsPicture: true),
+            MemoryCard(word.text, word.picture, showsPicture: false),
           ],
         ]..shuffle(r);
 

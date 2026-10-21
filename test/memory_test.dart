@@ -13,7 +13,7 @@ void main() {
     for (final w in words) {
       final pair = game.cards.where((c) => c.word == w).toList();
       expect(pair.map((c) => c.showsPicture).toSet(), {true, false});
-      expect(topics.first.words, contains((w, pair.first.picture)));
+      expect(topics.first.words.any((x) => x.text == w && x.picture == pair.first.picture), isTrue);
     }
   });
 

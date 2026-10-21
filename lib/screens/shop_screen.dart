@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../logic/lang.dart';
+import '../logic/lines.dart';
 import '../logic/shop.dart';
 import '../services/app_state.dart';
 import '../services/sfx.dart';
@@ -16,7 +18,7 @@ class ShopScreen extends StatelessWidget {
     final p = context.palette;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tienda de Owlito'),
+        title: Text(tr('Tienda de Owlito', "Owlito's shop")),
         actions: [ListenableBuilder(listenable: state, builder: (_, _) => StarCounter(stars: state.stars))],
       ),
       body: ListenableBuilder(
@@ -27,13 +29,15 @@ class ShopScreen extends StatelessWidget {
             Center(child: Owl(size: 130, night: p.night, wearing: state.wearing, feathers: state.featherColors)),
             const SizedBox(height: 12),
             Text(
-              'Tienes ${state.stars} ${state.stars == 1 ? 'estrella' : 'estrellas'} para gastar',
+              tr('Tienes ${state.stars} ${state.stars == 1 ? 'estrella' : 'estrellas'} para gastar',
+                  'You have ${state.stars} ${state.stars == 1 ? 'star' : 'stars'} to spend'),
               key: const Key('shop-balance'),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
             ),
             Text(
-              'Ganas una estrella por cada respuesta correcta a la primera y por cada pareja.',
+              tr('Ganas una estrella por cada respuesta correcta a la primera y por cada pareja.',
+                  'You win a star for every answer right on the first try and for every pair.'),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 15, color: p.inkSoft),
             ),
@@ -54,7 +58,7 @@ class ShopScreen extends StatelessWidget {
               Center(
                 child: TextButton(
                   onPressed: state.takeOffAll,
-                  child: Text('Quitarle todo a Owlito', style: TextStyle(fontSize: 16, color: p.ink)),
+                  child: Text(tr('Quitarle todo a Owlito', 'Take everything off Owlito'), style: TextStyle(fontSize: 16, color: p.ink)),
                 ),
               ),
             ],
@@ -82,24 +86,24 @@ class _ItemCard extends StatelessWidget {
     Color color = p.math;
     Color ink = p.mathInk;
     if (wearing) {
-      label = 'Puesto';
+      label = tr('Puesto', 'Wearing');
       onTap = null;
       color = AppColors.green;
       ink = Colors.white;
     } else if (owned) {
-      label = 'Ponérselo';
+      label = tr('Ponérselo', 'Put on');
       onTap = () => state.wear(item.id);
     } else if (missing <= 0) {
-      label = 'Comprar';
+      label = tr('Comprar', 'Buy');
       price = item.price;
       onTap = () {
         if (state.buy(item.id, item.price)) {
           Sfx.celebracion();
-          Voice.say('¡Muy bien!', 'es');
+          Voice.say(greatJob, Lang.native);
         }
       };
     } else {
-      label = 'Te faltan';
+      label = tr('Te faltan', 'You need');
       price = missing;
       onTap = null;
       color = p.night ? p.bg : const Color(0xFFF6DCE8);

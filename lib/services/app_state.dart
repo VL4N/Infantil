@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config.dart';
+import '../logic/lang.dart';
 import '../logic/shop.dart';
 import '../theme.dart' show OwlMood;
 
@@ -37,7 +38,7 @@ class AppState extends ChangeNotifier {
 
   static final _otherProfileKey = RegExp(r'^p\d+:');
   static bool _isGlobal(String key) =>
-      const {'premium', 'profiles', 'profile'}.contains(key) || key.startsWith('reminder');
+      const {'premium', 'profiles', 'profile', 'lang'}.contains(key) || key.startsWith('reminder');
 
   /// Estrellas que tiene para gastar en la tienda de Owlito.
   int stars = 0;
@@ -56,6 +57,9 @@ class AppState extends ChangeNotifier {
   (int, int, int)? get featherColors => shopItem(feathers)?.feathers;
   bool premium = false;
 
+  /// Si ya eligieron el idioma de la app (se pregunta la primera vez que se abre).
+  bool langChosen = false;
+
   /// Mejor resultado (0 a 3 estrellas) de cada nivel de suma o tema de inglés.
   final Map<String, int> best = {};
 
@@ -65,7 +69,7 @@ class AppState extends ChangeNotifier {
   /// Días en que terminó al menos una partida ('2026-10-08').
   final Set<String> days = {};
 
-  /// Veces que se equivocó con cada palabra en inglés.
+  /// Veces que se equivocó con cada palabra del idioma que aprende.
   final Map<String, int> misses = {};
 
   /// Reloj para los días jugados (se cambia en las pruebas).
@@ -74,12 +78,20 @@ class AppState extends ChangeNotifier {
   Future<void> load() async {
     _prefs = await SharedPreferences.getInstance();
     premium = _prefs!.getBool('premium') ?? false;
+    final lang = _prefs!.getString('lang');
+    // Quien ya jugaba antes de que hubiera idiomas usaba la app en español: no se le pregunta.
+    langChosen = lang != null || _prefs!.containsKey('stars') || _prefs!.containsKey('days');
+    Lang.current = switch (lang) {
+      'en' => AppLang.en,
+      'es' => AppLang.es,
+      _ => langChosen ? AppLang.es : _deviceLang(),
+    };
     reminderOn = _prefs!.getBool('reminderOn') ?? false;
     reminderHour = _prefs!.getInt('reminderHour') ?? 17;
     profiles
       ..clear()
       ..addAll([
-        for (final p in _prefs!.getStringList('profiles') ?? const ['0|Jugador 1'])
+        for (final p in _prefs!.getStringList('profiles') ?? ['0|${tr('Jugador', 'Player')} 1'])
           Profile(int.parse(p.substring(0, p.indexOf('|'))), p.substring(p.indexOf('|') + 1)),
       ]);
     _profileId = _prefs!.getInt('profile') ?? profiles.first.id;
@@ -150,7 +162,7 @@ class AppState extends ChangeNotifier {
   int? addProfile(String name) {
     if (profiles.length >= maxProfiles) return null;
     final id = profiles.map((p) => p.id).reduce((a, b) => a > b ? a : b) + 1;
-    profiles.add(Profile(id, name.trim().isEmpty ? 'Jugador ${profiles.length + 1}' : name.trim()));
+    profiles.add(Profile(id, name.trim().isEmpty ? '${tr('Jugador', 'Player')} ${profiles.length + 1}' : name.trim()));
     _saveProfiles();
     notifyListeners();
     return id;
@@ -323,6 +335,18 @@ class AppState extends ChangeNotifier {
     reminderHour = hour ?? reminderHour;
     _prefs?.setBool('reminderOn', on);
     _prefs?.setInt('reminderHour', reminderHour);
+    notifyListeners();
+  }
+
+  /// El idioma del teléfono, si es uno de los de la app (si no, español).
+  static AppLang _deviceLang() =>
+      PlatformDispatcher.instance.locale.languageCode == 'en' ? AppLang.en : AppLang.es;
+
+  /// Cambia el idioma de la app (el del niño; aprende el otro). Es del teléfono, no de cada niño.
+  void setLang(AppLang lang) {
+    Lang.current = lang;
+    langChosen = true;
+    _prefs?.setString('lang', lang.name);
     notifyListeners();
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 import '../config.dart';
+import '../logic/lang.dart';
 import 'app_state.dart';
 
 /// Compra única de Premium mediante Google Play Billing.
@@ -63,8 +64,10 @@ class Billing extends ChangeNotifier {
     }
     if (product == null) {
       _fail(available
-          ? 'Premium todavía no está disponible en Google Play. Inténtalo más tarde.'
-          : 'No se pudo conectar con Google Play. Revisa tu conexión e inténtalo de nuevo.');
+          ? tr('Premium todavía no está disponible en Google Play. Inténtalo más tarde.',
+              "Premium isn't available on Google Play yet. Please try again later.")
+          : tr('No se pudo conectar con Google Play. Revisa tu conexión e inténtalo de nuevo.',
+              "Couldn't connect to Google Play. Check your connection and try again."));
       return;
     }
     busy = true;
@@ -72,14 +75,14 @@ class Billing extends ChangeNotifier {
     try {
       await _iap.buyNonConsumable(purchaseParam: PurchaseParam(productDetails: product!));
     } catch (e) {
-      _fail('No se pudo iniciar la compra.');
+      _fail(tr('No se pudo iniciar la compra.', "Couldn't start the purchase."));
     }
   }
 
   Future<void> restore() async {
     error = null;
     if (!available) {
-      _fail('La tienda no está disponible.');
+      _fail(tr('La tienda no está disponible.', 'The store is not available.'));
       return;
     }
     await _iap.restorePurchases();
@@ -94,7 +97,7 @@ class Billing extends ChangeNotifier {
           AppState.instance.setPremium(true);
           busy = false;
         case PurchaseStatus.error:
-          _fail('La compra no se completó.');
+          _fail(tr('La compra no se completó.', "The purchase wasn't completed."));
         case PurchaseStatus.canceled:
           busy = false;
         case PurchaseStatus.pending:

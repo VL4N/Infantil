@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../logic/lang.dart';
 import '../theme.dart';
 
 /// Pregunta para adultos antes de compras o pantallas para papás.
@@ -63,11 +64,12 @@ class _GateDialogState extends State<_GateDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       scrollable: true,
-      title: const Text('Pregunta para adultos', textAlign: TextAlign.center, style: TextStyle(fontSize: 18)),
+      title: Text(tr('Pregunta para adultos', 'Question for grown-ups'),
+          textAlign: TextAlign.center, style: const TextStyle(fontSize: 18)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('¿Cuánto es $_a × $_b?',
+          Text(tr('¿Cuánto es $_a × $_b?', 'What is $_a × $_b?'),
               style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           TextField(
@@ -83,14 +85,14 @@ class _GateDialogState extends State<_GateDialog> {
           ),
           if (_failed) ...[
             const SizedBox(height: 12),
-            const Text('Respuesta incorrecta. Prueba con esta otra.',
-                textAlign: TextAlign.center, style: TextStyle(color: AppColors.red, fontSize: 16)),
+            Text(tr('Respuesta incorrecta. Prueba con esta otra.', 'Wrong answer. Try this one.'),
+                textAlign: TextAlign.center, style: const TextStyle(color: AppColors.red, fontSize: 16)),
           ],
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-        FilledButton(onPressed: _submit, child: const Text('Continuar')),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Cancelar', 'Cancel'))),
+        FilledButton(onPressed: _submit, child: Text(tr('Continuar', 'Continue'))),
       ],
     );
   }

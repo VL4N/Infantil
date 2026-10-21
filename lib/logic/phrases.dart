@@ -1,4 +1,6 @@
 import 'content.dart';
+import 'lang.dart';
+import 'lines.dart';
 import 'questions.dart';
 
 /// Catálogo de TODO lo que dice la voz de la app, para grabarlo de antemano con una
@@ -6,85 +8,92 @@ import 'questions.dart';
 /// sin depender del motor de voz de cada uno. Lo que no esté aquí se dice con la voz
 /// del teléfono, como respaldo. test/phrases_test.dart comprueba que no falte nada.
 ///
-/// Cada frase es (texto, idioma) con idioma 'es' o 'en'.
+/// Cada frase es (texto, idioma) con idioma 'es' o 'en'. Incluye la app en los dos idiomas:
+/// en español (aprende inglés) y en inglés (aprende español).
 Set<(String, String)> allPhrases() {
   final p = <(String, String)>{};
-  void es(String t) => p.add((t, 'es'));
-  void en(String t) => p.add((t, 'en'));
+  final before = Lang.current;
+  try {
+    for (final lang in AppLang.values) {
+      Lang.current = lang;
+      _addPhrases(p);
+    }
+  } finally {
+    Lang.current = before;
+  }
+  return p;
+}
 
-  // Frases fijas de las pantallas.
+/// Las frases de la app en el idioma actual ([Lang.current]).
+void _addPhrases(Set<(String, String)> p) {
+  void native(String t) => p.add((t, Lang.native));
+  void target(String t) => p.add((t, Lang.target));
+
+  // Frases fijas de las pantallas y de las preguntas.
   for (final t in [
-    '¡Repasemos!',
-    'Pide ayuda a papá o a mamá',
-    'Busca las parejas',
-    '¿Quién va a jugar?',
-    '¡Eres una estrella!',
-    '¡Muy bien!',
-    '¡Sigue practicando!',
+    ...screenLines,
     ...howManyPhrases,
     letsCount,
     countWhatsLeft,
-    'Casi. Tocaste',
-    'Contemos juntos en inglés',
-    'Este dibujo en inglés se dice',
-    'Casi. Ese dibujo en inglés se dice',
-    'Y este es',
-    '¡Tócalo!',
+    almostYouTouched,
+    countTogetherInTarget,
+    thisPictureIs,
+    almostThatPictureIs,
+    andThisOneIs,
+    touchIt,
+    askWhatIs,
+    askHowMany,
+    listenAndTouch,
+    praiseFirstTry,
+    praiseRetry,
   ]) {
-    es(t);
-  }
-  for (final t in [askWhatIs, askHowMany, listenAndTouch, praiseFirstTry, praiseRetry]) {
-    es(t);
+    native(t);
   }
 
   // Números: en palabras (al contar) y en cifras (al acertar), y lo que tocó al equivocarse.
   for (var n = 0; n <= maxOption; n++) {
-    es(numberWord(n));
-    es('$n');
-    es('¡Muy bien, $n!');
-    es(touchedNumber('$n'));
-    es(touchTheNumber(n));
+    native(numberWord(n));
+    native('$n');
+    native(greatNumber('$n'));
+    native(touchedNumber('$n'));
+    native(touchTheNumber(n));
   }
 
   // Sumas de todos los niveles.
   final maxSum = mathLevels.map((l) => l.$1).reduce((a, b) => a > b ? a : b);
   for (var a = 1; a <= maxSum; a++) {
-    es('Hay $a. ¡Toca el $a!');
+    native(thereAre(a));
     for (var b = 1; a + b <= maxSum; b++) {
       final s = a + b;
-      es('$a más $b');
-      es('$a más cuánto es $s');
-      es('Tenemos $a, ¡contemos hasta $s!');
-      es('Contamos $b más. $a más $b son $s. ¡Toca el $b!');
-      es('Empezamos en el $a, y contamos $b más.');
-      es('$a más $b son $s. ¡Toca el $s!');
+      native(plus(a, b));
+      native(plusWhat(a, s));
+      native(weHaveCountTo(a, s));
+      native(countedMore(a, b, s));
+      native(startAndCountOn(a, b));
+      native(plusIs(a, b, s));
     }
   }
 
   // Restas de todos los niveles (frases cortas, para no grabar todas las combinaciones).
   for (var a = 2; a <= maxSum; a++) {
-    es('Tenemos $a.');
-    es('Empezamos en el $a.');
+    native(weHave(a));
+    native(startAt(a));
     for (var b = 1; b < a; b++) {
-      es('$a menos $b');
-      es('$a menos $b son ${a - b}.');
+      native(minus(a, b));
+      native(minusIs(a, b));
     }
   }
   for (var b = 1; b < maxSum; b++) {
-    es('Quitamos $b.');
-    es('Contamos $b hacia atrás.');
+    native(takeAway(b));
+    native(countBack(b));
   }
 
-  // Inglés: cada palabra sola, y las felicitaciones con la palabra.
+  // Idioma que aprende: cada palabra sola.
   for (final topic in topics) {
-    for (final (word, _) in topic.words) {
-      en(word);
+    for (final word in topic.words) {
+      target(word.text);
     }
   }
-  for (final word in englishNumbers) {
-    en(word);
-  }
-  return p;
 }
 
 /// Nombre del archivo de audio de una frase: un hash estable del idioma y el texto

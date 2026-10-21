@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import '../logic/lang.dart';
+
 /// Recordatorio diario para jugar un ratito ("¡Owlito te espera!"). Lo activan los papás.
 class Reminder {
   static final _plugin = FlutterLocalNotificationsPlugin();
@@ -39,13 +41,13 @@ class Reminder {
         scheduledDate: tz.TZDateTime.from(at.toUtc(), tz.UTC),
         matchDateTimeComponents: DateTimeComponents.time,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        title: '¡Owlito te espera!',
-        body: 'Es hora de aprender jugando un ratito.',
-        notificationDetails: const NotificationDetails(
+        title: tr('¡Owlito te espera!', 'Owlito is waiting for you!'),
+        body: tr('Es hora de aprender jugando un ratito.', "It's time to learn and play for a little while."),
+        notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
             'recordatorio',
-            'Recordatorio diario',
-            channelDescription: 'Un aviso al día para jugar y aprender.',
+            tr('Recordatorio diario', 'Daily reminder'),
+            channelDescription: tr('Un aviso al día para jugar y aprender.', 'One reminder a day to play and learn.'),
           ),
         ),
       );
