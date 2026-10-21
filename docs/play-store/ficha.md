@@ -38,6 +38,7 @@ PARA PAPÁS Y MAMÁS
 • Recordatorio diario opcional a la hora que elijas.
 • La zona para padres y las compras están protegidas con una pregunta para adultos.
 • De noche la app cambia a colores suaves.
+• La app también está en inglés (para aprender español).
 
 SEGURA PARA NIÑOS
 • Sin registro, sin cuentas y sin chat.
