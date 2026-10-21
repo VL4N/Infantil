@@ -436,7 +436,10 @@ class _ParentsCard extends StatelessWidget {
           _ParentButton(
             icon: premium ? Icons.verified_rounded : Icons.workspace_premium_rounded,
             label: premium ? tr('Premium activo', 'Premium active') : tr('Premium: todo sin anuncios', 'Premium: everything, no ads'),
-            onTap: premium ? null : () => openPremium(context),
+            // Con Premium activo también se abre, para ver que ya está comprado (sin pregunta: no hay nada que pagar).
+            onTap: premium
+                ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumScreen()))
+                : () => openPremium(context),
           ),
         ],
       ),

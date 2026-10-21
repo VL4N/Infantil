@@ -102,4 +102,15 @@ void main() {
     expect(find.text('What shall we play?'), findsOneWidget);
     expect(Lang.current, AppLang.en);
   });
+
+  testWidgets('con Premium activo, el botón del menú muestra que ya está comprado', (tester) async {
+    await startApp(tester, premium: true, prefs: {'lang': 'en'});
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Premium active'), 100);
+    await tester.ensureVisible(find.text('Premium active'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Premium active'));
+    await tester.pumpAndSettle();
+    expect(find.text('✅ You have Premium'), findsOneWidget);
+  });
 }
