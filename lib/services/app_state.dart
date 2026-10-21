@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -328,6 +331,13 @@ class AppState extends ChangeNotifier {
     premium = value;
     _prefs?.setBool('premium', value);
     notifyListeners();
+  }
+
+  /// Abre Premium con el código de revisión. Devuelve si el código es correcto.
+  bool redeemCode(String code) {
+    final ok = sha256.convert(utf8.encode(code.trim().toUpperCase())).toString() == Config.reviewCodeSha256;
+    if (ok) setPremium(true);
+    return ok;
   }
 
   bool isMathLevelFree(int max) => Config.freeMathMax.contains(max);

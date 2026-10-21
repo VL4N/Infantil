@@ -136,4 +136,10 @@ void main() {
       expect(tester.hasRunningAnimations, isFalse);
     });
   });
+
+  test('un código equivocado no abre Premium', () {
+    expect(state.redeemCode('OWL-0000-0000'), isFalse);
+    expect(state.redeemCode(''), isFalse);
+    expect(state.premium, isFalse);
+  });
 }

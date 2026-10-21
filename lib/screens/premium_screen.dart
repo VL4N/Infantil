@@ -34,8 +34,14 @@ class PremiumScreen extends StatelessWidget {
                 onTap: billing.busy ? null : billing.buy,
               ),
             const SizedBox(height: 12),
-            if (!state.premium)
+            if (!state.premium) ...[
               TextButton(onPressed: billing.restore, child: const Text('Restaurar compra', style: TextStyle(fontSize: 18))),
+              TextButton(
+                key: const Key('redeem'),
+                onPressed: () => _redeem(context),
+                child: const Text('Tengo un código', style: TextStyle(fontSize: 18)),
+              ),
+            ],
             if (billing.error != null)
               Text(billing.error!, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.red, fontSize: 16)),
             const SizedBox(height: 12),
@@ -46,4 +52,47 @@ class PremiumScreen extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> _redeem(BuildContext context) async {
+    final code = await showDialog<String>(context: context, builder: (_) => const _CodeDialog());
+    if (code == null || code.trim().isEmpty || !context.mounted) return;
+    final ok = AppState.instance.redeemCode(code);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(ok ? '¡Listo! Premium activado.' : 'Ese código no es válido.', style: const TextStyle(fontSize: 18)),
+    ));
+  }
+}
+
+class _CodeDialog extends StatefulWidget {
+  const _CodeDialog();
+
+  @override
+  State<_CodeDialog> createState() => _CodeDialogState();
+}
+
+class _CodeDialogState extends State<_CodeDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+        title: const Text('Código de Premium'),
+        content: TextField(
+          key: const Key('code-input'),
+          controller: _controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.characters,
+          decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'OWL-XXXX-XXXX'),
+          onSubmitted: (v) => Navigator.pop(context, v),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(context, _controller.text), child: const Text('Activar')),
+        ],
+      );
 }
