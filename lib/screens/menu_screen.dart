@@ -68,9 +68,9 @@ class MenuScreen extends StatelessWidget {
                   _Header(night: p.night, onStars: shop.onTap),
                   if (AppState.instance.profiles.length > 1) _WhoPlays(),
                   const SizedBox(height: 18),
-                  if (p.night) ..._nightBody(context, games) else ..._dayBody(context, games),
-                  const SizedBox(height: 20),
-                  _ParentLinks(),
+                  ..._body(context, games),
+                  const SizedBox(height: 24),
+                  const _ParentsCard(),
                 ],
               ),
             ),
@@ -80,8 +80,9 @@ class MenuScreen extends StatelessWidget {
     );
   }
 
-  /// "Caramelo": tarjeta de las partidas de hoy y los juegos en cuadrícula.
-  List<Widget> _dayBody(BuildContext context, List<_Game> games) {
+  /// Tarjeta de las partidas de hoy y los juegos en cuadrícula. De día ("Caramelo") y de noche
+  /// ("Noche estrellada") es la misma pantalla; solo cambian los colores.
+  List<Widget> _body(BuildContext context, List<_Game> games) {
     final p = context.palette;
     final today = AppState.instance.gamesToday;
     final left = AppState.dailyGoal - today;
@@ -132,24 +133,8 @@ class MenuScreen extends StatelessWidget {
       _GameButton(games[4], wide: true),
     ];
   }
-
-  /// "Noche estrellada": Owlito saluda y los juegos van en lista.
-  List<Widget> _nightBody(BuildContext context, List<_Game> games) {
-    final p = context.palette;
-    return [
-      const SizedBox(height: 8),
-      Center(child: Owl(size: 110, night: true, wearing: AppState.instance.wearing, feathers: AppState.instance.featherColors)),
-      const SizedBox(height: 10),
-      const Text('¡Hola! ¿Qué aprendemos hoy?',
-          textAlign: TextAlign.center, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, height: 1.15)),
-      const SizedBox(height: 6),
-      Text('Cada respuesta correcta enciende una estrella',
-          textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: p.inkSoft)),
-      const SizedBox(height: 20),
-      for (final g in games) ...[_GameRow(g), const SizedBox(height: 14)],
-    ];
-  }
 }
+
 
 class _Game {
   const _Game(this.title, this.subtitle, this.color, this.ink, this.icon, this.onTap);
@@ -171,7 +156,8 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
         children: [
-          if (!night) ...[Owl(size: 44, wearing: AppState.instance.wearing, feathers: AppState.instance.featherColors), const SizedBox(width: 8)],
+          Owl(size: 44, night: night, wearing: AppState.instance.wearing, feathers: AppState.instance.featherColors),
+          const SizedBox(width: 8),
           Expanded(
             child: Text('Aprende Jugando',
                 style: TextStyle(fontSize: 22, fontWeight: night ? FontWeight.w900 : FontWeight.w700)),
@@ -216,18 +202,22 @@ class _Card extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: context.palette.card,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: const [BoxShadow(color: Color(0xFFF3C6DA), offset: Offset(0, 6))],
-        ),
-        child: child,
-      );
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: p.card,
+        borderRadius: BorderRadius.circular(28),
+        border: p.cardBorder == null ? null : Border.all(color: p.cardBorder!, width: 2),
+        boxShadow: p.night ? null : const [BoxShadow(color: Color(0xFFF3C6DA), offset: Offset(0, 6))],
+      ),
+      child: child,
+    );
+  }
 }
 
-/// Botón grande de un juego (de día): color vivo con relieve.
+/// Botón grande de un juego: color vivo con relieve.
 class _GameButton extends StatelessWidget {
   const _GameButton(this.game, {this.wide = false});
   final _Game game;
@@ -236,6 +226,8 @@ class _GameButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(30);
+    // El cuadrito del ícono: blanco de día, azul noche de noche.
+    final tile = context.palette.night ? context.palette.bg : Colors.white;
     final title = Text(game.title, style: TextStyle(fontSize: wide ? 34 : 26, fontWeight: FontWeight.w700, color: game.ink, height: 1));
     final subtitle = Text(game.subtitle, style: TextStyle(fontSize: wide ? 17 : 15, color: game.ink));
     return Container(
@@ -257,57 +249,19 @@ class _GameButton extends StatelessWidget {
                       Expanded(
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [title, const SizedBox(height: 4), subtitle]),
                       ),
-                      _IconTile(color: Colors.white, size: 76, child: game.icon),
+                      _IconTile(color: tile, size: 76, child: game.icon),
                     ],
                   )
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _IconTile(color: Colors.white, size: 56, child: game.icon),
+                      _IconTile(color: tile, size: 56, child: game.icon),
                       const SizedBox(height: 12),
                       title,
                       const SizedBox(height: 4),
                       subtitle,
                     ],
                   ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Fila de un juego (de noche): tarjeta azul con el ícono de color.
-class _GameRow extends StatelessWidget {
-  const _GameRow(this.game);
-  final _Game game;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.palette;
-    final radius = BorderRadius.circular(24);
-    return Material(
-      color: p.card,
-      shape: RoundedRectangleBorder(borderRadius: radius, side: BorderSide(color: p.cardBorder ?? p.card, width: 2)),
-      child: InkWell(
-        borderRadius: radius,
-        onTap: game.onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              _IconTile(color: game.color, size: 60, child: game.icon),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(game.title, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, height: 1.05)),
-                    Text(game.subtitle, style: TextStyle(fontSize: 15, color: p.inkSoft)),
-                  ],
-                ),
-              ),
-            ],
           ),
         ),
       ),
@@ -330,8 +284,9 @@ class _IconTile extends StatelessWidget {
       );
 }
 
-/// El color de los íconos: el del juego sobre fondo blanco de día; el del fondo de noche.
-Color _iconInk(BuildContext context, Color game) => context.palette.night ? context.palette.bg : game;
+/// El color de los íconos: el del juego (un poco más oscuro sobre el blanco de día).
+Color _iconInk(BuildContext context, Color game, [double dayShade = 0]) =>
+    context.palette.night ? game : shade(game, dayShade);
 
 class _PlusIcon extends StatelessWidget {
   const _PlusIcon();
@@ -343,14 +298,14 @@ class _MinusIcon extends StatelessWidget {
   const _MinusIcon();
   @override
   Widget build(BuildContext context) =>
-      Icon(Icons.remove_rounded, size: 40, color: _iconInk(context, shade(context.palette.subtract, .12)));
+      Icon(Icons.remove_rounded, size: 40, color: _iconInk(context, context.palette.subtract, .12));
 }
 
 class _AbcIcon extends StatelessWidget {
   const _AbcIcon();
   @override
   Widget build(BuildContext context) => Text('ABC',
-      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _iconInk(context, shade(context.palette.english, .1))));
+      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _iconInk(context, context.palette.english, .1)));
 }
 
 class _CardsIcon extends StatelessWidget {
@@ -363,28 +318,74 @@ class _StoreIcon extends StatelessWidget {
   const _StoreIcon();
   @override
   Widget build(BuildContext context) =>
-      Icon(Icons.storefront_rounded, size: 40, color: _iconInk(context, shade(context.palette.star, .2)));
+      Icon(Icons.storefront_rounded, size: 40, color: _iconInk(context, context.palette.star, .2));
 }
 
-class _ParentLinks extends StatelessWidget {
+/// Zona para papás y mamás: bien visible, con sus dos botones (detrás de la pregunta para adultos).
+class _ParentsCard extends StatelessWidget {
+  const _ParentsCard();
+
   @override
   Widget build(BuildContext context) {
-    final style = TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: context.palette.ink, decoration: TextDecoration.underline);
-    return Wrap(
-      alignment: WrapAlignment.center,
-      children: [
-        AppState.instance.premium
-            ? Padding(padding: const EdgeInsets.all(12), child: Text('Premium activo', style: style.copyWith(decoration: TextDecoration.none)))
-            : TextButton(onPressed: () => openPremium(context), child: Text('Premium para papás', style: style)),
-        TextButton(
-          onPressed: () async {
-            if (await parentalGate(context) && context.mounted) {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const ParentsScreen()));
-            }
-          },
-          child: Text('Resumen para papás', style: style),
-        ),
-      ],
+    final p = context.palette;
+    final premium = AppState.instance.premium;
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.family_restroom_rounded, size: 28, color: p.ink),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text('Para papás y mamás', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _ParentButton(
+            icon: Icons.insights_rounded,
+            label: 'Resumen, niños y recordatorio',
+            onTap: () async {
+              if (await parentalGate(context) && context.mounted) {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ParentsScreen()));
+              }
+            },
+          ),
+          const SizedBox(height: 10),
+          _ParentButton(
+            icon: premium ? Icons.verified_rounded : Icons.workspace_premium_rounded,
+            label: premium ? 'Premium activo' : 'Premium: todo sin anuncios',
+            onTap: premium ? null : () => openPremium(context),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ParentButton extends StatelessWidget {
+  const _ParentButton({required this.icon, required this.label, required this.onTap});
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return OutlinedButton.icon(
+      onPressed: onTap,
+      icon: Icon(icon, size: 24),
+      label: Text(label, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: p.ink,
+        disabledForegroundColor: p.ink,
+        alignment: Alignment.centerLeft,
+        minimumSize: const Size.fromHeight(52),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        side: BorderSide(color: p.inkSoft, width: 1.5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
     );
   }
 }

@@ -33,8 +33,8 @@ Set<(String, String)> allPhrases() {
   ]) {
     es(t);
   }
-  for (final t in ['Great job!', 'How many?', 'What is this?']) {
-    en(t);
+  for (final t in [askWhatIs, askHowMany, listenAndTouch, praiseFirstTry, praiseRetry]) {
+    es(t);
   }
 
   // Números: en palabras (al contar) y en cifras (al acertar), y lo que tocó al equivocarse.
@@ -79,14 +79,10 @@ Set<(String, String)> allPhrases() {
   for (final topic in topics) {
     for (final (word, _) in topic.words) {
       en(word);
-      en('Yes! $word');
-      en('Very good! $word');
     }
   }
   for (final word in englishNumbers) {
     en(word);
-    en('Yes! $word');
-    en('Very good! $word');
   }
   return p;
 }

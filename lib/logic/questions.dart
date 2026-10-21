@@ -27,6 +27,8 @@ class Question {
     required this.speech,
     required this.speechLang,
     this.ask,
+    this.askLang,
+    this.intro,
     this.count,
     this.addition,
     this.optionWords,
@@ -48,6 +50,12 @@ class Question {
 
   /// Lo que dice la voz al mostrar la pregunta, si no es [speech] (para no decir la respuesta).
   final String? ask;
+
+  /// Idioma de [ask] (si no se indica, el de [speech]).
+  final String? askLang;
+
+  /// Instrucción en español antes de la pregunta ("Escucha y toca el dibujo.").
+  final String? intro;
 
   /// En "How many?": cuántos dibujos hay que contar en inglés.
   final int? count;
@@ -111,6 +119,13 @@ String numberWord(int n) => n >= 0 && n < _numberWords.length ? _numberWords[n] 
 /// (ver logic/phrases.dart), así que se evita juntar dos números variables en una frase.
 String touchedNumber(String option) => 'Casi. Tocaste el $option.';
 const letsCount = '¡Vamos a contar juntos!';
+
+/// En inglés solo se dice en inglés lo que hay que adivinar: las instrucciones van en español.
+const askWhatIs = '¿Cómo se dice en inglés?';
+const askHowMany = '¿Cuántos hay? Dilo en inglés.';
+const listenAndTouch = 'Escucha y toca el dibujo.';
+const praiseFirstTry = '¡Muy bien!';
+const praiseRetry = '¡Eso es!';
 const countWhatsLeft = 'Contemos los que quedan.';
 String touchTheNumber(int n) => '¡Toca el $n!';
 
@@ -324,6 +339,7 @@ Question englishQuestion(Random r, Topic topic) {
     answerIndex: options.indexOf(target),
     speech: target.$1,
     speechLang: 'en',
+    intro: listenAndTouch,
     pictureOptions: true,
   );
 }
@@ -353,7 +369,8 @@ Question englishCountQuestion(Random r, Topic topic) {
     optionWords: words,
     answerIndex: options.indexOf(n),
     speech: englishNumbers[n - 1],
-    ask: 'How many?',
+    ask: askHowMany,
+    askLang: 'es',
     count: n,
     speechLang: 'en',
   );
@@ -371,7 +388,8 @@ Question englishWordQuestion(Random r, Topic topic) {
     optionWords: [for (final o in options) o.$1],
     answerIndex: options.indexOf(target),
     speech: target.$1,
-    ask: 'What is this?',
+    ask: askWhatIs,
+    askLang: 'es',
     speechLang: 'en',
   );
 }

@@ -12,11 +12,12 @@ void main() {
   /// Todo lo que puede decir la voz con una pregunta: al mostrarla, al acertar y al equivocarse.
   Iterable<(String, String)> spoken(Question q) sync* {
     final lang = q.speechLang;
-    yield (q.ask ?? q.speech, lang);
+    if (q.intro != null) yield (q.intro!, 'es');
+    yield (q.ask ?? q.speech, q.askLang ?? lang);
     yield (q.speech, lang);
     if (lang == 'en') {
-      yield ('Yes! ${q.speech}', 'en');
-      yield ('Very good! ${q.speech}', 'en');
+      yield (praiseFirstTry, 'es');
+      yield (praiseRetry, 'es');
       for (final o in q.optionWords ?? const <String>[]) {
         yield (o, 'en');
       }

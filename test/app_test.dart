@@ -172,7 +172,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
     expect(find.text('¿Cómo se dice en inglés?'), findsOneWidget);
-    expect(spoken, ['What is this?']);
+    expect(spoken, ['¿Cómo se dice en inglés?'], reason: 'la instrucción en español; solo lo que se adivina va en inglés');
 
     final picture = tester.widget<Text>(find.byKey(const Key('prompt'))).data!;
     final answer = topics.first.words.firstWhere((w) => w.$2 == picture).$1;
@@ -190,7 +190,7 @@ void main() {
 
     await tester.tap(find.byKey(Key('option-${options.indexOf(answer)}')));
     await waitFor(tester);
-    expect(spoken, contains('Very good! $answer'));
+    expect(spoken.sublist(spoken.lastIndexOf('¡Eso es!')).take(2), ['¡Eso es!', answer]);
   });
 
   testWidgets('parejas: se juega desde el menú y guarda las estrellas', (tester) async {
@@ -237,7 +237,7 @@ void main() {
           await tester.pump();
         }
       }
-      expect(spoken, contains('Yes! $word'));
+      expect(spoken, containsAllInOrder(['¡Muy bien!', word]));
       await waitFor(tester, seconds: 1);
     }
     expect(find.textContaining('Encontraste las 4 parejas en 5 intentos'), findsOneWidget);
@@ -252,7 +252,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
     expect(find.text('¿Cuántos hay? Dilo en inglés'), findsOneWidget);
-    expect(spoken, ['How many?']);
+    expect(spoken, ['¿Cuántos hay? Dilo en inglés.']);
 
     final n = find.byKey(const Key('counted-object')).evaluate().length;
     final options = [for (var i = 0; i < 3; i++) tester.widget<BigButton>(find.byKey(Key('option-$i'))).label];
@@ -264,7 +264,7 @@ void main() {
 
     await tester.tap(find.byKey(Key('option-${options.indexOf(englishNumbers[n - 1])}')));
     await waitFor(tester);
-    expect(spoken, contains('Very good! ${englishNumbers[n - 1]}'));
+    expect(spoken.sublist(spoken.lastIndexOf('¡Eso es!')).take(2), ['¡Eso es!', englishNumbers[n - 1]]);
   });
 
   testWidgets('resumen para papás: días, partidas y palabras difíciles, detrás de la pregunta', (tester) async {
@@ -281,10 +281,10 @@ void main() {
     addTearDown(() => state.now = DateTime.now);
 
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('Resumen para papás'), 100);
-    await tester.ensureVisible(find.text('Resumen para papás'));
+    await tester.scrollUntilVisible(find.text('Resumen, niños y recordatorio'), 100);
+    await tester.ensureVisible(find.text('Resumen, niños y recordatorio'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Resumen para papás'));
+    await tester.tap(find.text('Resumen, niños y recordatorio'));
     await tester.pumpAndSettle();
     await answerGate(tester, correctly: true);
 
