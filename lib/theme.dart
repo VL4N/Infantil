@@ -289,10 +289,25 @@ enum OwlMood { normal, happy, sad }
 
 /// Owlito, el búho de la app. De día es café; de noche, morado.
 class Owl extends StatelessWidget {
-  const Owl({super.key, this.size = 100, this.night = false, this.wearing, this.feathers, this.mood = OwlMood.normal});
+  const Owl({
+    super.key,
+    this.size = 100,
+    this.night = false,
+    this.wearing,
+    this.feathers,
+    this.mood = OwlMood.normal,
+    this.blink = 0,
+    this.tear = 0,
+  });
   final double size;
   final bool night;
   final OwlMood mood;
+
+  /// Cuánto tiene cerrados los ojos (0 abiertos, 1 cerrados), para parpadear.
+  final double blink;
+
+  /// Por dónde va la lágrima cuando está triste (0 recién sale, 1 ya cayó).
+  final double tear;
 
   /// Lo que lleva puesto de la tienda (ver logic/shop.dart), o null.
   final String? wearing;
@@ -307,16 +322,18 @@ class Owl extends StatelessWidget {
           OwlMood.sad => 'Owlito, el búho, está triste',
           OwlMood.normal => 'Owlito, el búho',
         },
-        child: CustomPaint(size: Size(size, size * 112 / 104), painter: _OwlPainter(night, wearing, feathers, mood)),
+        child: CustomPaint(size: Size(size, size * 112 / 104), painter: _OwlPainter(night, wearing, feathers, mood, blink, tear)),
       );
 }
 
 class _OwlPainter extends CustomPainter {
-  _OwlPainter(this.night, this.wearing, this.feathers, this.mood);
+  _OwlPainter(this.night, this.wearing, this.feathers, this.mood, this.blink, this.tear);
   final bool night;
   final String? wearing;
   final (int, int, int)? feathers;
   final OwlMood mood;
+  final double blink;
+  final double tear;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -362,10 +379,24 @@ class _OwlPainter extends CustomPainter {
           ..strokeCap = StrokeCap.round;
         canvas.drawLine(const Offset(24, 30), const Offset(44, 25), brow);
         canvas.drawLine(const Offset(80, 30), const Offset(60, 25), brow);
+        // La lágrima baja por la cara y se desvanece al final.
+        final drop = tear * 16;
         canvas.drawPath(
-          Path()..moveTo(25, 58)..quadraticBezierTo(19, 68, 25, 70)..quadraticBezierTo(31, 68, 25, 58),
-          fill(0xFF6EC6FF),
+          Path()
+            ..moveTo(25, 58 + drop)
+            ..quadraticBezierTo(19, 68 + drop, 25, 70 + drop)
+            ..quadraticBezierTo(31, 68 + drop, 25, 58 + drop),
+          Paint()..color = const Color(0xFF6EC6FF).withValues(alpha: tear < .7 ? 1 : (1 - tear) / .3),
         );
+      }
+      if (blink > 0) {
+        // Párpados que bajan al parpadear.
+        canvas.save();
+        canvas.clipPath(Path()
+          ..addOval(Rect.fromCircle(center: const Offset(36, 46), radius: 15.5))
+          ..addOval(Rect.fromCircle(center: const Offset(68, 46), radius: 15.5)));
+        canvas.drawRect(Rect.fromLTRB(0, 30, 104, 30 + 32 * blink), fill(feathers?.$2 ?? (night ? 0xFF8270F0 : 0xFFA86B45)));
+        canvas.restore();
       }
     }
     canvas.drawPath(Path()..moveTo(46, 58)..lineTo(58, 58)..lineTo(52, 68)..close(), fill(0xFFF2A12B));
@@ -431,7 +462,135 @@ class _OwlPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_OwlPainter old) => old.night != night || old.wearing != wearing || old.feathers != feathers || old.mood != mood;
+  bool shouldRepaint(_OwlPainter old) => old.night != night || old.wearing != wearing || old.feathers != feathers || old.mood != mood || old.blink != blink || old.tear != tear;
+}
+
+/// Owlito con vida en el menú, según su cara:
+/// normal parpadea y se mece; feliz da saltitos con estrellitas; triste suspira y le cae una lágrima.
+/// Con "reducir animaciones" del teléfono se queda quieto.
+class LivelyOwl extends StatefulWidget {
+  const LivelyOwl({super.key, this.size = 100, this.night = false, this.wearing, this.feathers, this.mood = OwlMood.normal});
+  final double size;
+  final bool night;
+  final String? wearing;
+  final (int, int, int)? feathers;
+  final OwlMood mood;
+
+  /// Las pruebas lo apagan para que `pumpAndSettle` no espere para siempre.
+  static bool animate = true;
+
+  @override
+  State<LivelyOwl> createState() => _LivelyOwlState();
+}
+
+class _LivelyOwlState extends State<LivelyOwl> with SingleTickerProviderStateMixin {
+  late final _c = AnimationController(vsync: this, duration: const Duration(seconds: 4));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final on = LivelyOwl.animate && !MediaQuery.disableAnimationsOf(context);
+    if (on && !_c.isAnimating) {
+      _c.repeat();
+    } else if (!on) {
+      _c.stop();
+      _c.value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: _c,
+        builder: (context, _) {
+          final t = _c.value;
+          final s = widget.size;
+          var dx = 0.0, dy = 0.0, angle = 0.0, squash = 1.0, blink = 0.0;
+          switch (widget.mood) {
+            case OwlMood.normal:
+              angle = math.sin(t * 2 * math.pi) * .05; // se mece
+              blink = _blink(t, .46) + _blink(t, .52); // parpadea dos veces seguidas
+            case OwlMood.happy:
+              dy = -(math.sin(t * 6 * math.pi)).abs() * s * .08; // tres saltitos
+              angle = math.sin(t * 6 * math.pi) * .04;
+            case OwlMood.sad:
+              final sigh = math.sin(t * 2 * math.pi).clamp(0, 1).toDouble(); // suspiro lento
+              squash = 1 - sigh * .04;
+              dy = sigh * s * .03;
+              blink = _blink(t, .8) * .6;
+          }
+          final owl = Owl(
+            size: s,
+            night: widget.night,
+            wearing: widget.wearing,
+            feathers: widget.feathers,
+            mood: widget.mood,
+            blink: blink.clamp(0, 1).toDouble(),
+            tear: widget.mood == OwlMood.sad ? (t * 2) % 1 : 0,
+          );
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Transform.translate(
+                offset: Offset(dx, dy),
+                child: Transform(
+                  alignment: Alignment.bottomCenter,
+                  transform: Matrix4.diagonal3Values(1, squash, 1)..rotateZ(angle),
+                  child: owl,
+                ),
+              ),
+              if (widget.mood == OwlMood.happy && _c.isAnimating)
+                for (final (i, x) in [(0, -.12), (1, .92), (2, .4)])
+                  _floatingStar(((t + i / 3) % 1), x, s),
+            ],
+          );
+        },
+      );
+
+  /// Ojos cerrados un instante alrededor de [at] (0 a 1 del ciclo).
+  static double _blink(double t, double at) {
+    final d = (t - at).abs();
+    return d > .025 ? 0 : 1 - d / .025;
+  }
+
+  /// Estrellita que sube desde Owlito y se desvanece.
+  Widget _floatingStar(double k, double x, double s) => Positioned(
+        left: s * x,
+        top: s * (.25 - k * .6),
+        child: IgnorePointer(
+          child: Opacity(
+            key: const Key('owl-star'),
+            opacity: k < .2 ? k / .2 : 1 - (k - .2) / .8,
+            child: CustomPaint(size: Size.square(s * .2), painter: const _StarPainter()),
+          ),
+        ),
+      );
+}
+
+class _StarPainter extends CustomPainter {
+  const _StarPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final r = size.width / 2;
+    final star = Path();
+    for (var i = 0; i < 10; i++) {
+      final a = -math.pi / 2 + i * math.pi / 5;
+      final d = i.isEven ? r : r * .45;
+      final pt = c + Offset(math.cos(a) * d, math.sin(a) * d);
+      i == 0 ? star.moveTo(pt.dx, pt.dy) : star.lineTo(pt.dx, pt.dy);
+    }
+    canvas.drawPath(star..close(), Paint()..color = AppColors.yellow);
+  }
+
+  @override
+  bool shouldRepaint(_StarPainter old) => false;
 }
 
 /// Cielo de noche detrás del menú: estrellas y luna.

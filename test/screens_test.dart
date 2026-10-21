@@ -24,6 +24,7 @@ void main() {
       for (final scale in textScales) {
         testWidgets('nada se corta ni se sale: $name, letra x$scale, ${night ? 'noche' : 'día'}', (tester) async {
           Palette.debugNight = night;
+          LivelyOwl.animate = false;
           addTearDown(() => Palette.debugNight = null);
           tester.view.physicalSize = size * 3;
           tester.view.devicePixelRatio = 3;
