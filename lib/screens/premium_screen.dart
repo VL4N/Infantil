@@ -4,8 +4,19 @@ import '../services/app_state.dart';
 import '../services/billing.dart';
 import '../theme.dart';
 
-class PremiumScreen extends StatelessWidget {
+class PremiumScreen extends StatefulWidget {
   const PremiumScreen({super.key});
+
+  @override
+  State<PremiumScreen> createState() => _PremiumScreenState();
+}
+
+class _PremiumScreenState extends State<PremiumScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Billing.instance.loadProduct();
+  }
 
   @override
   Widget build(BuildContext context) {

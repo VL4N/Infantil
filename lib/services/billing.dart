@@ -26,8 +26,7 @@ class Billing extends ChangeNotifier {
       available = await _iap.isAvailable();
       if (!available) return;
       _sub = _iap.purchaseStream.listen(_onPurchases, onError: (Object e) => _fail('$e'));
-      final resp = await _iap.queryProductDetails({Config.premiumProductId});
-      product = resp.productDetails.isEmpty ? null : resp.productDetails.first;
+      await loadProduct();
       // Recupera Premium si ya se compró antes (otro teléfono o reinstalación).
       await _iap.restorePurchases();
     } catch (e) {
@@ -36,10 +35,36 @@ class Billing extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Pide a Google Play el producto Premium. Se vuelve a intentar al abrir la pantalla
+  /// Premium y al tocar comprar: un producto recién activado puede tardar en aparecer,
+  /// y sin internet al abrir la app tampoco llega.
+  Future<void> loadProduct() async {
+    if (product != null) return;
+    try {
+      if (!available) {
+        available = await _iap.isAvailable();
+        if (!available) return;
+        _sub ??= _iap.purchaseStream.listen(_onPurchases, onError: (Object e) => _fail('$e'));
+      }
+      final resp = await _iap.queryProductDetails({Config.premiumProductId});
+      product = resp.productDetails.isEmpty ? null : resp.productDetails.first;
+    } catch (_) {
+      product = null;
+    }
+    notifyListeners();
+  }
+
   Future<void> buy() async {
     error = null;
     if (product == null) {
-      _fail('La tienda no está disponible. Revisa tu conexión e inténtalo de nuevo.');
+      busy = true;
+      notifyListeners();
+      await loadProduct();
+    }
+    if (product == null) {
+      _fail(available
+          ? 'Premium todavía no está disponible en Google Play. Inténtalo más tarde.'
+          : 'No se pudo conectar con Google Play. Revisa tu conexión e inténtalo de nuevo.');
       return;
     }
     busy = true;
