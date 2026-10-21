@@ -59,7 +59,8 @@ class _MemoryScreenState extends State<MemoryScreen> {
         final done = _game.done;
         final previousBest = AppState.instance.bestFor(widget.progressKey);
         final earned = done ? AppState.instance.recordGame(widget.progressKey, _game.stars) : 0;
-        await Voice.say('Yes! ${card.word}', 'en');
+        await Voice.say('¡Muy bien!', 'es');
+        if (mounted) await Voice.say(card.word, 'en');
         if (!mounted || !done) return;
         Navigator.pushReplacement(
           context,

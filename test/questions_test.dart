@@ -183,7 +183,7 @@ void main() {
         final pair = topic.words.firstWhere((w) => w.$2 == q.prompt);
         expect(q.answer, pair.$1);
         expect(q.speech, pair.$1);
-        expect(q.ask, 'What is this?', reason: 'la voz no dice la respuesta al empezar');
+        expect((q.ask, q.askLang), (askWhatIs, 'es'), reason: 'la voz no dice la respuesta al empezar y la instrucción va en español');
         expect(q.options.toSet().length, 3);
         expect(q.pictureOptions, isFalse);
       }
@@ -208,7 +208,7 @@ void main() {
         expect(n, inInclusiveRange(1, max));
         expect(q.prompt.split(' ').length, n);
         expect(q.answer, englishNumbers[n - 1]);
-        expect(q.ask, 'How many?');
+        expect((q.ask, q.askLang), (askHowMany, 'es'));
         expect(q.options.toSet().length, 3);
         expect(q.options.every(englishNumbers.contains), isTrue);
       }
@@ -218,7 +218,7 @@ void main() {
   test('al equivocarse en "How many?" cuenta en inglés', () {
     final q = Question(
       prompt: '🐶 🐶 🐶', options: ['two', 'three', 'four'], optionWords: ['two', 'three', 'four'], answerIndex: 1,
-      speech: 'three', ask: 'How many?', count: 3, speechLang: 'en',
+      speech: 'three', ask: askHowMany, askLang: 'es', count: 3, speechLang: 'en',
     );
     final steps = explainMistake(q, 2);
     expect([for (final s in steps) if (s.lang == 'en') s.text], ['four', 'one', 'two', 'three']);

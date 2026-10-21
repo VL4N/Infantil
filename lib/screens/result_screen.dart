@@ -44,7 +44,7 @@ class _ResultScreenState extends State<ResultScreen> {
   void initState() {
     super.initState();
     Sfx.celebracion();
-    widget.english ? Voice.say('Great job!', 'en') : Voice.say(_message, 'es');
+    Voice.say(_message, 'es');
   }
 
   @override

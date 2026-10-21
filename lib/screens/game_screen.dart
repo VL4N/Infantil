@@ -77,10 +77,12 @@ class _GameScreenState extends State<GameScreen> {
     _counted = null;
     _highlightAnswer = false;
     final q = _q;
-    final intro = _isReview ? Voice.say('¡Repasemos!', 'es') : Future<void>.value();
-    intro.then((_) {
-      if (mounted && identical(q, _q)) Voice.say(q.ask ?? q.speech, q.speechLang);
-    });
+    () async {
+      bool current() => mounted && identical(q, _q);
+      if (_isReview) await Voice.say('¡Repasemos!', 'es');
+      if (q.intro != null && current()) await Voice.say(q.intro!, 'es');
+      if (current()) await Voice.say(q.ask ?? q.speech, q.askLang ?? q.speechLang);
+    }();
   }
 
   Future<void> _tap(int i) async {
@@ -110,10 +112,13 @@ class _GameScreenState extends State<GameScreen> {
     final finished = _round >= Config.roundsPerGame;
     final previousBest = AppState.instance.bestFor(widget.progressKey);
     final earned = finished ? AppState.instance.recordGame(widget.progressKey, AppState.starsFor(_correct)) : 0;
-    await Voice.say(
-      _q.speechLang == 'en' ? (_firstTry ? 'Yes! ${_q.speech}' : 'Very good! ${_q.speech}') : (_firstTry ? _q.answer : '¡Muy bien, ${_q.answer}!'),
-      _q.speechLang,
-    );
+    if (_q.speechLang == 'en') {
+      // La felicitación en español y solo la palabra en inglés.
+      await Voice.say(_firstTry ? praiseFirstTry : praiseRetry, 'es');
+      if (mounted) await Voice.say(_q.speech, 'en');
+    } else {
+      await Voice.say(_firstTry ? _q.answer : '¡Muy bien, ${_q.answer}!', 'es');
+    }
     await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
     if (finished) {
