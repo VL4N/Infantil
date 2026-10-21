@@ -9,8 +9,9 @@ class Config {
   static const premiumProductId = 'premium_unlock';
 
   /// Código para que los revisores de Google Play (y verificadores) abran Premium sin pagar.
+  /// Es largo (16 letras al azar) para que no se pueda adivinar a partir de esta huella.
   /// Aquí solo está su huella SHA-256; el código se da solo en Play Console.
-  static const reviewCodeSha256 = 'bc14e06668cf4fe507e7431ecde9b538fd7c39e2909059e4655f146fd63b78e5';
+  static const reviewCodeSha256 = 'cb8d36169eb9658810cd8c0d04c6a6180637f243c0f4963b06ad1f93812d6bbc';
 
   /// Precio que se muestra si la tienda aún no respondió. El real lo pone Google Play.
   static const fallbackPrice = 'US\$ 2,99';

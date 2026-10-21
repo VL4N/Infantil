@@ -107,7 +107,7 @@ class _CodeDialogState extends State<_CodeDialog> {
           controller: _controller,
           autofocus: true,
           textCapitalization: TextCapitalization.characters,
-          decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'OWL-XXXX-XXXX'),
+          decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'OWL-XXXX-XXXX-XXXX-XXXX'),
           onSubmitted: (v) => Navigator.pop(context, v),
         ),
         actions: [
