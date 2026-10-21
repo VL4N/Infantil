@@ -28,6 +28,7 @@ Future<void> startApp(WidgetTester tester, {bool premium = false, Map<String, Ob
   });
   Voice.useClips = false;
   Sfx.enabled = false;
+  LivelyOwl.animate = false;
   await Voice.init();
   SharedPreferences.setMockInitialValues({'premium': premium, ...prefs});
   await AppState.instance.load();

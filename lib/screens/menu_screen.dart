@@ -146,7 +146,7 @@ class _ChallengeCard extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             children: [
-              Owl(size: 64, night: p.night, wearing: state.wearing, feathers: state.featherColors, mood: mood),
+              LivelyOwl(size: 64, night: p.night, wearing: state.wearing, feathers: state.featherColors, mood: mood),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -222,7 +222,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
         children: [
-          Owl(
+          LivelyOwl(
               size: 44,
               night: night,
               wearing: AppState.instance.wearing,

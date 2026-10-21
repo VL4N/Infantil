@@ -95,4 +95,45 @@ void main() {
     expect(find.textContaining('Owlito está feliz'), findsOneWidget);
     expect(find.byWidgetPredicate((w) => w is Owl && w.mood == OwlMood.happy), findsWidgets);
   });
+
+  group('Owlito se mueve en el menú', () {
+    setUp(() => LivelyOwl.animate = true);
+    tearDown(() => LivelyOwl.animate = false);
+
+    Future<List<Owl>> frames(WidgetTester tester, OwlMood mood, {bool reduce = false}) async {
+      await tester.pumpWidget(MediaQuery(
+        data: MediaQueryData(disableAnimations: reduce),
+        child: Directionality(textDirection: TextDirection.ltr, child: Center(child: LivelyOwl(size: 80, mood: mood))),
+      ));
+      final seen = <Owl>[];
+      for (var i = 0; i < 80; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+        seen.add(tester.widget<Owl>(find.byType(Owl)));
+      }
+      return seen;
+    }
+
+    testWidgets('normal: parpadea', (tester) async {
+      final seen = await frames(tester, OwlMood.normal);
+      expect(seen.any((o) => o.blink > .5), isTrue);
+      expect(seen.any((o) => o.blink == 0), isTrue);
+    });
+
+    testWidgets('feliz: salen estrellitas', (tester) async {
+      await frames(tester, OwlMood.happy);
+      expect(find.byKey(const Key('owl-star')), findsNWidgets(3));
+    });
+
+    testWidgets('triste: la lágrima va cayendo', (tester) async {
+      final seen = await frames(tester, OwlMood.sad);
+      expect(seen.map((o) => o.tear).toSet().length, greaterThan(10));
+    });
+
+    testWidgets('con "reducir animaciones" se queda quieto', (tester) async {
+      final seen = await frames(tester, OwlMood.happy, reduce: true);
+      expect(seen.every((o) => o.blink == 0 && o.tear == 0), isTrue);
+      expect(find.byKey(const Key('owl-star')), findsNothing);
+      expect(tester.hasRunningAnimations, isFalse);
+    });
+  });
 }
