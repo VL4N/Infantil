@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../config.dart';
+import '../logic/daily.dart';
 import '../logic/questions.dart';
 import '../services/app_state.dart';
 import '../services/sfx.dart';
@@ -112,6 +113,8 @@ class _GameScreenState extends State<GameScreen> {
     final finished = _round >= Config.roundsPerGame;
     final previousBest = AppState.instance.bestFor(widget.progressKey);
     final earned = finished ? AppState.instance.recordGame(widget.progressKey, AppState.starsFor(_correct)) : 0;
+    // Al terminar el reto de hoy, estrellas extra (solo la primera vez del día).
+    final bonus = finished && widget.progressKey == challengeKey ? AppState.instance.completeChallenge() : 0;
     if (_q.speechLang == 'en') {
       // La felicitación en español y solo la palabra en inglés.
       await Voice.say(_firstTry ? praiseFirstTry : praiseRetry, 'es');
@@ -126,11 +129,12 @@ class _GameScreenState extends State<GameScreen> {
         context,
         MaterialPageRoute(
           builder: (_) => ResultScreen(
-            detail: '$_correct de ${Config.roundsPerGame} a la primera.',
+            detail: '$_correct de ${Config.roundsPerGame} a la primera.'
+                '${bonus > 0 ? '\n¡Reto de hoy completado! +$bonus estrellas extra.' : ''}',
             english: _q.speechLang == 'en',
             earned: earned,
             previousBest: previousBest,
-            starsWon: _correct,
+            starsWon: _correct + bonus,
             playAgain: () => GameScreen(title: widget.title, progressKey: widget.progressKey, makeQuestion: widget.makeQuestion),
           ),
         ),
