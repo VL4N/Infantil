@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../config.dart';
 import '../logic/daily.dart';
+import '../logic/lang.dart';
+import '../logic/lines.dart';
 import '../logic/questions.dart';
 import '../services/app_state.dart';
 import '../services/sfx.dart';
@@ -11,7 +13,7 @@ import '../services/voice.dart';
 import '../theme.dart';
 import 'result_screen.dart';
 
-/// Partida de [Config.roundsPerGame] preguntas (sumas o inglés).
+/// Partida de [Config.roundsPerGame] preguntas (sumas, restas o el idioma que aprende).
 /// Si el niño se equivoca, la app le explica con voz y la pregunta vuelve más tarde como repaso.
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key, required this.title, required this.progressKey, required this.makeQuestion, this.random});
@@ -80,8 +82,8 @@ class _GameScreenState extends State<GameScreen> {
     final q = _q;
     () async {
       bool current() => mounted && identical(q, _q);
-      if (_isReview) await Voice.say('¡Repasemos!', 'es');
-      if (q.intro != null && current()) await Voice.say(q.intro!, 'es');
+      if (_isReview) await Voice.say(letsReview, Lang.native);
+      if (q.intro != null && current()) await Voice.say(q.intro!, Lang.native);
       if (current()) await Voice.say(q.ask ?? q.speech, q.askLang ?? q.speechLang);
     }();
   }
@@ -92,7 +94,7 @@ class _GameScreenState extends State<GameScreen> {
       setState(() {
         _wrong.add(i);
         if (_firstTry && !_isReview) _reviews.add((_round + _reviewAfter, _q));
-        if (_firstTry && _q.speechLang == 'en') AppState.instance.recordMiss(_q.speech);
+        if (_firstTry && _q.speechLang == Lang.target) AppState.instance.recordMiss(_q.speech);
         _firstTry = false;
         _flash = null;
       });
@@ -115,12 +117,12 @@ class _GameScreenState extends State<GameScreen> {
     final earned = finished ? AppState.instance.recordGame(widget.progressKey, AppState.starsFor(_correct)) : 0;
     // Al terminar el reto de hoy, estrellas extra (solo la primera vez del día).
     final bonus = finished && widget.progressKey == challengeKey ? AppState.instance.completeChallenge() : 0;
-    if (_q.speechLang == 'en') {
-      // La felicitación en español y solo la palabra en inglés.
-      await Voice.say(_firstTry ? praiseFirstTry : praiseRetry, 'es');
-      if (mounted) await Voice.say(_q.speech, 'en');
+    if (_q.speechLang == Lang.target) {
+      // La felicitación en el idioma del niño y solo la palabra en el que aprende.
+      await Voice.say(_firstTry ? praiseFirstTry : praiseRetry, Lang.native);
+      if (mounted) await Voice.say(_q.speech, Lang.target);
     } else {
-      await Voice.say(_firstTry ? _q.answer : '¡Muy bien, ${_q.answer}!', 'es');
+      await Voice.say(_firstTry ? _q.answer : greatNumber(_q.answer), Lang.native);
     }
     await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
@@ -129,9 +131,12 @@ class _GameScreenState extends State<GameScreen> {
         context,
         MaterialPageRoute(
           builder: (_) => ResultScreen(
-            detail: '$_correct de ${Config.roundsPerGame} a la primera.'
-                '${bonus > 0 ? '\n¡Reto de hoy completado! +$bonus estrellas extra.' : ''}',
-            english: _q.speechLang == 'en',
+            detail: tr('$_correct de ${Config.roundsPerGame} a la primera.',
+                    '$_correct of ${Config.roundsPerGame} right on the first try.') +
+                (bonus > 0
+                    ? tr('\n¡Reto de hoy completado! +$bonus estrellas extra.', "\nToday's challenge complete! +$bonus extra stars.")
+                    : ''),
+            english: _q.speechLang == Lang.target,
             earned: earned,
             previousBest: previousBest,
             starsWon: _correct + bonus,
@@ -194,12 +199,15 @@ class _GameScreenState extends State<GameScreen> {
               SizedBox(
                 height: 28,
                 child: _isReview
-                    ? const Text('🔁 Repaso', textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
+                    ? Text(tr('🔁 Repaso', '🔁 Review'),
+                        textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
                     : null,
               ),
-              if (q.speechLang == 'en' && !q.pictureOptions) ...[
+              if (q.speechLang == Lang.target && !q.pictureOptions) ...[
                 Text(
-                  q.count != null ? '¿Cuántos hay? Dilo en inglés' : '¿Cómo se dice en inglés?',
+                  q.count != null
+                      ? tr('¿Cuántos hay? Dilo en inglés', 'How many? Say it in Spanish')
+                      : tr('¿Cómo se dice en inglés?', 'How do you say it in Spanish?'),
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 18),
                 ),
@@ -207,15 +215,16 @@ class _GameScreenState extends State<GameScreen> {
                   _CountingInEnglish(q.prompt.split(' '), counted: _counted)
                 else
                   Text(q.prompt, key: const Key('prompt'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 110)),
-              ] else if (q.speechLang == 'en') ...[
-                const Text('Escucha y toca el dibujo correcto', textAlign: TextAlign.center, style: TextStyle(fontSize: 18)),
+              ] else if (q.speechLang == Lang.target) ...[
+                Text(tr('Escucha y toca el dibujo correcto', 'Listen and touch the right picture'),
+                    textAlign: TextAlign.center, style: const TextStyle(fontSize: 18)),
                 const SizedBox(height: 12),
                 BigButton(
                   label: '🔊 ${q.prompt}',
                   color: context.palette.accent,
                   textColor: context.palette.accentInk,
                   fontSize: 32,
-                  onTap: _explaining ? null : () => Voice.say(q.speech, 'en'),
+                  onTap: _explaining ? null : () => Voice.say(q.speech, Lang.target),
                 ),
               ] else ...[
                 if (q.addition!.drawable)
@@ -232,7 +241,7 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ],
               const SizedBox(height: 28),
-              if (q.speechLang == 'en' && !q.pictureOptions)
+              if (q.speechLang == Lang.target && !q.pictureOptions)
                 // Palabras: una debajo de otra, cada una con su botón para escucharla.
                 for (var i = 0; i < q.options.length; i++)
                   Padding(
@@ -247,7 +256,7 @@ class _GameScreenState extends State<GameScreen> {
                           fontSize: 28,
                           color: context.palette.accent,
                           padding: const EdgeInsets.all(18),
-                          onTap: _explaining ? null : () => Voice.say(q.options[i], 'en'),
+                          onTap: _explaining ? null : () => Voice.say(q.options[i], Lang.target),
                         ),
                       ],
                     ),
@@ -266,7 +275,7 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               if (_explaining) ...[
                 const SizedBox(height: 20),
-                const Text('👂 Escucha…', textAlign: TextAlign.center, style: TextStyle(fontSize: 20)),
+                Text(tr('👂 Escucha…', '👂 Listen…'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 20)),
               ],
             ],
           ),
@@ -450,7 +459,7 @@ class _CountingOn extends StatelessWidget {
   }
 }
 
-/// Dibujos para contar en inglés. Al explicar, cada uno muestra su número en inglés.
+/// Dibujos para contar en el idioma que aprende. Al explicar, cada uno muestra su número en ese idioma.
 class _CountingInEnglish extends StatelessWidget {
   const _CountingInEnglish(this.pictures, {this.counted});
   final List<String> pictures;
@@ -471,7 +480,7 @@ class _CountingInEnglish extends StatelessWidget {
                 SizedBox(
                   height: 24,
                   child: counted != null && i < counted!
-                      ? Text(englishNumbers[i], style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: context.palette.accent))
+                      ? Text(targetNumbers[i], style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: context.palette.accent))
                       : null,
                 ),
               ],

@@ -134,9 +134,10 @@ void main() {
   test('cada tema de inglés tiene palabras y dibujos sin repetir, y alcanza para las parejas', () {
     for (final topic in topics) {
       expect(topic.words.length, greaterThanOrEqualTo(8), reason: topic.key);
-      expect({for (final w in topic.words) w.$1}.length, topic.words.length, reason: topic.key);
-      expect({for (final w in topic.words) w.$2}.length, topic.words.length, reason: topic.key);
-      expect(topic.words.every((w) => !w.$2.contains(' ')), isTrue, reason: 'los dibujos no llevan espacios');
+      expect({for (final w in topic.words) w.en}.length, topic.words.length, reason: topic.key);
+      expect({for (final w in topic.words) w.es}.length, topic.words.length, reason: topic.key);
+      expect({for (final w in topic.words) w.picture}.length, topic.words.length, reason: topic.key);
+      expect(topic.words.every((w) => !w.picture.contains(' ')), isTrue, reason: 'los dibujos no llevan espacios');
     }
   });
 
@@ -145,8 +146,8 @@ void main() {
     for (final topic in topics) {
       for (var i = 0; i < 200; i++) {
         final q = englishQuestion(r, topic);
-        final pair = topic.words.firstWhere((w) => w.$1 == q.prompt);
-        expect(q.answer, pair.$2);
+        final pair = topic.words.firstWhere((w) => w.text == q.prompt);
+        expect(q.answer, pair.picture);
         expect(q.options.toSet().length, 3);
         expect(q.speechLang, 'en');
       }
@@ -180,9 +181,9 @@ void main() {
     for (final topic in topics) {
       for (var i = 0; i < 200; i++) {
         final q = englishWordQuestion(r, topic);
-        final pair = topic.words.firstWhere((w) => w.$2 == q.prompt);
-        expect(q.answer, pair.$1);
-        expect(q.speech, pair.$1);
+        final pair = topic.words.firstWhere((w) => w.picture == q.prompt);
+        expect(q.answer, pair.text);
+        expect(q.speech, pair.text);
         expect((q.ask, q.askLang), (askWhatIs, 'es'), reason: 'la voz no dice la respuesta al empezar y la instrucción va en español');
         expect(q.options.toSet().length, 3);
         expect(q.pictureOptions, isFalse);
@@ -207,10 +208,10 @@ void main() {
         final n = q.count!;
         expect(n, inInclusiveRange(1, max));
         expect(q.prompt.split(' ').length, n);
-        expect(q.answer, englishNumbers[n - 1]);
+        expect(q.answer, targetNumbers[n - 1]);
         expect((q.ask, q.askLang), (askHowMany, 'es'));
         expect(q.options.toSet().length, 3);
-        expect(q.options.every(englishNumbers.contains), isTrue);
+        expect(q.options.every(targetNumbers.contains), isTrue);
       }
     }
   });

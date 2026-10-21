@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'logic/lang.dart';
+import 'screens/language_screen.dart';
 import 'screens/menu_screen.dart';
 import 'screens/profile_screen.dart';
 import 'services/ads.dart';
@@ -76,10 +78,14 @@ class _AprendeJugandoAppState extends State<AprendeJugandoApp> with WidgetsBindi
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Aprende Jugando',
+      title: tr('Aprende Jugando', 'Learn & Play'),
       debugShowCheckedModeBanner: false,
       theme: buildTheme(_palette),
-      home: AppState.instance.profiles.length > 1 ? const ProfilePickerScreen() : const MenuScreen(),
+      home: !AppState.instance.langChosen
+          ? const LanguageScreen()
+          : AppState.instance.profiles.length > 1
+              ? const ProfilePickerScreen()
+              : const MenuScreen(),
     );
   }
 }
@@ -99,7 +105,7 @@ class ErrorInfo extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
-              '😕 Algo falló. Haz una captura y envíala:\n\n$message',
+              '${tr('😕 Algo falló. Haz una captura y envíala:', '😕 Something went wrong. Take a screenshot and send it:')}\n\n$message',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, color: Palette.day.ink, decoration: TextDecoration.none),
             ),

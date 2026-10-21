@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'logic/lang.dart';
+
 /// Colores que no cambian entre el día y la noche (acierto, pista, error).
 class AppColors {
   static const green = Color(0xFF2FB36B);
@@ -278,7 +280,7 @@ class StarRating extends StatelessWidget {
     final p = context.palette;
     return Text(
       '★' * stars + '☆' * (3 - stars),
-      semanticsLabel: '$stars de 3 estrellas',
+      semanticsLabel: tr('$stars de 3 estrellas', '$stars of 3 stars'),
       style: TextStyle(fontSize: size, color: p.night ? p.star : const Color(0xFFE0A51A), letterSpacing: 4),
     );
   }
@@ -318,9 +320,9 @@ class Owl extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Semantics(
         label: switch (mood) {
-          OwlMood.happy => 'Owlito, el búho, está feliz',
-          OwlMood.sad => 'Owlito, el búho, está triste',
-          OwlMood.normal => 'Owlito, el búho',
+          OwlMood.happy => tr('Owlito, el búho, está feliz', 'Owlito the owl is happy'),
+          OwlMood.sad => tr('Owlito, el búho, está triste', 'Owlito the owl is sad'),
+          OwlMood.normal => tr('Owlito, el búho', 'Owlito the owl'),
         },
         child: CustomPaint(size: Size(size, size * 112 / 104), painter: _OwlPainter(night, wearing, feathers, mood, blink, tear)),
       );

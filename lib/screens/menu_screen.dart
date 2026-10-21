@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../logic/content.dart';
 import '../logic/daily.dart';
+import '../logic/lang.dart';
+import '../logic/lines.dart';
 import '../logic/questions.dart';
 import '../services/app_state.dart';
 import '../services/voice.dart';
@@ -22,7 +24,7 @@ Future<void> openPremium(BuildContext context) async {
 
 /// Contenido bloqueado: avisa al niño y pide la pregunta para adultos.
 Future<void> _lockedTap(BuildContext context) {
-  Voice.say('Pide ayuda a papá o a mamá', 'es');
+  Voice.say(askForHelp, Lang.native);
   return openPremium(context);
 }
 
@@ -44,15 +46,15 @@ class MenuScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.palette;
     final games = [
-      _Game('Sumar', 'Hasta 5 · 10 · 20', p.math, p.mathInk, const _PlusIcon(),
+      _Game(tr('Sumar', 'Add'), tr('Hasta 5 · 10 · 20', 'Up to 5 · 10 · 20'), p.math, p.mathInk, const _PlusIcon(),
           () => _open(context, const MathLevelsScreen())),
-      _Game('Restar', 'Hasta 5 · 10 · 20', p.subtract, p.subtractInk, const _MinusIcon(),
+      _Game(tr('Restar', 'Subtract'), tr('Hasta 5 · 10 · 20', 'Up to 5 · 10 · 20'), p.subtract, p.subtractInk, const _MinusIcon(),
           () => _open(context, const MathLevelsScreen(subtract: true))),
-      _Game('Inglés', '${topics.length} temas', p.english, p.englishInk, const _AbcIcon(),
+      _Game(learnName, '${topics.length} ${tr('temas', 'topics')}', p.english, p.englishInk, const _AbcIcon(),
           () => _open(context, const EnglishTopicsScreen())),
-      _Game('Parejas', 'Memoria en inglés', p.memory, p.memoryInk, const _CardsIcon(),
+      _Game(tr('Parejas', 'Pairs'), tr('Memoria en inglés', 'Memory in Spanish'), p.memory, p.memoryInk, const _CardsIcon(),
           () => _open(context, const EnglishTopicsScreen(memory: true))),
-      _Game('Tienda', 'Gasta tus estrellas en Owlito', p.star, const Color(0xFF3B2A55), const _StoreIcon(),
+      _Game(tr('Tienda', 'Shop'), tr('Gasta tus estrellas en Owlito', 'Spend your stars on Owlito'), p.star, const Color(0xFF3B2A55), const _StoreIcon(),
           () => _open(context, const ShopScreen())),
     ];
     final shop = games.last;
@@ -89,7 +91,8 @@ class MenuScreen extends StatelessWidget {
     return [
       _ChallengeCard(today: today, left: left),
       const SizedBox(height: 18),
-      const Text('¿Qué jugamos?', textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+      Text(tr('¿Qué jugamos?', 'What shall we play?'),
+          textAlign: TextAlign.center, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
       const SizedBox(height: 12),
       for (final pair in [games.sublist(0, 2), games.sublist(2, 4)]) ...[
         IntrinsicHeight(
@@ -129,7 +132,7 @@ class _ChallengeCard extends StatelessWidget {
         context,
         MaterialPageRoute(
           builder: (_) => GameScreen(
-            title: 'Reto de hoy',
+            title: tr('Reto de hoy', "Today's challenge"),
             progressKey: challengeKey,
             makeQuestion: challengeQuestions(topicsToPlay),
             random: challengeRandom(state.now(), state.profile.id),
@@ -142,7 +145,7 @@ class _ChallengeCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('RETO DE HOY', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: p.inkSoft)),
+          Text(tr('RETO DE HOY', "TODAY'S CHALLENGE"), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: p.inkSoft)),
           const SizedBox(height: 6),
           Row(
             children: [
@@ -152,9 +155,12 @@ class _ChallengeCard extends StatelessWidget {
                 child: Text(
                   key: const Key('challenge-text'),
                   switch (mood) {
-                    OwlMood.happy => '¡Reto completado! Owlito está feliz. Mañana hay uno nuevo.',
-                    OwlMood.sad => 'Owlito está triste: ayer no hubo reto. ¡Juega el de hoy para alegrarlo!',
-                    OwlMood.normal => 'Preguntas nuevas cada día. ¡Gana ${AppState.challengeBonus} estrellas extra!',
+                    OwlMood.happy => tr('¡Reto completado! Owlito está feliz. Mañana hay uno nuevo.',
+                        'Challenge complete! Owlito is happy. A new one comes tomorrow.'),
+                    OwlMood.sad => tr('Owlito está triste: ayer no hubo reto. ¡Juega el de hoy para alegrarlo!',
+                        "Owlito is sad: no challenge yesterday. Play today's to cheer Owlito up!"),
+                    OwlMood.normal => tr('Preguntas nuevas cada día. ¡Gana ${AppState.challengeBonus} estrellas extra!',
+                        'New questions every day. Win ${AppState.challengeBonus} extra stars!'),
                   },
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, height: 1.15),
                 ),
@@ -163,14 +169,14 @@ class _ChallengeCard extends StatelessWidget {
           ),
           if (streak >= 2) ...[
             const SizedBox(height: 6),
-            Text('🔥 $streak días seguidos con el reto',
+            Text(tr('🔥 $streak días seguidos con el reto', '🔥 $streak days in a row'),
                 key: const Key('challenge-streak'),
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: p.inkSoft)),
           ],
           const SizedBox(height: 12),
           BigButton(
             key: const Key('challenge'),
-            label: done ? 'Jugar otra vez' : '¡Jugar el reto!',
+            label: done ? tr('Jugar otra vez', 'Play again') : tr('¡Jugar el reto!', 'Play the challenge!'),
             fontSize: done ? 20 : 24,
             color: done ? null : p.math,
             textColor: done ? null : p.mathInk,
@@ -180,10 +186,12 @@ class _ChallengeCard extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             today == 0
-                ? 'Juega ${AppState.dailyGoal} partidas hoy y gana la medalla del día.'
+                ? tr('Juega ${AppState.dailyGoal} partidas hoy y gana la medalla del día.',
+                    "Play ${AppState.dailyGoal} games today to win today's medal.")
                 : left > 0
-                    ? '¡Vas muy bien! ${left == 1 ? 'Una partida más' : '$left partidas más'} para la medalla de hoy.'
-                    : '¡Ganaste la medalla de hoy!',
+                    ? tr('¡Vas muy bien! ${left == 1 ? 'Una partida más' : '$left partidas más'} para la medalla de hoy.',
+                        "Great going! ${left == 1 ? 'One more game' : '$left more games'} for today's medal.")
+                    : tr('¡Ganaste la medalla de hoy!', "You won today's medal!"),
             style: TextStyle(fontSize: 16, color: p.inkSoft),
           ),
           const SizedBox(height: 8),
@@ -230,12 +238,12 @@ class _Header extends StatelessWidget {
               mood: AppState.instance.owlMood),
           const SizedBox(width: 8),
           Expanded(
-            child: Text('Aprende Jugando',
+            child: Text(tr('Aprende Jugando', 'Learn & Play'),
                 style: TextStyle(fontSize: 22, fontWeight: night ? FontWeight.w900 : FontWeight.w700)),
           ),
           Semantics(
             button: true,
-            label: 'Tienda de Owlito',
+            label: tr('Tienda de Owlito', "Owlito's shop"),
             child: InkWell(
               borderRadius: BorderRadius.circular(99),
               onTap: onStars,
@@ -253,7 +261,7 @@ class _WhoPlays extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Flexible(
-            child: Text('Juega: ${AppState.instance.profile.name}',
+            child: Text('${tr('Juega', 'Playing')}: ${AppState.instance.profile.name}',
                 overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           ),
           TextButton(
@@ -262,7 +270,7 @@ class _WhoPlays extends StatelessWidget {
               MaterialPageRoute(builder: (_) => const ProfilePickerScreen()),
               (_) => false,
             ),
-            child: Text('Cambiar', style: TextStyle(fontSize: 18, color: context.palette.ink, decoration: TextDecoration.underline)),
+            child: Text(tr('Cambiar', 'Change'), style: TextStyle(fontSize: 18, color: context.palette.ink, decoration: TextDecoration.underline)),
           ),
         ],
       );
@@ -408,15 +416,16 @@ class _ParentsCard extends StatelessWidget {
             children: [
               Icon(Icons.family_restroom_rounded, size: 28, color: p.ink),
               const SizedBox(width: 10),
-              const Expanded(
-                child: Text('Para papás y mamás', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+              Expanded(
+                child: Text(tr('Para papás y mamás', 'For moms and dads'),
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
               ),
             ],
           ),
           const SizedBox(height: 12),
           _ParentButton(
             icon: Icons.insights_rounded,
-            label: 'Resumen, niños y recordatorio',
+            label: tr('Resumen, niños, idioma y aviso', 'Summary, kids, language, reminder'),
             onTap: () async {
               if (await parentalGate(context) && context.mounted) {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const ParentsScreen()));
@@ -426,7 +435,7 @@ class _ParentsCard extends StatelessWidget {
           const SizedBox(height: 10),
           _ParentButton(
             icon: premium ? Icons.verified_rounded : Icons.workspace_premium_rounded,
-            label: premium ? 'Premium activo' : 'Premium: todo sin anuncios',
+            label: premium ? tr('Premium activo', 'Premium active') : tr('Premium: todo sin anuncios', 'Premium: everything, no ads'),
             onTap: premium ? null : () => openPremium(context),
           ),
         ],
@@ -471,24 +480,24 @@ class MathLevelsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = AppState.instance;
     return Scaffold(
-      appBar: _appBar(subtract ? 'Restar' : 'Sumar'),
+      appBar: _appBar(subtract ? tr('Restar', 'Subtract') : tr('Sumar', 'Add')),
       body: ListenableBuilder(
         listenable: state,
         builder: (context, _) => ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            const Text('Elige un nivel', textAlign: TextAlign.center, style: TextStyle(fontSize: 26)),
-            for (final (max, label) in mathLevels) ...[
+            Text(tr('Elige un nivel', 'Pick a level'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 26)),
+            for (final (max, _) in mathLevels) ...[
               const SizedBox(height: 16),
               BigButton(
-                label: label,
+                label: mathLevelLabel(max),
                 locked: !state.canPlayMath(max),
                 stars: state.canPlayMath(max) ? state.todayFor(subtract ? subtractKey(max) : mathKey(max)) : null,
                 onTap: () => state.canPlayMath(max)
                     ? Navigator.push(context, MaterialPageRoute(
                         builder: (_) => subtract
-                            ? GameScreen(title: 'Restar', progressKey: subtractKey(max), makeQuestion: (r) => subtractionQuestion(r, max))
-                            : GameScreen(title: 'Sumar', progressKey: mathKey(max), makeQuestion: (r) => mathQuestion(r, max)),
+                            ? GameScreen(title: tr('Restar', 'Subtract'), progressKey: subtractKey(max), makeQuestion: (r) => subtractionQuestion(r, max))
+                            : GameScreen(title: tr('Sumar', 'Add'), progressKey: mathKey(max), makeQuestion: (r) => mathQuestion(r, max)),
                       ))
                     : _lockedTap(context),
               ),
@@ -510,13 +519,13 @@ class EnglishTopicsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = AppState.instance;
     return Scaffold(
-      appBar: _appBar(memory ? 'Parejas' : 'Inglés'),
+      appBar: _appBar(memory ? tr('Parejas', 'Pairs') : learnName),
       body: ListenableBuilder(
         listenable: state,
         builder: (context, _) => ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            const Text('Elige un tema', textAlign: TextAlign.center, style: TextStyle(fontSize: 26)),
+            Text(tr('Elige un tema', 'Pick a topic'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 26)),
             for (final topic in topics) ...[
               const SizedBox(height: 16),
               BigButton(
@@ -529,7 +538,7 @@ class EnglishTopicsScreen extends StatelessWidget {
                     ? Navigator.push(context, MaterialPageRoute(
                         builder: (_) => memory
                             ? MemoryScreen(topic: topic, progressKey: memoryKey(topic))
-                            : GameScreen(title: 'Inglés', progressKey: topicKey(topic), makeQuestion: (r) => englishMixedQuestion(r, topic)),
+                            : GameScreen(title: learnName, progressKey: topicKey(topic), makeQuestion: (r) => englishMixedQuestion(r, topic)),
                       ))
                     : _lockedTap(context),
               ),

@@ -30,7 +30,7 @@ Future<void> startApp(WidgetTester tester, {bool premium = false, Map<String, Ob
   Sfx.enabled = false;
   LivelyOwl.animate = false;
   await Voice.init();
-  SharedPreferences.setMockInitialValues({'premium': premium, ...prefs});
+  SharedPreferences.setMockInitialValues({'premium': premium, 'lang': 'es', ...prefs});
   await AppState.instance.load();
   await tester.pumpWidget(const AprendeJugandoApp());
 }
@@ -179,7 +179,7 @@ void main() {
     expect(spoken, ['¿Cómo se dice en inglés?'], reason: 'la instrucción en español; solo lo que se adivina va en inglés');
 
     final picture = tester.widget<Text>(find.byKey(const Key('prompt'))).data!;
-    final answer = topics.first.words.firstWhere((w) => w.$2 == picture).$1;
+    final answer = topics.first.words.firstWhere((w) => w.picture == picture).text;
     final options = [for (var i = 0; i < 3; i++) tester.widget<BigButton>(find.byKey(Key('option-$i'))).label];
 
     await tester.tap(find.byKey(const Key('listen-0')));
@@ -263,15 +263,15 @@ void main() {
 
     final n = find.byKey(const Key('counted-object')).evaluate().length;
     final options = [for (var i = 0; i < 3; i++) tester.widget<BigButton>(find.byKey(Key('option-$i'))).label];
-    final wrong = options.indexWhere((o) => o != englishNumbers[n - 1]);
+    final wrong = options.indexWhere((o) => o != targetNumbers[n - 1]);
     await tester.tap(find.byKey(Key('option-$wrong')));
     await waitFor(tester, seconds: 15);
-    expect(spoken, containsAllInOrder(['Contemos juntos en inglés', ...englishNumbers.take(n)]));
-    expect(find.text(englishNumbers[n - 1]), findsWidgets, reason: 'cada dibujo muestra su número en inglés');
+    expect(spoken, containsAllInOrder(['Contemos juntos en inglés', ...targetNumbers.take(n)]));
+    expect(find.text(targetNumbers[n - 1]), findsWidgets, reason: 'cada dibujo muestra su número en inglés');
 
-    await tester.tap(find.byKey(Key('option-${options.indexOf(englishNumbers[n - 1])}')));
+    await tester.tap(find.byKey(Key('option-${options.indexOf(targetNumbers[n - 1])}')));
     await waitFor(tester);
-    expect(spoken.sublist(spoken.lastIndexOf('¡Eso es!')).take(2), ['¡Eso es!', englishNumbers[n - 1]]);
+    expect(spoken.sublist(spoken.lastIndexOf('¡Eso es!')).take(2), ['¡Eso es!', targetNumbers[n - 1]]);
   });
 
   testWidgets('resumen para papás: días, partidas y palabras difíciles, detrás de la pregunta', (tester) async {
@@ -288,10 +288,10 @@ void main() {
     addTearDown(() => state.now = DateTime.now);
 
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('Resumen, niños y recordatorio'), 100);
-    await tester.ensureVisible(find.text('Resumen, niños y recordatorio'));
+    await tester.scrollUntilVisible(find.text('Resumen, niños, idioma y aviso'), 100);
+    await tester.ensureVisible(find.text('Resumen, niños, idioma y aviso'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Resumen, niños y recordatorio'));
+    await tester.tap(find.text('Resumen, niños, idioma y aviso'));
     await tester.pumpAndSettle();
     await answerGate(tester, correctly: true);
 

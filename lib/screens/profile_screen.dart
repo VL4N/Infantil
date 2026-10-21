@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../logic/lang.dart';
+import '../logic/lines.dart';
 import '../services/app_state.dart';
 import '../services/voice.dart';
 import '../theme.dart';
@@ -17,7 +19,7 @@ class _ProfilePickerScreenState extends State<ProfilePickerScreen> {
   @override
   void initState() {
     super.initState();
-    Voice.say('¿Quién va a jugar?', 'es');
+    Voice.say(whoIsPlaying, Lang.native);
   }
 
   /// Colores de plumas para distinguir a cada niño en esta pantalla.
@@ -33,8 +35,8 @@ class _ProfilePickerScreenState extends State<ProfilePickerScreen> {
           padding: const EdgeInsets.all(20),
           children: [
             const SizedBox(height: 12),
-            const Text('¿Quién va a jugar?',
-                textAlign: TextAlign.center, style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
+            Text(whoIsPlaying,
+                textAlign: TextAlign.center, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
             const SizedBox(height: 20),
             for (final (i, profile) in state.profiles.indexed) ...[
               Material(
@@ -100,7 +102,7 @@ class _NameDialogState extends State<_NameDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-        title: const Text('Nombre del niño o niña'),
+        title: Text(tr('Nombre del niño o niña', "Child's name")),
         content: TextField(
           key: const Key('profile-name'),
           controller: _controller,
@@ -111,8 +113,8 @@ class _NameDialogState extends State<_NameDialog> {
           onSubmitted: (v) => Navigator.pop(context, v),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
-          FilledButton(onPressed: () => Navigator.pop(context, _controller.text), child: const Text('Guardar')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(tr('Cancelar', 'Cancel'))),
+          FilledButton(onPressed: () => Navigator.pop(context, _controller.text), child: Text(tr('Guardar', 'Save'))),
         ],
       );
 }

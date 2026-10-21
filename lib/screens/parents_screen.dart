@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../logic/content.dart';
+import '../logic/lang.dart';
 import '../services/app_state.dart';
 import '../services/reminder.dart';
 import '../theme.dart';
+import 'language_screen.dart';
 import 'profile_screen.dart';
 
 /// Resumen para papás (detrás de la pregunta para adultos): qué practicó y qué le cuesta.
@@ -18,39 +20,42 @@ class ParentsScreen extends StatelessWidget {
     const title = TextStyle(fontSize: 22, fontWeight: FontWeight.bold);
     const body = TextStyle(fontSize: 18);
     return Scaffold(
-      appBar: AppBar(title: const Text('Resumen para papás')),
+      appBar: AppBar(title: Text(tr('Resumen para papás', 'Summary for parents'))),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          Text('📅 Días jugados: ${state.days.length}', style: body),
-          Text('🎮 Partidas terminadas: ${state.played.values.fold(0, (a, b) => a + b)}', style: body),
-          Text('⭐ Estrellas ganadas: ${state.starsEarned} (para gastar: ${state.stars})', style: body),
+          Text('📅 ${tr('Días jugados', 'Days played')}: ${state.days.length}', style: body),
+          Text('🎮 ${tr('Partidas terminadas', 'Games finished')}: ${state.played.values.fold(0, (a, b) => a + b)}', style: body),
+          Text('⭐ ${tr('Estrellas ganadas', 'Stars earned')}: ${state.starsEarned} (${tr('para gastar', 'to spend')}: ${state.stars})', style: body),
           const SizedBox(height: 24),
-          const Text('Lo que practicó', style: title),
+          Text(tr('Lo que practicó', 'What they practiced'), style: title),
           const SizedBox(height: 8),
-          if (games.isEmpty) const Text('Todavía no terminó ninguna partida.', style: body),
+          if (games.isEmpty) Text(tr('Todavía no terminó ninguna partida.', 'No games finished yet.'), style: body),
           for (final g in games)
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(progressLabel(g.key), style: body),
-              subtitle: Text(g.value == 1 ? '1 partida' : '${g.value} partidas'),
+              subtitle: Text(g.value == 1 ? tr('1 partida', '1 game') : '${g.value} ${tr('partidas', 'games')}'),
               trailing: StarRating(stars: state.bestFor(g.key), size: 22),
             ),
           const SizedBox(height: 24),
-          const Text('Palabras en inglés que más le cuestan', style: title),
+          Text(tr('Palabras en inglés que más le cuestan', 'Spanish words that are hardest'), style: title),
           const SizedBox(height: 8),
-          if (hardest.isEmpty) const Text('Ninguna por ahora. ¡Muy bien!', style: body),
+          if (hardest.isEmpty) Text(tr('Ninguna por ahora. ¡Muy bien!', 'None for now. Great job!'), style: body),
           for (final w in hardest)
-            Text('• ${w.key}: ${w.value == 1 ? '1 error' : '${w.value} errores'}', style: body),
+            Text('• ${w.key}: ${w.value == 1 ? tr('1 error', '1 mistake') : '${w.value} ${tr('errores', 'mistakes')}'}', style: body),
           const SizedBox(height: 24),
           Text(
-            'Consejo: repasen juntos esas palabras en voz alta y jueguen ese tema en Parejas.',
+            tr('Consejo: repasen juntos esas palabras en voz alta y jueguen ese tema en Parejas.',
+                'Tip: practice those words out loud together and play that topic in Pairs.'),
             style: TextStyle(fontSize: 16, color: context.palette.ink),
           ),
           const SizedBox(height: 32),
           const _Profiles(),
           const SizedBox(height: 32),
           const _ReminderSetting(),
+          const SizedBox(height: 32),
+          const _LanguageSetting(),
         ],
       ),
     );
@@ -69,19 +74,21 @@ class _Profiles extends StatelessWidget {
       builder: (context, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Niños que juegan', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-          const Text('Cada uno tiene su propio progreso y sus estrellas. Este resumen es del que está jugando.',
-              style: TextStyle(fontSize: 15)),
+          Text(tr('Niños que juegan', 'Kids who play'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          Text(
+              tr('Cada uno tiene su propio progreso y sus estrellas. Este resumen es del que está jugando.',
+                  'Each one has their own progress and stars. This summary is for the one playing now.'),
+              style: const TextStyle(fontSize: 15)),
           for (final p in state.profiles)
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(p.name, style: const TextStyle(fontSize: 18)),
-              subtitle: p.id == state.profile.id ? const Text('Está jugando ahora') : null,
+              subtitle: p.id == state.profile.id ? Text(tr('Está jugando ahora', 'Playing now')) : null,
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    tooltip: 'Cambiar nombre',
+                    tooltip: tr('Cambiar nombre', 'Rename'),
                     icon: const Icon(Icons.edit_rounded),
                     onPressed: () async {
                       final name = await askName(context, initial: p.name);
@@ -90,17 +97,18 @@ class _Profiles extends StatelessWidget {
                   ),
                   if (state.profiles.length > 1)
                     IconButton(
-                      tooltip: 'Borrar',
+                      tooltip: tr('Borrar', 'Delete'),
                       icon: const Icon(Icons.delete_outline_rounded),
                       onPressed: () async {
                         final ok = await showDialog<bool>(
                           context: context,
                           builder: (context) => AlertDialog(
-                            title: Text('¿Borrar a ${p.name}?'),
-                            content: const Text('Se borra su progreso, sus estrellas y lo que compró en la tienda.'),
+                            title: Text(tr('¿Borrar a ${p.name}?', 'Delete ${p.name}?')),
+                            content: Text(tr('Se borra su progreso, sus estrellas y lo que compró en la tienda.',
+                                'This deletes their progress, stars and what they bought in the shop.')),
                             actions: [
-                              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-                              FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Borrar')),
+                              TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Cancelar', 'Cancel'))),
+                              FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('Borrar', 'Delete'))),
                             ],
                           ),
                         );
@@ -113,7 +121,7 @@ class _Profiles extends StatelessWidget {
           if (state.profiles.length < AppState.maxProfiles)
             OutlinedButton.icon(
               icon: const Icon(Icons.person_add_alt_1_rounded),
-              label: const Text('Agregar otro niño o niña'),
+              label: Text(tr('Agregar otro niño o niña', 'Add another child')),
               onPressed: () async {
                 final name = await askName(context);
                 if (name != null) state.addProfile(name);
@@ -139,8 +147,9 @@ class _ReminderSetting extends StatelessWidget {
     final ok = await Reminder.enable(hour ?? state.reminderHour);
     state.setReminder(on: ok, hour: hour);
     if (!ok && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Para el recordatorio, permite las notificaciones de la app en los ajustes del teléfono.'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(tr('Para el recordatorio, permite las notificaciones de la app en los ajustes del teléfono.',
+            "For the reminder, allow the app's notifications in the phone settings.")),
       ));
     }
   }
@@ -156,20 +165,23 @@ class _ReminderSetting extends StatelessWidget {
           SwitchListTile(
             key: const Key('reminder-switch'),
             contentPadding: EdgeInsets.zero,
-            title: const Text('Recordatorio diario', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            subtitle: const Text('Un aviso al día: "¡Owlito te espera!"'),
+            title: Text(tr('Recordatorio diario', 'Daily reminder'),
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            subtitle: Text(tr('Un aviso al día: "¡Owlito te espera!"', 'One reminder a day: "Owlito is waiting for you!"')),
             value: state.reminderOn,
             onChanged: (on) => _set(context, on: on),
           ),
           if (state.reminderOn)
             Row(
               children: [
-                const Text('Hora:', style: TextStyle(fontSize: 18)),
+                Text(tr('Hora:', 'Time:'), style: const TextStyle(fontSize: 18)),
                 const SizedBox(width: 12),
                 DropdownButton<int>(
                   value: state.reminderHour,
                   items: [
-                    for (var h = 8; h <= 20; h++) DropdownMenuItem(value: h, child: Text('${h > 12 ? h - 12 : h}:00 ${h < 12 ? 'a. m.' : 'p. m.'}')),
+                    for (var h = 8; h <= 20; h++) DropdownMenuItem(
+                        value: h,
+                        child: Text('${h > 12 ? h - 12 : h}:00 ${h < 12 ? tr('a. m.', 'AM') : tr('p. m.', 'PM')}')),
                   ],
                   onChanged: (h) => _set(context, on: true, hour: h),
                 ),
@@ -180,3 +192,19 @@ class _ReminderSetting extends StatelessWidget {
     );
   }
 }
+
+/// Idioma de la app: el del niño (aprende el otro). Al cambiarlo se vuelve al menú, ya en el idioma nuevo.
+class _LanguageSetting extends StatelessWidget {
+  const _LanguageSetting();
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(tr('Idioma', 'Language'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          LanguageChoices(onChosen: (_) => Navigator.pushAndRemoveUntil(context, homeRoute(), (_) => false)),
+        ],
+      );
+}
+

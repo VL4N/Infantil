@@ -60,7 +60,7 @@ def main() -> None:
             # del audio al empezar a sonar (la "c" de "cuatro").
             subprocess.run(
                 ["ffmpeg", "-loglevel", "error", "-y", "-i", wav, "-af", "adelay=250:all=1,apad=pad_dur=0.15",
-                 "-ac", "1", "-ar", "22050", "-codec:a", "libmp3lame", "-b:a", "40k", out],
+                 "-ac", "1", "-ar", "22050", "-codec:a", "libmp3lame", "-b:a", "32k", out],
                 check=True,
             )
             done += 1

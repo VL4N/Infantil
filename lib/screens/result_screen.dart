@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../logic/lang.dart';
+import '../logic/lines.dart';
 import '../services/ads.dart';
 import '../services/app_state.dart';
 import '../services/sfx.dart';
@@ -35,29 +37,30 @@ class ResultScreen extends StatefulWidget {
 
 class _ResultScreenState extends State<ResultScreen> {
   String get _message => widget.earned >= 3
-      ? '¡Eres una estrella!'
+      ? youAreAStar
       : widget.earned >= 2
-          ? '¡Muy bien!'
-          : '¡Sigue practicando!';
+          ? greatJob
+          : keepPracticing;
 
   @override
   void initState() {
     super.initState();
     Sfx.celebracion();
-    Voice.say(_message, 'es');
+    Voice.say(_message, Lang.native);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('¡Bravo!')),
+      appBar: AppBar(title: Text(tr('¡Bravo!', 'Hooray!'))),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
           const Center(child: Text('🏆', style: TextStyle(fontSize: 100))),
           Center(child: StarRating(stars: widget.earned, size: 52)),
           if (widget.earned > widget.previousBest && widget.previousBest > 0)
-            const Text('¡Nuevo récord!', textAlign: TextAlign.center, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(tr('¡Nuevo récord!', 'New record!'),
+                textAlign: TextAlign.center, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           Text(
             '$_message\n${widget.detail}',
             textAlign: TextAlign.center,
@@ -66,8 +69,10 @@ class _ResultScreenState extends State<ResultScreen> {
           if (widget.starsWon > 0) ...[
             const SizedBox(height: 12),
             Text(
-              '+${widget.starsWon} ${widget.starsWon == 1 ? 'estrella' : 'estrellas'} para la tienda.'
-              ' Ahora tienes ${AppState.instance.stars}.',
+              tr('+${widget.starsWon} ${widget.starsWon == 1 ? 'estrella' : 'estrellas'} para la tienda.'
+                  ' Ahora tienes ${AppState.instance.stars}.',
+                  '+${widget.starsWon} ${widget.starsWon == 1 ? 'star' : 'stars'} for the shop.'
+                  ' Now you have ${AppState.instance.stars}.'),
               key: const Key('stars-won'),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
@@ -78,11 +83,11 @@ class _ResultScreenState extends State<ResultScreen> {
           const Center(child: AdBanner()),
           const SizedBox(height: 20),
           BigButton(
-            label: '🔁 Otra vez',
+            label: tr('🔁 Otra vez', '🔁 Play again'),
             onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => widget.playAgain())),
           ),
           const SizedBox(height: 14),
-          BigButton(label: '🏠 Inicio', onTap: () => Navigator.popUntil(context, (r) => r.isFirst)),
+          BigButton(label: tr('🏠 Inicio', '🏠 Home'), onTap: () => Navigator.popUntil(context, (r) => r.isFirst)),
         ],
       ),
     );

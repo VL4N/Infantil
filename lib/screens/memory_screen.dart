@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../logic/content.dart';
+import '../logic/lang.dart';
+import '../logic/lines.dart';
 import '../logic/memory.dart';
 import '../services/app_state.dart';
 import '../services/sfx.dart';
@@ -10,7 +12,7 @@ import '../services/voice.dart';
 import '../theme.dart';
 import 'result_screen.dart';
 
-/// Juego de parejas: destapa dos cartas y junta cada dibujo con su palabra en inglés.
+/// Juego de parejas: destapa dos cartas y junta cada dibujo con su palabra (en el idioma que aprende).
 class MemoryScreen extends StatefulWidget {
   const MemoryScreen({super.key, required this.topic, required this.progressKey, this.random});
 
@@ -28,7 +30,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
   @override
   void initState() {
     super.initState();
-    Voice.say('Busca las parejas', 'es');
+    Voice.say(findThePairs, Lang.native);
   }
 
   @override
@@ -47,7 +49,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
       case FlipResult.first:
       case FlipResult.miss:
         // La palabra se lee en voz alta, para quien todavía no lee.
-        if (!card.showsPicture) Voice.say(card.word, 'en');
+        if (!card.showsPicture) Voice.say(card.word, Lang.target);
         if (result == FlipResult.miss) {
           await Future.delayed(const Duration(milliseconds: 1400));
           if (!mounted) return;
@@ -59,8 +61,8 @@ class _MemoryScreenState extends State<MemoryScreen> {
         final done = _game.done;
         final previousBest = AppState.instance.bestFor(widget.progressKey);
         final earned = done ? AppState.instance.recordGame(widget.progressKey, _game.stars) : 0;
-        await Voice.say('¡Muy bien!', 'es');
-        if (mounted) await Voice.say(card.word, 'en');
+        await Voice.say(greatJob, Lang.native);
+        if (mounted) await Voice.say(card.word, Lang.target);
         if (!mounted || !done) return;
         Navigator.pushReplacement(
           context,
@@ -69,7 +71,8 @@ class _MemoryScreenState extends State<MemoryScreen> {
               earned: earned,
               previousBest: previousBest,
               starsWon: _game.pairs,
-              detail: 'Encontraste las ${_game.pairs} parejas en ${_game.tries} intentos.',
+              detail: tr('Encontraste las ${_game.pairs} parejas en ${_game.tries} intentos.',
+                  'You found all ${_game.pairs} pairs in ${_game.tries} tries.'),
               english: true,
               playAgain: () => MemoryScreen(topic: widget.topic, progressKey: widget.progressKey),
             ),
@@ -82,7 +85,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Parejas'),
+        title: Text(tr('Parejas', 'Pairs')),
         actions: [ListenableBuilder(
           listenable: AppState.instance,
           builder: (_, _) => StarCounter(stars: AppState.instance.stars),
@@ -91,7 +94,8 @@ class _MemoryScreenState extends State<MemoryScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text('Junta cada dibujo con su palabra', textAlign: TextAlign.center, style: TextStyle(fontSize: 20)),
+          Text(tr('Junta cada dibujo con su palabra', 'Match each picture with its word'),
+              textAlign: TextAlign.center, style: const TextStyle(fontSize: 20)),
           const SizedBox(height: 16),
           GridView.count(
             crossAxisCount: 2,
