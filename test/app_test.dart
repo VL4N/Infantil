@@ -80,6 +80,9 @@ void main() {
 
   testWidgets('con Premium no hay candados', (tester) async {
     await startApp(tester, premium: true);
+    await tester.scrollUntilVisible(find.text('Inglés'), 100);
+    await tester.ensureVisible(find.text('Inglés'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Inglés'));
     await tester.pumpAndSettle();
     expect(find.textContaining('🔒'), findsNothing);
@@ -195,6 +198,9 @@ void main() {
 
   testWidgets('parejas: se juega desde el menú y guarda las estrellas', (tester) async {
     await startApp(tester);
+    await tester.scrollUntilVisible(find.text('Parejas'), 100);
+    await tester.ensureVisible(find.text('Parejas'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Parejas'));
     await tester.pumpAndSettle();
     expect(find.text('🍎 Frutas'), findsOneWidget);

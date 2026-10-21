@@ -284,11 +284,15 @@ class StarRating extends StatelessWidget {
   }
 }
 
+/// Cara de Owlito: feliz con el reto de hoy hecho, triste si ayer no se hizo.
+enum OwlMood { normal, happy, sad }
+
 /// Owlito, el búho de la app. De día es café; de noche, morado.
 class Owl extends StatelessWidget {
-  const Owl({super.key, this.size = 100, this.night = false, this.wearing, this.feathers});
+  const Owl({super.key, this.size = 100, this.night = false, this.wearing, this.feathers, this.mood = OwlMood.normal});
   final double size;
   final bool night;
+  final OwlMood mood;
 
   /// Lo que lleva puesto de la tienda (ver logic/shop.dart), o null.
   final String? wearing;
@@ -298,16 +302,21 @@ class Owl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
-        label: 'Owlito, el búho',
-        child: CustomPaint(size: Size(size, size * 112 / 104), painter: _OwlPainter(night, wearing, feathers)),
+        label: switch (mood) {
+          OwlMood.happy => 'Owlito, el búho, está feliz',
+          OwlMood.sad => 'Owlito, el búho, está triste',
+          OwlMood.normal => 'Owlito, el búho',
+        },
+        child: CustomPaint(size: Size(size, size * 112 / 104), painter: _OwlPainter(night, wearing, feathers, mood)),
       );
 }
 
 class _OwlPainter extends CustomPainter {
-  _OwlPainter(this.night, this.wearing, this.feathers);
+  _OwlPainter(this.night, this.wearing, this.feathers, this.mood);
   final bool night;
   final String? wearing;
   final (int, int, int)? feathers;
+  final OwlMood mood;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -323,11 +332,42 @@ class _OwlPainter extends CustomPainter {
     final eye = fill(night ? 0xFFFFE9A8 : 0xFFFFFFFF);
     canvas.drawCircle(const Offset(36, 46), 15, eye);
     canvas.drawCircle(const Offset(68, 46), 15, eye);
-    final pupil = fill(night ? 0xFF1B1F4B : 0xFF1F3B2D);
-    canvas.drawCircle(const Offset(38, 47), 7, pupil);
-    canvas.drawCircle(const Offset(66, 47), 7, pupil);
-    canvas.drawCircle(const Offset(40, 44), 2.2, fill(0xFFFFFFFF));
-    canvas.drawCircle(const Offset(68, 44), 2.2, fill(0xFFFFFFFF));
+    final pupilC = night ? 0xFF1B1F4B : 0xFF1F3B2D;
+    if (mood == OwlMood.happy) {
+      // Ojos cerrados de felicidad (^ ^) y cachetes rosados.
+      final smile = Paint()
+        ..color = Color(pupilC)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(Path()..moveTo(27, 50)..quadraticBezierTo(36, 36, 45, 50), smile);
+      canvas.drawPath(Path()..moveTo(59, 50)..quadraticBezierTo(68, 36, 77, 50), smile);
+      canvas.drawCircle(const Offset(24, 62), 5, fill(0x88FF7FA8));
+      canvas.drawCircle(const Offset(80, 62), 5, fill(0x88FF7FA8));
+    } else {
+      final pupil = fill(pupilC);
+      final dy = mood == OwlMood.sad ? 4.0 : 0.0; // triste: mira hacia abajo
+      canvas.drawCircle(Offset(38, 47 + dy), 7, pupil);
+      canvas.drawCircle(Offset(66, 47 + dy), 7, pupil);
+      canvas.drawCircle(Offset(40, 44 + dy), 2.2, fill(0xFFFFFFFF));
+      canvas.drawCircle(Offset(68, 44 + dy), 2.2, fill(0xFFFFFFFF));
+      if (mood == OwlMood.sad) {
+        // Párpados caídos, cejas tristes y una lágrima.
+        final lid = fill(feathers?.$2 ?? (night ? 0xFF8270F0 : 0xFFA86B45));
+        canvas.drawArc(Rect.fromCircle(center: const Offset(36, 46), radius: 15.5), math.pi, math.pi, false, lid);
+        canvas.drawArc(Rect.fromCircle(center: const Offset(68, 46), radius: 15.5), math.pi, math.pi, false, lid);
+        final brow = Paint()
+          ..color = Color(pupilC)
+          ..strokeWidth = 3.5
+          ..strokeCap = StrokeCap.round;
+        canvas.drawLine(const Offset(24, 30), const Offset(44, 25), brow);
+        canvas.drawLine(const Offset(80, 30), const Offset(60, 25), brow);
+        canvas.drawPath(
+          Path()..moveTo(25, 58)..quadraticBezierTo(19, 68, 25, 70)..quadraticBezierTo(31, 68, 25, 58),
+          fill(0xFF6EC6FF),
+        );
+      }
+    }
     canvas.drawPath(Path()..moveTo(46, 58)..lineTo(58, 58)..lineTo(52, 68)..close(), fill(0xFFF2A12B));
     if (!night) {
       final feet = Paint()
@@ -391,7 +431,7 @@ class _OwlPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_OwlPainter old) => old.night != night || old.wearing != wearing || old.feathers != feathers;
+  bool shouldRepaint(_OwlPainter old) => old.night != night || old.wearing != wearing || old.feathers != feathers || old.mood != mood;
 }
 
 /// Cielo de noche detrás del menú: estrellas y luna.

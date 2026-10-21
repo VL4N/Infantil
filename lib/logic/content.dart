@@ -73,6 +73,7 @@ String memoryKey(Topic topic) => 'parejas-${topic.key}';
 
 /// Nombre para papás de un nivel o tema guardado con [mathKey], [topicKey] o [memoryKey].
 String progressLabel(String key) {
+  if (key == 'reto-hoy') return 'Reto de hoy';
   final dash = key.indexOf('-');
   final kind = dash < 0 ? '' : key.substring(0, dash);
   final rest = key.substring(dash + 1);

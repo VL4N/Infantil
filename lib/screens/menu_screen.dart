@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../logic/content.dart';
+import '../logic/daily.dart';
 import '../logic/questions.dart';
 import '../services/app_state.dart';
 import '../services/voice.dart';
@@ -83,37 +84,10 @@ class MenuScreen extends StatelessWidget {
   /// Tarjeta de las partidas de hoy y los juegos en cuadrícula. De día ("Caramelo") y de noche
   /// ("Noche estrellada") es la misma pantalla; solo cambian los colores.
   List<Widget> _body(BuildContext context, List<_Game> games) {
-    final p = context.palette;
     final today = AppState.instance.gamesToday;
     final left = AppState.dailyGoal - today;
     return [
-      _Card(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('PARTIDAS DE HOY', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: p.inkSoft)),
-            const SizedBox(height: 6),
-            Text(
-              today == 0
-                  ? '¡Juega ${AppState.dailyGoal} partidas y gana la medalla de hoy!'
-                  : left > 0
-                      ? '¡Vas muy bien! ${left == 1 ? 'Una partida más' : '$left partidas más'} para tu medalla'
-                      : '¡Ganaste la medalla de hoy!',
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, height: 1.15),
-            ),
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(99),
-              child: LinearProgressIndicator(
-                value: (today / AppState.dailyGoal).clamp(0, 1).toDouble(),
-                minHeight: 16,
-                color: p.math,
-                backgroundColor: p.bg,
-              ),
-            ),
-          ],
-        ),
-      ),
+      _ChallengeCard(today: today, left: left),
       const SizedBox(height: 18),
       const Text('¿Qué jugamos?', textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
       const SizedBox(height: 12),
@@ -136,6 +110,98 @@ class MenuScreen extends StatelessWidget {
 }
 
 
+/// Reto de hoy (preguntas nuevas cada día y estrellas extra) y la medalla de las partidas de hoy.
+class _ChallengeCard extends StatelessWidget {
+  const _ChallengeCard({required this.today, required this.left});
+  final int today;
+  final int left;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final state = AppState.instance;
+    final done = state.challengeDoneToday;
+    final mood = state.owlMood;
+    final streak = state.challengeStreak;
+    void play() {
+      final topicsToPlay = [for (final t in topics) if (state.canPlayTopic(t.key)) t];
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => GameScreen(
+            title: 'Reto de hoy',
+            progressKey: challengeKey,
+            makeQuestion: challengeQuestions(topicsToPlay),
+            random: challengeRandom(state.now(), state.profile.id),
+          ),
+        ),
+      );
+    }
+
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('RETO DE HOY', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: p.inkSoft)),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Owl(size: 64, night: p.night, wearing: state.wearing, feathers: state.featherColors, mood: mood),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  key: const Key('challenge-text'),
+                  switch (mood) {
+                    OwlMood.happy => '¡Reto completado! Owlito está feliz. Mañana hay uno nuevo.',
+                    OwlMood.sad => 'Owlito está triste: ayer no hubo reto. ¡Juega el de hoy para alegrarlo!',
+                    OwlMood.normal => 'Preguntas nuevas cada día. ¡Gana ${AppState.challengeBonus} estrellas extra!',
+                  },
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, height: 1.15),
+                ),
+              ),
+            ],
+          ),
+          if (streak >= 2) ...[
+            const SizedBox(height: 6),
+            Text('🔥 $streak días seguidos con el reto',
+                key: const Key('challenge-streak'),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: p.inkSoft)),
+          ],
+          const SizedBox(height: 12),
+          BigButton(
+            key: const Key('challenge'),
+            label: done ? 'Jugar otra vez' : '¡Jugar el reto!',
+            fontSize: done ? 20 : 24,
+            color: done ? null : p.math,
+            textColor: done ? null : p.mathInk,
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            onTap: play,
+          ),
+          const SizedBox(height: 14),
+          Text(
+            today == 0
+                ? 'Juega ${AppState.dailyGoal} partidas hoy y gana la medalla del día.'
+                : left > 0
+                    ? '¡Vas muy bien! ${left == 1 ? 'Una partida más' : '$left partidas más'} para la medalla de hoy.'
+                    : '¡Ganaste la medalla de hoy!',
+            style: TextStyle(fontSize: 16, color: p.inkSoft),
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(99),
+            child: LinearProgressIndicator(
+              value: (today / AppState.dailyGoal).clamp(0, 1).toDouble(),
+              minHeight: 12,
+              color: p.math,
+              backgroundColor: p.bg,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _Game {
   const _Game(this.title, this.subtitle, this.color, this.ink, this.icon, this.onTap);
   final String title;
@@ -156,7 +222,12 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
         children: [
-          Owl(size: 44, night: night, wearing: AppState.instance.wearing, feathers: AppState.instance.featherColors),
+          Owl(
+              size: 44,
+              night: night,
+              wearing: AppState.instance.wearing,
+              feathers: AppState.instance.featherColors,
+              mood: AppState.instance.owlMood),
           const SizedBox(width: 8),
           Expanded(
             child: Text('Aprende Jugando',
@@ -412,7 +483,7 @@ class MathLevelsScreen extends StatelessWidget {
               BigButton(
                 label: label,
                 locked: !state.canPlayMath(max),
-                stars: state.canPlayMath(max) ? state.bestFor(subtract ? subtractKey(max) : mathKey(max)) : null,
+                stars: state.canPlayMath(max) ? state.todayFor(subtract ? subtractKey(max) : mathKey(max)) : null,
                 onTap: () => state.canPlayMath(max)
                     ? Navigator.push(context, MaterialPageRoute(
                         builder: (_) => subtract
@@ -452,7 +523,7 @@ class EnglishTopicsScreen extends StatelessWidget {
                 label: topic.label,
                 locked: !state.canPlayTopic(topic.key),
                 stars: state.canPlayTopic(topic.key)
-                    ? state.bestFor(memory ? memoryKey(topic) : topicKey(topic))
+                    ? state.todayFor(memory ? memoryKey(topic) : topicKey(topic))
                     : null,
                 onTap: () => state.canPlayTopic(topic.key)
                     ? Navigator.push(context, MaterialPageRoute(

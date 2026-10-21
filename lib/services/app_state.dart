@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config.dart';
 import '../logic/shop.dart';
+import '../theme.dart' show OwlMood;
 
 /// Un niño que juega en este teléfono. El primero (id 0) guarda su progreso con las claves
 /// de siempre, así no se pierde lo jugado antes de que hubiera perfiles.
@@ -111,6 +112,15 @@ class AppState extends ChangeNotifier {
       if (k.startsWith('played:')) played[k.substring(7)] = prefs.getInt(key) ?? 0;
       if (k.startsWith('miss:')) misses[k.substring(5)] = prefs.getInt(key) ?? 0;
     }
+    _todayBestDay = prefs.getString(_k('todayBestDay')) ?? '';
+    _todayBest
+      ..clear()
+      ..addEntries([
+        for (final e in prefs.getStringList(_k('todayBest')) ?? const <String>[])
+          if (e.contains('=')) MapEntry(e.substring(0, e.lastIndexOf('=')), int.tryParse(e.substring(e.lastIndexOf('=') + 1)) ?? 0),
+      ]);
+    _challengeDay = prefs.getString(_k('challengeDay')) ?? '';
+    _streak = prefs.getInt(_k('streak')) ?? 0;
     _gamesDay = prefs.getString(_k('gamesDay')) ?? '';
     _gamesOnDay = prefs.getInt(_k('gamesOnDay')) ?? 0;
     days
@@ -224,6 +234,47 @@ class AppState extends ChangeNotifier {
 
   int bestFor(String key) => best[key] ?? 0;
 
+  /// Estrellas de hoy en cada nivel o tema: cada día empiezan de nuevo en ☆☆☆, para que
+  /// siempre haya algo que ganar. El mejor resultado de siempre queda en [bestFor].
+  final Map<String, int> _todayBest = {};
+  String _todayBestDay = '';
+  int todayFor(String key) => _todayBestDay == _day(now()) ? (_todayBest[key] ?? 0) : 0;
+
+  /// Reto de hoy: preguntas nuevas cada día y estrellas extra la primera vez que se completa.
+  static const challengeBonus = 10;
+  String _challengeDay = '';
+  bool get challengeDoneToday => _challengeDay == _day(now());
+  int _streak = 0;
+
+  String get _yesterday => _day(now().subtract(const Duration(days: 1)));
+
+  /// Días seguidos con el reto hecho (se pierde si un día no se hace).
+  int get challengeStreak => challengeDoneToday || _challengeDay == _yesterday ? _streak : 0;
+
+  /// Cómo se ve Owlito: feliz con el reto de hoy hecho, triste si ayer no se hizo
+  /// (y el niño ya había jugado antes), normal mientras espera el reto de hoy.
+  OwlMood get owlMood {
+    if (challengeDoneToday) return OwlMood.happy;
+    if (_challengeDay == _yesterday) return OwlMood.normal;
+    final today = _day(now());
+    return days.any((d) => d != today) ? OwlMood.sad : OwlMood.normal;
+  }
+
+  /// Marca el reto de hoy como hecho y da las estrellas extra (solo la primera vez del día).
+  int completeChallenge() {
+    if (challengeDoneToday) return 0;
+    _streak = _challengeDay == _yesterday ? _streak + 1 : 1;
+    _challengeDay = _day(now());
+    _prefs?.setString(_k('challengeDay'), _challengeDay);
+    _prefs?.setInt(_k('streak'), _streak);
+    stars += challengeBonus;
+    starsEarned += challengeBonus;
+    _prefs?.setInt(_k('stars'), stars);
+    _prefs?.setInt(_k('starsEarned'), starsEarned);
+    notifyListeners();
+    return challengeBonus;
+  }
+
   /// Guarda una partida terminada: cuenta la partida y el día, y las estrellas (0 a 3)
   /// si mejoran el resultado anterior. Devuelve las estrellas.
   int recordGame(String key, int earned) {
@@ -231,9 +282,16 @@ class AppState extends ChangeNotifier {
       best[key] = earned;
       _prefs?.setInt(_k('best:$key'), earned);
     }
+    final today = _day(now());
+    if (_todayBestDay != today) {
+      _todayBest.clear();
+      _todayBestDay = today;
+    }
+    if (earned > (_todayBest[key] ?? 0)) _todayBest[key] = earned;
+    _prefs?.setString(_k('todayBestDay'), today);
+    _prefs?.setStringList(_k('todayBest'), [for (final e in _todayBest.entries) '${e.key}=${e.value}']);
     played[key] = (played[key] ?? 0) + 1;
     _prefs?.setInt(_k('played:$key'), played[key]!);
-    final today = _day(now());
     if (days.add(today)) _prefs?.setStringList(_k('days'), days.toList());
     _gamesOnDay = gamesToday + 1;
     _gamesDay = today;
