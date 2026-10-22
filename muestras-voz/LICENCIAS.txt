@@ -1,0 +1,176 @@
+=== en_US-ljspeech-high
+# Model card for ljspeech (high)
+
+* Language: en_US (English, United States)
+* Speakers: 1
+* Quality: high
+* Samplerate: 22,050Hz
+
+## Dataset
+
+* URL: https://keithito.com/LJ-Speech-Dataset/
+* License: public domain
+
+## Training
+
+See: https://brycebeattie.com/files/tts/
+
+US English female voice. Single speaker. Trained from scratch for 1000 epochs on medium quality settings using the LJ Speech dataset. I reencoded the recordings to a bit rate of 22500 Hz so it would match other voices released for Piper TTS.
+
+=== en_US-lessac-high
+# Model card for lessac (high)
+
+* Language: en_US (English, United States)
+* Speakers: 1
+* Quality: high
+* Samplerate: 22,050Hz
+
+## Dataset
+
+* URL: https://www.cstr.ed.ac.uk/projects/blizzard/2013/lessac_blizzard2013/
+* License: https://www.cstr.ed.ac.uk/projects/blizzard/2013/lessac_blizzard2013/license.html
+
+## Training
+
+Trained from scratch.
+
+=== en_US-hfc_female-medium
+# Model card for hfc_female (medium)
+
+* Language: en_US (English, United States)
+* Speakers: 1
+* Quality: medium
+* Samplerate: 22,050Hz
+
+## Dataset
+
+* URL: https://ast-astrec.nict.go.jp/en/release/hi-fi-captain/
+* License: https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en
+
+## Training
+
+Finetuned from U.S. English lessac voice (medium quality).
+
+=== en_US-amy-medium
+# Model card for amy (medium)
+
+* Language: en_US (English, United States)
+* Speakers: 1
+* Quality: medium
+* Samplerate: 22,050Hz
+
+## Dataset
+
+* URL: https://github.com/MycroftAI/mimic3-voices
+* License: See URL
+
+## Training
+
+Finetuned from U.S. English lessac voice (medium quality).
+
+=== en_US-kristin-medium
+# Model card for kristin (medium)
+
+* Language: en_US(English, United States)
+* Speakers: 1
+* Quality: medium
+* Samplerate: 22,050Hz
+
+## Dataset
+
+* URL: https://librivox.org
+* License: public domain
+
+## Training
+
+See: https://brycebeattie.com/files/tts/
+
+US English female voice. Single Speaker. Trained from scratch on medium quality settings for 2000 epochs. I put together the dataset, which ended up with about 11.5 hours of recordings. All recordings came from LibriVox.org.
+
+=== en_US-ryan-high
+# Model card for ryan (high)
+
+* Language: en_US (English, United States)
+* Speakers: 1
+* Quality: high
+* Samplerate: 22,050Hz
+
+## Dataset
+
+* URL: https://www.kaggle.com/datasets/roholazandie/ryanspeech
+* License: CC BY-NC-SA 4.0
+
+## Training
+
+Trained from scratch.
+
+=== en_US-libritts_r-medium
+# Model card for libritts_r (medium)
+
+* Language: en_US (English, United States)
+* Speakers: 904
+* Quality: medium
+* Samplerate: 22,050Hz
+
+## Dataset
+
+* URL: http://www.openslr.org/141/
+* License: CC BY 4.0
+
+## Training
+
+Fine-tuned from English lessac medium on train-clean-360.
+
+=== en_GB-cori-high
+# Model card for cori (high)
+
+* Language: en_GB (English, Great Britain)
+* Speakers: 1
+* Quality: high
+* Samplerate: 22,050Hz
+
+## Dataset
+
+* URL: https://librivox.org
+* License: public domain
+
+## Training
+
+See: https://brycebeattie.com/files/tts/
+
+UK English female voice. Single Speaker. Trained from scratch on high quality settings for 500 epochs. I put together the dataset, which ended up with about 24 hours of recordings. All recordings came from LibriVox.org.
+
+=== en_GB-jenny_dioco-medium
+# Model card for jenny_dioco (medium)
+
+* Language: en_GB (English, Great Britain)
+* Speakers: 1
+* Quality: medium
+* Samplerate: 22,050Hz
+
+## Dataset
+
+* URL: https://github.com/dioco-group/jenny-tts-dataset
+* License: See URL
+
+## Training
+
+Finetuned from U.S. English lessac voice (medium quality).
+
+=== es_MX-claude-high
+# Model card for claude (high)
+
+* Language: es_MX (Spanish, Mexico)
+* Speakers: 1
+* Quality: high
+* Samplerate: 22,050Hz
+
+## Dataset
+
+* URL: https://huggingface.co/spaces/HirCoir/Piper-TTS-Spanish
+* License: apache-2.0
+
+## Training
+
+See URL above
+
