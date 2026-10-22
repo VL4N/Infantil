@@ -7,6 +7,7 @@ import '../services/app_state.dart';
 import '../services/sfx.dart';
 import '../services/voice.dart';
 import '../theme.dart';
+import 'medals_screen.dart';
 import 'menu_screen.dart' show openPremium;
 
 /// Tienda de Owlito: las estrellas ganadas se gastan en ropa y accesorios para el búho.
@@ -44,6 +45,15 @@ class ShopScreen extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 15, color: p.inkSoft),
             ),
+            const SizedBox(height: 8),
+            Center(
+              child: TextButton(
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedalsScreen())),
+                child: Text(tr('🏅 Premios especiales del camino de medallas', '🏅 Special prizes on the medal path'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: p.ink, decoration: TextDecoration.underline)),
+              ),
+            ),
             for (final (title, feathers) in [(tr('Ropa y accesorios', 'Clothes and accessories'), false), (tr('Plumaje', 'Feathers'), true)]) ...[
               const SizedBox(height: 24),
               Text(title, key: Key('shop-section-${feathers ? 'plumaje' : 'ropa'}'),
@@ -70,7 +80,7 @@ class ShopScreen extends StatelessWidget {
 /// Las cosas de una sección, de la más barata a la más cara; las de Premium 👑 al final.
 List<ShopItem> _section({required bool feathers}) => [
       for (final premium in [false, true])
-        ...shopItems.where((i) => i.isFeathers == feathers && i.premium == premium).toList()
+        ...shopItems.where((i) => i.isFeathers == feathers && i.premium == premium && i.medals == 0).toList()
           ..sort((a, b) => a.price.compareTo(b.price)),
     ];
 

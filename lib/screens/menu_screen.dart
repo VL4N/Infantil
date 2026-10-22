@@ -12,6 +12,7 @@ import '../services/voice.dart';
 import '../theme.dart';
 import 'album_screen.dart';
 import 'game_screen.dart';
+import 'medals_screen.dart';
 import 'memory_screen.dart';
 import 'parental_gate.dart';
 import 'parents_screen.dart';
@@ -228,6 +229,17 @@ class _ChallengeCard extends StatelessWidget {
               backgroundColor: p.bg,
             ),
           ),
+          const SizedBox(height: 8),
+          TextButton(
+            key: const Key('open-medals'),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedalsScreen())),
+            child: Text(
+              state.rewardsToClaim > 0
+                  ? tr('🎁 ¡Tienes un premio de medallas para reclamar!', '🎁 You have a medal prize to claim!')
+                  : tr('🏅 Ver los premios de medallas', '🏅 See the medal prizes'),
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: p.ink, decoration: TextDecoration.underline),
+            ),
+          ),
         ],
       ),
     );
@@ -266,12 +278,21 @@ class _Header extends StatelessWidget {
             child: Text(tr('Aprende Jugando', 'Learn & Play'),
                 style: TextStyle(fontSize: 22, fontWeight: night ? FontWeight.w900 : FontWeight.w700)),
           ),
-          if (AppState.instance.medals > 0)
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: Text('🏅 ${AppState.instance.medals}',
-                  key: const Key('medal-count'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          // Las medallas abren el camino de medallas (con un 🎁 si hay un premio para reclamar).
+          Semantics(
+            button: true,
+            label: tr('Camino de medallas', 'Medal path'),
+            child: InkWell(
+              key: const Key('medal-count'),
+              borderRadius: BorderRadius.circular(99),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedalsScreen())),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                child: Text('${AppState.instance.rewardsToClaim > 0 ? '🎁' : ''}🏅 ${AppState.instance.medals}',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              ),
             ),
+          ),
           Semantics(
             button: true,
             label: tr('Tienda de Owlito', "Owlito's shop"),

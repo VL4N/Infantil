@@ -237,6 +237,9 @@ class AppState extends ChangeNotifier {
 
   /// Compra algo de la tienda (y Owlito se lo pone). Devuelve false si no le alcanzan las estrellas.
   bool buy(String id, int price) {
+    final item = shopItem(id);
+    // Lo Premium y los premios de medallas no se compran con estrellas.
+    if (item != null && (item.premium || item.medals > 0)) return false;
     if (owned.contains(id) || stars < price) return false;
     stars -= price;
     owned.add(id);
@@ -286,6 +289,20 @@ class AppState extends ChangeNotifier {
     final won = _newMedal;
     _newMedal = false;
     return won;
+  }
+
+  /// Premio del camino de medallas que ya puede reclamar (tiene las medallas y todavía no lo tiene).
+  bool canClaim(ShopItem item) => item.medals > 0 && medals >= item.medals && !owned.contains(item.id);
+  int get rewardsToClaim => medalRewards.where(canClaim).length;
+
+  /// Reclama un premio del camino de medallas y Owlito se lo pone.
+  bool claim(ShopItem item) {
+    if (!canClaim(item)) return false;
+    owned.add(item.id);
+    _prefs?.setStringList(_k('owned'), owned.toList());
+    wear(item.id);
+    notifyListeners();
+    return true;
   }
 
   /// Partidas terminadas hoy.

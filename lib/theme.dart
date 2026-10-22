@@ -370,10 +370,10 @@ class _OwlPainter extends CustomPainter {
       ..moveTo(82, 26)..lineTo(74, 6)..lineTo(62, 22)..close();
     final (earC, bodyC, bellyC) = feathers ?? (night ? (0xFF6E5BD8, 0xFF8270F0, 0xFFB9AFFF) : (0xFF8A5A3B, 0xFFA86B45, 0xFFF3D9B1));
     // La capa de superhéroe va detrás de Owlito.
-    if (wearing == 'capa') {
+    if (wearing == 'capa' || wearing == 'campeon') {
       canvas.drawPath(
         Path()..moveTo(22, 40)..lineTo(82, 40)..lineTo(100, 110)..quadraticBezierTo(52, 100, 4, 110)..close(),
-        fill(0xFFE5484D),
+        fill(wearing == 'campeon' ? 0xFF7B2CBF : 0xFFE5484D),
       );
     }
     canvas.drawPath(ears, fill(earC));
@@ -385,8 +385,29 @@ class _OwlPainter extends CustomPainter {
           end: Alignment.bottomCenter,
           colors: [Color(0xFFE74C3C), Color(0xFFF39C12), Color(0xFFF1C40F), Color(0xFF2ECC71), Color(0xFF3498DB), Color(0xFF8E44AD)],
         ).createShader(body),
+      'fuego' => Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [Color(0xFFFFC93C), Color(0xFFF08A3C), Color(0xFFE5484D), Color(0xFFB03A2E)],
+        ).createShader(body),
+      'diamante' => Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFB8ECFF), Color(0xFF5FB8E0), Color(0xFFD9F4FF), Color(0xFF4FA3C7)],
+        ).createShader(body),
       _ => fill(bodyC),
     });
+    if (pattern == 'diamante') {
+      // Destellos de diamante.
+      for (final (x, y, r) in [(24.0, 42.0, 4.0), (80.0, 38.0, 3.5), (20.0, 74.0, 3.0), (86.0, 72.0, 4.0)]) {
+        canvas.drawPath(
+          Path()..moveTo(x, y - r)..lineTo(x + r * .6, y)..lineTo(x, y + r)..lineTo(x - r * .6, y)..close(),
+          fill(0xFFFFFFFF),
+        );
+      }
+    }
     if (pattern == 'lunares') {
       for (final (x, y, r) in [(26.0, 44.0, 4.0), (78.0, 40.0, 3.5), (22.0, 72.0, 3.5), (84.0, 70.0, 4.0), (32.0, 98.0, 3.0), (74.0, 98.0, 3.5)]) {
         canvas.drawCircle(Offset(x, y), r, fill(0xFFFFE066));
@@ -561,6 +582,37 @@ class _OwlPainter extends CustomPainter {
         );
         canvas.drawRect(const Rect.fromLTRB(35, 17, 69, 22), fill(0xFF5A3518));
         canvas.drawOval(const Rect.fromLTRB(12, 20, 92, 31), fill(0xFF7A4C22));
+      // Premios del camino de medallas.
+      case 'lentes_estrella':
+        for (final c in const [Offset(36, 46), Offset(68, 46)]) {
+          canvas.drawPath(_starPath(c, 19), fill(0xFFFFC93C));
+          canvas.drawPath(_starPath(c, 12), fill(0xCCFF6FAE));
+        }
+        canvas.drawRect(const Rect.fromLTRB(48, 42, 56, 46), fill(0xFFFFC93C));
+      case 'caballero':
+        final steel = fill(0xFFB8C2CC);
+        canvas.drawPath(Path()..moveTo(20, 32)..quadraticBezierTo(52, -18, 84, 32)..close(), steel);
+        canvas.drawRect(const Rect.fromLTRB(20, 26, 84, 32), fill(0xFF8E99A6));
+        canvas.drawRect(const Rect.fromLTRB(49, 4, 55, 30), fill(0xFF8E99A6));
+        // Penacho rojo.
+        canvas.drawOval(const Rect.fromLTRB(44, -16, 72, 2), fill(0xFFE5484D));
+      case 'campeon':
+        // Capa morada detrás (ver arriba) y una corona grande con joyas.
+        canvas.drawPath(
+          Path()
+            ..moveTo(28, 28)..lineTo(28, 2)..lineTo(40, 14)..lineTo(52, -8)
+            ..lineTo(64, 14)..lineTo(76, 2)..lineTo(76, 28)..close(),
+          fill(0xFFFFC93C),
+        );
+        canvas.drawRect(const Rect.fromLTRB(26, 24, 78, 31), fill(0xFFFFFFFF));
+        canvas.drawCircle(const Offset(52, 14), 4, fill(0xFFE5484D));
+        canvas.drawCircle(const Offset(38, 20), 3, fill(0xFF2EC4A6));
+        canvas.drawCircle(const Offset(66, 20), 3, fill(0xFF4A90D9));
+        canvas.drawCircle(const Offset(52, -8), 3, fill(0xFFFFFFFF));
+        // Medalla de campeón en el pecho.
+        canvas.drawPath(Path()..moveTo(46, 66)..lineTo(52, 80)..lineTo(58, 66)..close(), fill(0xFF4A90D9));
+        canvas.drawCircle(const Offset(52, 84), 8, fill(0xFFFFC93C));
+        canvas.drawPath(_starPath(const Offset(52, 84), 5), fill(0xFFF08A3C));
       // Trajes Premium.
       case 'astronauta':
         canvas.drawCircle(const Offset(52, 54), 47, fill(0x33BFE8FF));

@@ -364,6 +364,8 @@ void main() {
 
     // Compra el gorro (15): se descuentan, Owlito se lo pone y las ganadas no bajan.
     await tester.scrollUntilVisible(find.byKey(const Key('item-gorro')), -100);
+    await tester.ensureVisible(find.descendant(of: find.byKey(const Key('item-gorro')), matching: find.text('Comprar')));
+    await tester.pumpAndSettle();
     await tester.tap(find.descendant(of: find.byKey(const Key('item-gorro')), matching: find.text('Comprar')));
     await tester.pumpAndSettle();
     expect(state.stars, 5);

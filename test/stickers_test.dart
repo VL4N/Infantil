@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:aprende_jugando/logic/shop.dart';
 import 'package:aprende_jugando/logic/stickers.dart';
 import 'package:aprende_jugando/screens/album_screen.dart';
+import 'package:aprende_jugando/screens/medals_screen.dart';
 import 'package:aprende_jugando/screens/parents_screen.dart';
 import 'package:aprende_jugando/screens/shop_screen.dart';
 import 'package:aprende_jugando/services/app_state.dart';
@@ -171,5 +172,35 @@ void main() {
     final free = shopItems.where((i) => !i.premium);
     expect(free.where((i) => i.isFeathers).length, greaterThanOrEqualTo(10));
     expect(free.where((i) => !i.isFeathers).length, greaterThanOrEqualTo(10));
+  });
+
+  test('camino de medallas: los premios se reclaman con medallas, no se compran', () async {
+    SharedPreferences.setMockInitialValues({'stars': 500, 'medals': 6});
+    await state.load();
+    final glasses = shopItem('lentes_estrella')!, fire = shopItem('fuego')!;
+    expect(state.buy(glasses.id, 0), isFalse, reason: 'no se compra con estrellas');
+    expect(state.rewardsToClaim, 1);
+    expect(state.canClaim(fire), isFalse, reason: 'faltan medallas');
+    expect(state.claim(glasses), isTrue);
+    expect(state.wearing, 'lentes_estrella', reason: 'Owlito se lo pone');
+    expect(state.claim(glasses), isFalse, reason: 'una sola vez');
+    expect((state.rewardsToClaim, state.stars), (0, 500));
+    await state.load();
+    expect(state.owned, contains('lentes_estrella'));
+  });
+
+  testWidgets('pantalla del camino de medallas: barra hacia el próximo premio y botón para reclamar', (tester) async {
+    await startApp(tester, prefs: {'medals': 8});
+    await tester.pumpWidget(MaterialApp(theme: buildTheme(Palette.day), home: const MedalsScreen()));
+    await tester.pumpAndSettle();
+    expect(find.text('Tienes 8 medallas'), findsOneWidget);
+    expect(find.text('8 de 12 medallas'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('medal-button-lentes_estrella')));
+    await tester.pumpAndSettle();
+    expect(AppState.instance.wearing, 'lentes_estrella');
+    expect(find.descendant(of: find.byKey(const Key('medal-step-lentes_estrella')), matching: find.text('Puesto')), findsOneWidget);
+    await tester.scrollUntilVisible(find.byKey(const Key('medal-step-campeon')), 300);
+    expect(find.descendant(of: find.byKey(const Key('medal-step-campeon')), matching: find.text('Te faltan 17 medallas')),
+        findsOneWidget);
   });
 }

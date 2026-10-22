@@ -2,7 +2,8 @@ import 'lang.dart';
 
 /// Lo que se puede comprar con estrellas en la tienda de Owlito: accesorios y colores de plumas.
 class ShopItem {
-  const ShopItem(this.id, this.nameEs, this.nameEn, this.price, {this.feathers, this.pattern, this.premium = false});
+  const ShopItem(this.id, this.nameEs, this.nameEn, this.price,
+      {this.feathers, this.pattern, this.premium = false, this.medals = 0});
   final String id;
   final String nameEs;
   final String nameEn;
@@ -15,11 +16,14 @@ class ShopItem {
   /// Colores de un plumaje (orejas, cuerpo, pecho), o null si es un accesorio.
   final (int, int, int)? feathers;
 
-  /// Dibujo especial del plumaje: 'arcoiris', 'galaxia' o 'lunares' (ver [Owl]).
+  /// Dibujo especial del plumaje: 'arcoiris', 'galaxia', 'lunares', 'fuego' o 'diamante' (ver [Owl]).
   final String? pattern;
 
   /// Solo con Premium.
   final bool premium;
+
+  /// Premio del camino de medallas: se reclama al juntar estas medallas (no se compra).
+  final int medals;
 
   bool get isFeathers => feathers != null;
 }
@@ -61,6 +65,17 @@ const shopItems = [
       feathers: (0xFF8E44AD, 0xFFE74C3C, 0xFFFFF4FA), pattern: 'arcoiris', premium: true),
   ShopItem('galaxia', 'Plumas galaxia', 'Galaxy feathers', 0,
       feathers: (0xFF3B2F8F, 0xFF1E1B4B, 0xFF4C3FA0), pattern: 'galaxia', premium: true),
+  // Premios del camino de medallas 🏅: no se compran, se ganan jugando todos los días.
+  ShopItem('lentes_estrella', 'Lentes de estrella', 'Star glasses', 0, medals: 3),
+  ShopItem('fuego', 'Plumas de fuego', 'Fire feathers', 0,
+      feathers: (0xFFB03A2E, 0xFFE8572B, 0xFFFFE0B2), pattern: 'fuego', medals: 7),
+  ShopItem('caballero', 'Casco de caballero', 'Knight helmet', 0, medals: 12),
+  ShopItem('diamante', 'Plumas de diamante', 'Diamond feathers', 0,
+      feathers: (0xFF3D8FB8, 0xFF8FD3F0, 0xFFE6F7FF), pattern: 'diamante', medals: 18),
+  ShopItem('campeon', 'Traje de campeón', 'Champion outfit', 0, medals: 25),
 ];
+
+/// Premios del camino de medallas, en orden.
+final medalRewards = [for (final i in shopItems) if (i.medals > 0) i]..sort((a, b) => a.medals.compareTo(b.medals));
 
 ShopItem? shopItem(String? id) => shopItems.where((i) => i.id == id).firstOrNull;
