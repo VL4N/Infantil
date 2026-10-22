@@ -38,7 +38,7 @@ jobs:
       - run: flutter analyze
       - run: flutter test
       # Voz de la app: graba con Piper todas las frases (lib/logic/phrases.dart).
-      # Los audios se guardan en caché y solo se graban las frases nuevas (v3: MP3 a 32 kbps).
+      # Los audios se guardan en caché y solo se graban las frases nuevas (v4: MP3 a 32 kbps en español y 64 kbps en inglés).
       - name: Lista de frases
         id: frases
         run: |
@@ -49,8 +49,8 @@ jobs:
         id: voz
         with:
           path: assets/voz
-          key: voz-v3-32k-claude-ljspeech-${{ steps.frases.outputs.hash }}
-          restore-keys: voz-v3-32k-claude-ljspeech-
+          key: voz-v4-es32k-en64k-claude-ljspeech-${{ steps.frases.outputs.hash }}
+          restore-keys: voz-v4-es32k-en64k-claude-ljspeech-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -74,7 +74,7 @@ jobs:
         if: steps.voz.outputs.cache-hit != 'true'
         with:
           path: assets/voz
-          key: voz-v3-32k-claude-ljspeech-${{ steps.frases.outputs.hash }}
+          key: voz-v4-es32k-en64k-claude-ljspeech-${{ steps.frases.outputs.hash }}
       # APK de prueba (firmado con clave de depuración) para instalar en el teléfono.
       - run: flutter build apk --release
       - run: mv build/app/outputs/flutter-apk/app-release.apk AprendeJugando.apk

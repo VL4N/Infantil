@@ -18,6 +18,7 @@ void main() {
         expect(seq.numbers.length, 3);
         expect(seq.numbers[1] - seq.numbers[0], step);
         expect(seq.numbers.first, greaterThanOrEqualTo(step == 1 ? 1 : 0));
+        if (step == 2) expect(seq.numbers.first.isEven, isTrue, reason: 'de 2 en 2 va por los pares');
         expect(seq.next, lessThanOrEqualTo(max));
         expect(q.answer, '${seq.next}');
         expect(q.options.toSet().length, 3, reason: 'opciones distintas');
@@ -48,6 +49,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(spoken, ['¿Qué número sigue?']);
     expect(find.byKey(const ValueKey('sequence-3')), findsOneWidget, reason: 'tres números y el "?"');
+    expect(find.text('+1'), findsNWidgets(3), reason: 'se ve el salto entre número y número');
     expect(find.text('?'), findsOneWidget);
     final options = [for (var i = 0; i < 3; i++) tester.widget<Text>(find.descendant(of: find.byKey(Key('option-$i')), matching: find.byType(Text))).data!];
     final seqText = [for (final e in find.descendant(of: find.byKey(const Key('prompt')), matching: find.byType(Text)).evaluate()) (e.widget as Text).data!];

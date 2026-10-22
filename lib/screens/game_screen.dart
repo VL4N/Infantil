@@ -524,17 +524,40 @@ class _SequenceRow extends StatelessWidget {
             child: Text(text, style: TextStyle(fontSize: 36, fontWeight: FontWeight.w800, color: ink ?? p.cardInk)),
           ),
         );
-    return Wrap(
+    // Entre número y número, el salto ("+1" o "+2"), para que se vea qué se está haciendo.
+    const width = 64.0, gap = 16.0, hop = 30.0;
+    Widget jump(int i) => Positioned(
+          key: ValueKey('sequence-step-$i'),
+          left: (i + 1) * (width + gap) - gap / 2 - 22,
+          top: 0,
+          width: 44,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            decoration: BoxDecoration(color: p.accent, borderRadius: BorderRadius.circular(99)),
+            child: Text('+${seq.step}',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: p.accentInk)),
+          ),
+        );
+    final boxes = [
+      for (final (i, n) in seq.numbers.indexed) box(i, '$n', marked: counted == n),
+      reveal
+          ? box(3, '${seq.next}', color: AppColors.yellow, ink: const Color(0xFF3B2A55))
+          : box(3, '?', color: p.accent, ink: p.accentInk),
+    ];
+    return FittedBox(
       key: const Key('prompt'),
-      alignment: WrapAlignment.center,
-      spacing: 10,
-      runSpacing: 10,
-      children: [
-        for (final (i, n) in seq.numbers.indexed) box(i, '$n', marked: counted == n),
-        reveal
-            ? box(3, '${seq.next}', color: AppColors.yellow, ink: const Color(0xFF3B2A55))
-            : box(3, '?', color: p.accent, ink: p.accentInk),
-      ],
+      fit: BoxFit.scaleDown,
+      child: SizedBox(
+        width: 4 * width + 3 * gap,
+        height: 72 + hop,
+        child: Stack(
+          children: [
+            for (final (i, b) in boxes.indexed) Positioned(left: i * (width + gap), top: hop, child: b),
+            for (var i = 0; i < 3; i++) jump(i),
+          ],
+        ),
+      ),
     );
   }
 }

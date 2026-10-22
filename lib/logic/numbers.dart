@@ -55,9 +55,8 @@ const _objects = ['🍎', '⭐', '🐟', '🎈', '🍓', '🐢', '🚗', '🌸']
 
 /// Tres números que van de [step] en [step] (sin pasar de [max]); hay que elegir el que sigue.
 Question sequenceQuestion(Random r, int max, int step) {
-  // De 1 en 1 empieza en 1 o más; de 2 en 2 puede empezar en 0 (0, 2, 4…).
-  final lowest = step == 1 ? 1 : 0;
-  final start = lowest + r.nextInt(max - 3 * step - lowest + 1);
+  // De 1 en 1 empieza en 1 o más; de 2 en 2 va por los pares (0, 2, 4…), como se enseña en la escuela.
+  final start = step == 1 ? 1 + r.nextInt(max - 3) : step * r.nextInt((max - 3 * step) ~/ step + 1);
   final numbers = [for (var i = 0; i < 3; i++) start + i * step];
   final next = numbers.last + step;
   // Errores típicos: repetir el último, contar de 1 en 1 o pasarse.

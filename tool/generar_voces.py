@@ -39,6 +39,8 @@ def main() -> None:
     voices = {"es": PiperVoice.load(model_es), "en": PiperVoice.load(model_en)}
     # Un poco más despacio que lo normal, para niños pequeños.
     speed = {"es": 1.1, "en": 1.15}
+    # La voz en inglés (LJSpeech) pierde claridad a 32 kbps: se guarda con más calidad.
+    bitrate = {"es": "32k", "en": "64k"}
     os.makedirs(out_dir, exist_ok=True)
     done = skipped = 0
     with open(tsv, encoding="utf-8") as f, tempfile.TemporaryDirectory() as tmp:
@@ -60,7 +62,7 @@ def main() -> None:
             # del audio al empezar a sonar (la "c" de "cuatro").
             subprocess.run(
                 ["ffmpeg", "-loglevel", "error", "-y", "-i", wav, "-af", "adelay=250:all=1,apad=pad_dur=0.15",
-                 "-ac", "1", "-ar", "22050", "-codec:a", "libmp3lame", "-b:a", "32k", out],
+                 "-ac", "1", "-ar", "22050", "-codec:a", "libmp3lame", "-b:a", bitrate[lang], out],
                 check=True,
             )
             done += 1
