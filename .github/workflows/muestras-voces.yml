@@ -8,13 +8,14 @@ permissions:
 jobs:
   muestras:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - run: |
-          command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+          pip install --quiet imageio-ffmpeg && mkdir -p bin && ln -sf "$(python -c 'import imageio_ffmpeg as f; print(f.get_ffmpeg_exe())')" bin/ffmpeg && export PATH="$PWD/bin:$PATH"
           pip install --quiet piper-tts
           base=https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/claude/high
           mkdir -p modelos muestras-voz
@@ -26,4 +27,5 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add muestras-voz
           git commit -m "Muestras de \"mono\" (temporal)"
+          git pull --rebase -q
           git push
