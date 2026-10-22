@@ -54,6 +54,7 @@ class _ResultScreenState extends State<ResultScreen> {
   @override
   void initState() {
     super.initState();
+    Ads.gameFinished();
     Sfx.celebracion();
     () async {
       await Voice.say(_message, Lang.native);
@@ -106,10 +107,21 @@ class _ResultScreenState extends State<ResultScreen> {
           const SizedBox(height: 20),
           BigButton(
             label: tr('🔁 Otra vez', '🔁 Play again'),
-            onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => widget.playAgain())),
+            onTap: () async {
+              await Voice.stop();
+              await Ads.maybeShowInterstitial();
+              if (context.mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => widget.playAgain()));
+            },
           ),
           const SizedBox(height: 14),
-          BigButton(label: tr('🏠 Inicio', '🏠 Home'), onTap: () => Navigator.popUntil(context, (r) => r.isFirst)),
+          BigButton(
+            label: tr('🏠 Inicio', '🏠 Home'),
+            onTap: () async {
+              await Voice.stop();
+              await Ads.maybeShowInterstitial();
+              if (context.mounted) Navigator.popUntil(context, (r) => r.isFirst);
+            },
+          ),
         ],
       ),
     );

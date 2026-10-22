@@ -29,6 +29,13 @@ class Config {
   static const _testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
   static const bannerAdUnitId = playRelease ? _realBannerAdUnitId : _testBannerAdUnitId;
 
+  /// Anuncio de pantalla completa (con X para cerrarlo): uno cada [gamesPerInterstitial] partidas
+  /// terminadas, al salir de la pantalla final. Nunca durante el juego, al abrir la app ni con Premium.
+  static const _realInterstitialAdUnitId = 'ca-app-pub-4226625652685681/3034103194';
+  static const _testInterstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712';
+  static const interstitialAdUnitId = playRelease ? _realInterstitialAdUnitId : _testInterstitialAdUnitId;
+  static const gamesPerInterstitial = 3;
+
   // ---------- Juego ----------
   static const roundsPerGame = 10;
 }
