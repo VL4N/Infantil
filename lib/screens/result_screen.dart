@@ -19,6 +19,7 @@ class ResultScreen extends StatefulWidget {
     required this.playAgain,
     this.starsWon = 0,
     this.sticker,
+    this.medal = false,
   });
 
   /// Cómo le fue, p. ej. "8 de 10 a la primera."
@@ -35,6 +36,9 @@ class ResultScreen extends StatefulWidget {
 
   /// El sticker que ganó para el álbum (ver AppState.awardSticker), o null.
   final ({String sticker, StickerPage page, bool completed})? sticker;
+
+  /// Con esta partida ganó la medalla de hoy.
+  final bool medal;
 
   @override
   State<ResultScreen> createState() => _ResultScreenState();
@@ -55,6 +59,7 @@ class _ResultScreenState extends State<ResultScreen> {
       await Voice.say(_message, Lang.native);
       final won = widget.sticker;
       if (won != null && mounted) await Voice.say(won.completed ? pageComplete : newSticker, Lang.native);
+      if (widget.medal && mounted) await Voice.say(medalWon, Lang.native);
     }();
   }
 
@@ -90,6 +95,10 @@ class _ResultScreenState extends State<ResultScreen> {
           if (widget.sticker case final won?) ...[
             const SizedBox(height: 16),
             _StickerWon(won),
+          ],
+          if (widget.medal) ...[
+            const SizedBox(height: 16),
+            const MedalWon(),
           ],
           const SizedBox(height: 20),
           // Único lugar con publicidad: al terminar, nunca durante el juego.
@@ -150,3 +159,56 @@ class _StickerWon extends StatelessWidget {
   }
 }
 
+
+/// La medalla de hoy: se gana al terminar las partidas del día (una por día).
+class MedalWon extends StatelessWidget {
+  const MedalWon({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Container(
+      key: const Key('medal-won'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: p.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.yellow, width: 3),
+      ),
+      child: Row(
+        children: [
+          const MedalBadge(size: 72),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              tr('¡Ganaste la medalla de hoy! +${AppState.medalBonus} estrellas. Tienes ${AppState.instance.medals}.',
+                  "You won today's medal! +${AppState.medalBonus} stars. You have ${AppState.instance.medals}."),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: p.cardInk),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// La medalla 🏅, que aparece con un saltito.
+class MedalBadge extends StatelessWidget {
+  const MedalBadge({super.key, this.size = 56});
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: 1),
+        duration: const Duration(milliseconds: 700),
+        curve: Curves.elasticOut,
+        builder: (_, t, child) => Transform.scale(scale: .4 + .6 * t, child: child),
+        child: Container(
+          width: size,
+          height: size,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(color: Color(0xFFFFF4D6), shape: BoxShape.circle),
+          child: Text('🏅', style: TextStyle(fontSize: size * .58)),
+        ),
+      );
+}

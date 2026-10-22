@@ -70,4 +70,21 @@ void main() {
     expect(find.byKey(const Key('compare-side')), findsNWidgets(2));
     expect(spoken, ['¿Cuál es mayor?']);
   });
+
+  testWidgets('"¿Cuál es mayor?" con números: los botones señalan la tarjeta y la tarjeta también se toca', (tester) async {
+    await startApp(tester);
+    await tester.pumpWidget(MaterialApp(
+      home: GameScreen(title: 'Números', progressKey: 'mayor-20', makeQuestion: (r) => compareQuestion(r, 20)),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('👆'), findsNWidgets(2), reason: 'el número no se repite en los botones');
+    final sides = find.byKey(const Key('compare-side'));
+    final a = int.parse(tester.widget<Text>(find.descendant(of: sides.at(0), matching: find.byType(Text))).data!);
+    final b = int.parse(tester.widget<Text>(find.descendant(of: sides.at(1), matching: find.byType(Text))).data!);
+    await tester.tap(sides.at(a > b ? 0 : 1));
+    await waitFor(tester);
+    expect(find.byKey(const Key('game-stars')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const Key('game-stars')), matching: find.text('+1')), findsOneWidget,
+        reason: 'tocar la tarjeta del mayor cuenta como acierto');
+  });
 }

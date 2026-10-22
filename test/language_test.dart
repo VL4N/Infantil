@@ -28,6 +28,7 @@ void main() {
     expect(Lang.current, AppLang.en);
     expect(find.text('What shall we play?'), findsOneWidget);
     expect(find.text('Add'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Spanish'), 200);
     expect(find.text('Spanish'), findsOneWidget, reason: 'en inglés se aprende español');
     expect((await SharedPreferences.getInstance()).getString('lang'), 'en');
 

@@ -104,7 +104,7 @@ class _GameScreenState extends State<GameScreen> {
     }
     if (_firstTry) {
       _correct++;
-      AppState.instance.addStar();
+      AppState.instance.countAnswer();
     }
     Sfx.acierto();
     setState(() {
@@ -114,11 +114,14 @@ class _GameScreenState extends State<GameScreen> {
     });
     // La partida se guarda en cuanto termina, antes de la voz, para no perderla si la voz se atasca.
     final finished = _round >= Config.roundsPerGame;
+    // Las estrellas se ganan al terminar la partida, no a la mitad.
+    if (finished) AppState.instance.addStars(_correct);
     final previousBest = AppState.instance.bestFor(widget.progressKey);
     final earned = finished ? AppState.instance.recordGame(widget.progressKey, AppState.starsFor(_correct)) : 0;
     // Al terminar el reto de hoy, estrellas extra (solo la primera vez del día).
     final bonus = finished && widget.progressKey == challengeKey ? AppState.instance.completeChallenge() : 0;
     final sticker = finished ? AppState.instance.awardSticker() : null;
+    final medal = finished && AppState.instance.takeNewMedal();
     if (_q.speechLang == Lang.target) {
       // La felicitación en el idioma del niño y solo la palabra en el que aprende.
       await Voice.say(_firstTry ? praiseFirstTry : praiseRetry, Lang.native);
@@ -141,8 +144,9 @@ class _GameScreenState extends State<GameScreen> {
             english: _q.speechLang == Lang.target,
             earned: earned,
             previousBest: previousBest,
-            starsWon: _correct + bonus,
+            starsWon: _correct + bonus + (medal ? AppState.medalBonus : 0),
             sticker: sticker,
+            medal: medal,
             playAgain: () => GameScreen(title: widget.title, progressKey: widget.progressKey, makeQuestion: widget.makeQuestion),
           ),
         ),
@@ -179,10 +183,8 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        actions: [ListenableBuilder(
-          listenable: AppState.instance,
-          builder: (_, _) => StarCounter(stars: AppState.instance.stars),
-        )],
+        // Las estrellas de esta partida: se suman a las de la tienda al terminarla.
+        actions: [StarCounter(key: const Key('game-stars'), stars: _correct, pending: true)],
       ),
       body: Stack(
         children: [
@@ -236,7 +238,7 @@ class _GameScreenState extends State<GameScreen> {
               ] else if (q.comparison != null) ...[
                 Text(q.prompt, textAlign: TextAlign.center, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
-                _ComparisonCards(q.comparison!),
+                _ComparisonCards(q.comparison!, onTap: _tap),
               ] else ...[
                 if (q.addition!.drawable)
                   _CountingPicture(q.addition!, counted: _counted)
@@ -304,7 +306,8 @@ class _GameScreenState extends State<GameScreen> {
         duration: const Duration(milliseconds: 300),
         child: BigButton(
           key: Key('option-$i'),
-          label: _q.options[i],
+          // "¿Cuál es mayor?" con números: el número ya está en la tarjeta de arriba; el botón la señala.
+          label: _q.comparison != null && _q.comparison!.object == null ? '👆' : _q.options[i],
           fontSize: fontSize,
           color: _optionColor(i),
           textColor: _wrong.contains(i) || (_locked && i == _q.answerIndex)
@@ -565,39 +568,44 @@ class _SequenceRow extends StatelessWidget {
   }
 }
 
-/// "¿Cuál es mayor?": dos grupos de dibujos (o dos números), uno sobre cada botón.
+/// "¿Cuál es mayor?": dos grupos de dibujos (o dos números), uno sobre cada botón. Tocar una tarjeta
+/// es lo mismo que tocar su botón.
 class _ComparisonCards extends StatelessWidget {
-  const _ComparisonCards(this.cmp);
+  const _ComparisonCards(this.cmp, {required this.onTap});
   final Comparison cmp;
+  final void Function(int option) onTap;
 
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
-    Widget side(int n) => Expanded(
-          child: Container(
-            key: const Key('compare-side'),
-            margin: const EdgeInsets.symmetric(horizontal: 6),
-            padding: const EdgeInsets.all(10),
-            constraints: const BoxConstraints(minHeight: 130),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: p.card,
-              borderRadius: BorderRadius.circular(20),
-              border: p.cardBorder == null ? null : Border.all(color: p.cardBorder!, width: 2),
+    Widget side(int option, int n) => Expanded(
+          child: GestureDetector(
+            onTap: () => onTap(option),
+            child: Container(
+              key: const Key('compare-side'),
+              margin: const EdgeInsets.symmetric(horizontal: 6),
+              padding: const EdgeInsets.all(10),
+              constraints: const BoxConstraints(minHeight: 130),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: p.card,
+                borderRadius: BorderRadius.circular(20),
+                border: p.cardBorder == null ? null : Border.all(color: p.cardBorder!, width: 2),
+              ),
+              child: cmp.object == null
+                  ? Text('$n', style: TextStyle(fontSize: 64, fontWeight: FontWeight.w800, color: p.cardInk))
+                  : Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 2,
+                      runSpacing: 2,
+                      children: [for (var i = 0; i < n; i++) Text(cmp.object!, style: const TextStyle(fontSize: 26))],
+                    ),
             ),
-            child: cmp.object == null
-                ? Text('$n', style: TextStyle(fontSize: 64, fontWeight: FontWeight.w800, color: p.cardInk))
-                : Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: 2,
-                    runSpacing: 2,
-                    children: [for (var i = 0; i < n; i++) Text(cmp.object!, style: const TextStyle(fontSize: 26))],
-                  ),
           ),
         );
     return IntrinsicHeight(
       key: const Key('prompt'),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [side(cmp.a), side(cmp.b)]),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [side(0, cmp.a), side(1, cmp.b)]),
     );
   }
 }

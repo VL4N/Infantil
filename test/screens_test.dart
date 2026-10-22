@@ -49,6 +49,7 @@ void main() {
               'owned': ['gorro'],
               'wearing': 'gorro',
               'stickers': ['granja:🐶', 'granja:🐱', 'espacio:🚀'],
+              'medals': 9,
             });
             await AppState.instance.load();
             await tester.pumpWidget(const AprendeJugandoApp());
@@ -71,6 +72,10 @@ void main() {
               await tester.pageBack();
               await tester.pumpAndSettle();
             }
+
+            // Camino de medallas (desde la tarjeta del reto, arriba del menú).
+            await open(tr('premio de medallas', 'medal prize'));
+            await back();
 
             // Sumas: niveles y una partida de cada nivel.
             await open(tr('Sumar', 'Add'));

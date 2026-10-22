@@ -14,6 +14,14 @@ import tempfile
 import wave
 
 
+# Palabras que la voz pronuncia mal tal cual: se graban con otro texto (en la app se ven igual).
+# Elegidas escuchando muestras: "mono" sola sonaba rara y "fresa" sonaba "flesa".
+PRONUNCIATION = {
+    ("es", "mono"): "el mono.",
+    ("es", "fresa"): "fressa.",
+}
+
+
 def clip_name(text: str, lang: str) -> str:
     """Igual que clipName() en lib/logic/phrases.dart (FNV-1a de 64 bits)."""
     h = 0xCBF29CE484222325
@@ -51,12 +59,14 @@ def main() -> None:
             name, lang, text = line.split("\t", 2)
             assert clip_name(text, lang) == name, f"hash distinto para {text!r}"
             out = os.path.join(out_dir, name)
-            if os.path.exists(out):
+            fixed = PRONUNCIATION.get((lang, text))
+            # Las de PRONUNCIATION se graban siempre (son pocas), por si la caché tiene la versión anterior.
+            if os.path.exists(out) and fixed is None:
                 skipped += 1
                 continue
             wav = os.path.join(tmp, "frase.wav")
             # Con punto final la voz pronuncia entera una palabra suelta ("4" -> "cuatro.").
-            spoken = text if text[-1] in ".!?" else text + "."
+            spoken = fixed or (text if text[-1] in ".!?" else text + ".")
             synthesize(voices[lang], spoken, wav, speed[lang])
             # Silencio al principio y al final: algunos teléfonos se comen el comienzo
             # del audio al empezar a sonar (la "c" de "cuatro").

@@ -56,12 +56,15 @@ class _MemoryScreenState extends State<MemoryScreen> {
           setState(_game.hideMiss);
         }
       case FlipResult.match:
-        AppState.instance.addStar();
+        AppState.instance.countAnswer();
         // La partida se guarda en cuanto termina, antes de la voz, para no perderla si la voz se atasca.
         final done = _game.done;
+        // Las estrellas (una por pareja) se ganan al terminar, no a la mitad.
+        if (done) AppState.instance.addStars(_game.pairs);
         final previousBest = AppState.instance.bestFor(widget.progressKey);
         final earned = done ? AppState.instance.recordGame(widget.progressKey, _game.stars) : 0;
         final sticker = done ? AppState.instance.awardSticker() : null;
+        final medal = done && AppState.instance.takeNewMedal();
         await Voice.say(greatJob, Lang.native);
         if (mounted) await Voice.say(card.word, Lang.target);
         if (!mounted || !done) return;
@@ -71,8 +74,9 @@ class _MemoryScreenState extends State<MemoryScreen> {
             builder: (_) => ResultScreen(
               earned: earned,
               previousBest: previousBest,
-              starsWon: _game.pairs,
+              starsWon: _game.pairs + (medal ? AppState.medalBonus : 0),
               sticker: sticker,
+              medal: medal,
               detail: tr('Encontraste las ${_game.pairs} parejas en ${_game.tries} intentos.',
                   'You found all ${_game.pairs} pairs in ${_game.tries} tries.'),
               english: true,
@@ -88,10 +92,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(tr('Parejas', 'Pairs')),
-        actions: [ListenableBuilder(
-          listenable: AppState.instance,
-          builder: (_, _) => StarCounter(stars: AppState.instance.stars),
-        )],
+        actions: [StarCounter(key: const Key('game-stars'), stars: _game.matched.length ~/ 2, pending: true)],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),

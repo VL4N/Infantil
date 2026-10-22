@@ -253,8 +253,11 @@ class BigButton extends StatelessWidget {
 
 /// Contador de estrellas: una pastilla con la estrella y el total.
 class StarCounter extends StatelessWidget {
-  const StarCounter({super.key, required this.stars});
+  const StarCounter({super.key, required this.stars, this.pending = false});
   final int stars;
+
+  /// Estrellas ganadas en la partida (todavía sin guardar): se muestran como "+3".
+  final bool pending;
 
   @override
   Widget build(BuildContext context) {
@@ -276,7 +279,7 @@ class StarCounter extends StatelessWidget {
             children: [
               Icon(Icons.star_rounded, size: 22, color: p.night ? p.star : Colors.white),
               const SizedBox(width: 4),
-              Text('$stars', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: fg)),
+              Text(pending ? '+$stars' : '$stars', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: fg)),
             ],
           ),
         ),
@@ -367,10 +370,10 @@ class _OwlPainter extends CustomPainter {
       ..moveTo(82, 26)..lineTo(74, 6)..lineTo(62, 22)..close();
     final (earC, bodyC, bellyC) = feathers ?? (night ? (0xFF6E5BD8, 0xFF8270F0, 0xFFB9AFFF) : (0xFF8A5A3B, 0xFFA86B45, 0xFFF3D9B1));
     // La capa de superhéroe va detrás de Owlito.
-    if (wearing == 'capa') {
+    if (wearing == 'capa' || wearing == 'campeon') {
       canvas.drawPath(
         Path()..moveTo(22, 40)..lineTo(82, 40)..lineTo(100, 110)..quadraticBezierTo(52, 100, 4, 110)..close(),
-        fill(0xFFE5484D),
+        fill(wearing == 'campeon' ? 0xFF7B2CBF : 0xFFE5484D),
       );
     }
     canvas.drawPath(ears, fill(earC));
@@ -382,8 +385,34 @@ class _OwlPainter extends CustomPainter {
           end: Alignment.bottomCenter,
           colors: [Color(0xFFE74C3C), Color(0xFFF39C12), Color(0xFFF1C40F), Color(0xFF2ECC71), Color(0xFF3498DB), Color(0xFF8E44AD)],
         ).createShader(body),
+      'fuego' => Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [Color(0xFFFFC93C), Color(0xFFF08A3C), Color(0xFFE5484D), Color(0xFFB03A2E)],
+        ).createShader(body),
+      'diamante' => Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFB8ECFF), Color(0xFF5FB8E0), Color(0xFFD9F4FF), Color(0xFF4FA3C7)],
+        ).createShader(body),
       _ => fill(bodyC),
     });
+    if (pattern == 'diamante') {
+      // Destellos de diamante.
+      for (final (x, y, r) in [(24.0, 42.0, 4.0), (80.0, 38.0, 3.5), (20.0, 74.0, 3.0), (86.0, 72.0, 4.0)]) {
+        canvas.drawPath(
+          Path()..moveTo(x, y - r)..lineTo(x + r * .6, y)..lineTo(x, y + r)..lineTo(x - r * .6, y)..close(),
+          fill(0xFFFFFFFF),
+        );
+      }
+    }
+    if (pattern == 'lunares') {
+      for (final (x, y, r) in [(26.0, 44.0, 4.0), (78.0, 40.0, 3.5), (22.0, 72.0, 3.5), (84.0, 70.0, 4.0), (32.0, 98.0, 3.0), (74.0, 98.0, 3.5)]) {
+        canvas.drawCircle(Offset(x, y), r, fill(0xFFFFE066));
+      }
+    }
     if (pattern == 'galaxia') {
       // Estrellitas en las plumas.
       for (final (x, y, r) in [(24.0, 40.0, 1.6), (78.0, 34.0, 1.3), (30.0, 88.0, 1.5), (80.0, 84.0, 1.7), (20.0, 64.0, 1.2), (86.0, 60.0, 1.4)]) {
@@ -503,6 +532,87 @@ class _OwlPainter extends CustomPainter {
         canvas.drawCircle(const Offset(52, 18), 3.2, fill(0xFFE5508E));
         canvas.drawCircle(const Offset(41, 21), 2.4, fill(0xFF2EC4A6));
         canvas.drawCircle(const Offset(63, 21), 2.4, fill(0xFF2EC4A6));
+      case 'lazo':
+        final pink = fill(0xFFE5508E);
+        canvas.drawPath(Path()..moveTo(70, 20)..lineTo(58, 12)..lineTo(58, 28)..close(), pink);
+        canvas.drawPath(Path()..moveTo(70, 20)..lineTo(82, 12)..lineTo(82, 28)..close(), pink);
+        canvas.drawCircle(const Offset(70, 20), 4, fill(0xFFB8326E));
+      case 'flor':
+        for (var k = 0; k < 5; k++) {
+          final a = k * 2 * math.pi / 5 - math.pi / 2;
+          canvas.drawCircle(Offset(72 + 7 * math.cos(a), 18 + 7 * math.sin(a)), 5.5, fill(0xFFFF8FB8));
+        }
+        canvas.drawCircle(const Offset(72, 18), 4.5, fill(0xFFFFC93C));
+      case 'gorra':
+        canvas.drawPath(Path()..moveTo(28, 26)..quadraticBezierTo(52, -6, 76, 26)..close(), fill(0xFF3B7DD8));
+        canvas.drawRRect(RRect.fromLTRBR(60, 21, 94, 29, const Radius.circular(4)), fill(0xFF2C5FA8));
+        canvas.drawCircle(const Offset(52, 8), 3, fill(0xFFFFFFFF));
+      case 'collar':
+        for (var k = 0; k <= 8; k++) {
+          final t = k / 8;
+          final x = 30 + 44 * t;
+          final y = 74 + 10 * math.sin(t * math.pi);
+          canvas.drawCircle(Offset(x, y), 3.6, fill(0xFFB8B8C8));
+          canvas.drawCircle(Offset(x, y), 2.8, fill(0xFFFFFFFF));
+        }
+      case 'audifonos':
+        canvas.drawArc(Rect.fromCircle(center: const Offset(52, 46), radius: 38), math.pi, math.pi, false, Paint()
+          ..color = const Color(0xFF22223B)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 5);
+        canvas.drawRRect(RRect.fromLTRBR(8, 36, 22, 60, const Radius.circular(6)), fill(0xFFE5508E));
+        canvas.drawRRect(RRect.fromLTRBR(82, 36, 96, 60, const Radius.circular(6)), fill(0xFFE5508E));
+      case 'chef':
+        final white = fill(0xFFFFFFFF);
+        final edge = Paint()
+          ..color = const Color(0xFFCBD2DC)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5;
+        for (final x in [40.0, 52.0, 64.0]) {
+          canvas.drawCircle(Offset(x, 4), 10, white);
+          canvas.drawCircle(Offset(x, 4), 10, edge);
+        }
+        canvas.drawRect(const Rect.fromLTRB(36, 6, 68, 26), white);
+        canvas.drawRect(const Rect.fromLTRB(36, 6, 68, 26), edge);
+      case 'vaquero':
+        final brown = fill(0xFF8B5A2B);
+        canvas.drawPath(
+          Path()..moveTo(34, 24)..lineTo(36, 2)..quadraticBezierTo(52, 10, 68, 2)..lineTo(70, 24)..close(),
+          brown,
+        );
+        canvas.drawRect(const Rect.fromLTRB(35, 17, 69, 22), fill(0xFF5A3518));
+        canvas.drawOval(const Rect.fromLTRB(12, 20, 92, 31), fill(0xFF7A4C22));
+      // Premios del camino de medallas.
+      case 'lentes_estrella':
+        for (final c in const [Offset(36, 46), Offset(68, 46)]) {
+          canvas.drawPath(_starPath(c, 19), fill(0xFFFFC93C));
+          canvas.drawPath(_starPath(c, 12), fill(0xCCFF6FAE));
+        }
+        canvas.drawRect(const Rect.fromLTRB(48, 42, 56, 46), fill(0xFFFFC93C));
+      case 'caballero':
+        final steel = fill(0xFFB8C2CC);
+        canvas.drawPath(Path()..moveTo(20, 32)..quadraticBezierTo(52, -18, 84, 32)..close(), steel);
+        canvas.drawRect(const Rect.fromLTRB(20, 26, 84, 32), fill(0xFF8E99A6));
+        canvas.drawRect(const Rect.fromLTRB(49, 4, 55, 30), fill(0xFF8E99A6));
+        // Penacho rojo.
+        canvas.drawOval(const Rect.fromLTRB(44, -16, 72, 2), fill(0xFFE5484D));
+      case 'campeon':
+        // Capa morada detrás (ver arriba) y una corona grande con joyas.
+        canvas.drawPath(
+          Path()
+            ..moveTo(28, 28)..lineTo(28, 2)..lineTo(40, 14)..lineTo(52, -8)
+            ..lineTo(64, 14)..lineTo(76, 2)..lineTo(76, 28)..close(),
+          fill(0xFFFFC93C),
+        );
+        canvas.drawRect(const Rect.fromLTRB(26, 24, 78, 31), fill(0xFFFFFFFF));
+        canvas.drawCircle(const Offset(52, 14), 4, fill(0xFFE5484D));
+        canvas.drawCircle(const Offset(38, 20), 3, fill(0xFF2EC4A6));
+        canvas.drawCircle(const Offset(66, 20), 3, fill(0xFF4A90D9));
+        canvas.drawCircle(const Offset(52, -8), 3, fill(0xFFFFFFFF));
+        // Medalla de campeón en el pecho.
+        canvas.drawPath(Path()..moveTo(46, 66)..lineTo(52, 80)..lineTo(58, 66)..close(), fill(0xFF4A90D9));
+        canvas.drawCircle(const Offset(52, 84), 8, fill(0xFFFFC93C));
+        canvas.drawPath(_starPath(const Offset(52, 84), 5), fill(0xFFF08A3C));
       // Trajes Premium.
       case 'astronauta':
         canvas.drawCircle(const Offset(52, 54), 47, fill(0x33BFE8FF));

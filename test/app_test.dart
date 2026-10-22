@@ -128,6 +128,22 @@ void main() {
     expect(AppState.instance.bestFor('suma-5'), 3);
   });
 
+  testWidgets('si sale a la mitad de una partida, no se lleva las estrellas', (tester) async {
+    await startApp(tester);
+    await tester.tap(find.text('Sumar'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('🐣 Hasta 5'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(InkWell, '${mathAnswer(tester)}'));
+    await waitFor(tester);
+    expect(find.descendant(of: find.byKey(const Key('game-stars')), matching: find.text('+1')), findsOneWidget,
+        reason: 'en la partida se ven las estrellas que va ganando');
+    expect(AppState.instance.stars, 0, reason: 'todavía no se suman');
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(AppState.instance.stars, 0);
+  });
+
   testWidgets('en "2 + ? = 5" el segundo grupo aparece al contar', (tester) async {
     await startApp(tester);
     await tester.pumpWidget(MaterialApp(
@@ -304,6 +320,7 @@ void main() {
     expect(find.text('🎮 Partidas terminadas: 3'), findsOneWidget);
     expect(find.text('Sumar 🐣 Hasta 5'), findsOneWidget);
     expect(find.text('2 partidas'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Inglés 🐶 Animales'), 200);
     expect(find.text('Inglés 🐶 Animales'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('• duck: 1 error'), 200);
     expect(find.text('• cow: 2 errores'), findsOneWidget);
@@ -340,13 +357,15 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Tienes 20 estrellas para gastar'), findsOneWidget);
 
-    // No le alcanza para la corona (80).
+    // No le alcanza para la corona (90).
     await tester.scrollUntilVisible(find.byKey(const Key('item-corona')), 100);
-    expect(find.descendant(of: find.byKey(const Key('item-corona')), matching: find.text('60')), findsOneWidget);
-    expect(state.buy('corona', 80), isFalse);
+    expect(find.descendant(of: find.byKey(const Key('item-corona')), matching: find.text('70')), findsOneWidget);
+    expect(state.buy('corona', 90), isFalse);
 
     // Compra el gorro (15): se descuentan, Owlito se lo pone y las ganadas no bajan.
     await tester.scrollUntilVisible(find.byKey(const Key('item-gorro')), -100);
+    await tester.ensureVisible(find.descendant(of: find.byKey(const Key('item-gorro')), matching: find.text('Comprar')));
+    await tester.pumpAndSettle();
     await tester.tap(find.descendant(of: find.byKey(const Key('item-gorro')), matching: find.text('Comprar')));
     await tester.pumpAndSettle();
     expect(state.stars, 5);

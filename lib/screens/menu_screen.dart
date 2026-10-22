@@ -12,11 +12,13 @@ import '../services/voice.dart';
 import '../theme.dart';
 import 'album_screen.dart';
 import 'game_screen.dart';
+import 'medals_screen.dart';
 import 'memory_screen.dart';
 import 'parental_gate.dart';
 import 'parents_screen.dart';
 import 'premium_screen.dart';
 import 'profile_screen.dart';
+import 'result_screen.dart' show MedalBadge;
 import 'shop_screen.dart';
 
 Future<void> openPremium(BuildContext context) async {
@@ -193,16 +195,30 @@ class _ChallengeCard extends StatelessWidget {
             onTap: play,
           ),
           const SizedBox(height: 14),
-          Text(
-            today == 0
-                ? tr('Juega ${AppState.dailyGoal} partidas hoy y gana la medalla del día.',
-                    "Play ${AppState.dailyGoal} games today to win today's medal.")
-                : left > 0
-                    ? tr('¡Vas muy bien! ${left == 1 ? 'Una partida más' : '$left partidas más'} para la medalla de hoy.',
-                        "Great going! ${left == 1 ? 'One more game' : '$left more games'} for today's medal.")
-                    : tr('¡Ganaste la medalla de hoy!', "You won today's medal!"),
-            style: TextStyle(fontSize: 16, color: p.inkSoft),
-          ),
+          if (left <= 0)
+            Row(
+              key: const Key('medal-today'),
+              children: [
+                const MedalBadge(size: 52),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    tr('¡Ganaste la medalla de hoy! Tienes ${state.medals} ${state.medals == 1 ? 'medalla' : 'medallas'}.',
+                        "You won today's medal! You have ${state.medals} ${state.medals == 1 ? 'medal' : 'medals'}."),
+                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            )
+          else
+            Text(
+              today == 0
+                  ? tr('🏅 Termina ${AppState.dailyGoal} partidas hoy y gana la medalla del día (+${AppState.medalBonus} estrellas).',
+                      "🏅 Finish ${AppState.dailyGoal} games today to win today's medal (+${AppState.medalBonus} stars).")
+                  : tr('🏅 ¡Vas muy bien! ${left == 1 ? 'Una partida más' : '$left partidas más'} para la medalla de hoy.',
+                      "🏅 Great going! ${left == 1 ? 'One more game' : '$left more games'} for today's medal."),
+              style: TextStyle(fontSize: 16, color: p.inkSoft),
+            ),
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(99),
@@ -211,6 +227,17 @@ class _ChallengeCard extends StatelessWidget {
               minHeight: 12,
               color: p.math,
               backgroundColor: p.bg,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            key: const Key('open-medals'),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedalsScreen())),
+            child: Text(
+              state.rewardsToClaim > 0
+                  ? tr('🎁 ¡Tienes un premio de medallas para reclamar!', '🎁 You have a medal prize to claim!')
+                  : tr('🏅 Ver los premios de medallas', '🏅 See the medal prizes'),
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: p.ink, decoration: TextDecoration.underline),
             ),
           ),
         ],
@@ -250,6 +277,21 @@ class _Header extends StatelessWidget {
           Expanded(
             child: Text(tr('Aprende Jugando', 'Learn & Play'),
                 style: TextStyle(fontSize: 22, fontWeight: night ? FontWeight.w900 : FontWeight.w700)),
+          ),
+          // Las medallas abren el camino de medallas (con un 🎁 si hay un premio para reclamar).
+          Semantics(
+            button: true,
+            label: tr('Camino de medallas', 'Medal path'),
+            child: InkWell(
+              key: const Key('medal-count'),
+              borderRadius: BorderRadius.circular(99),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedalsScreen())),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                child: Text('${AppState.instance.rewardsToClaim > 0 ? '🎁' : ''}🏅 ${AppState.instance.medals}',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              ),
+            ),
           ),
           Semantics(
             button: true,

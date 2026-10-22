@@ -1,8 +1,11 @@
 import 'dart:math';
 
+import 'package:aprende_jugando/logic/shop.dart';
 import 'package:aprende_jugando/logic/stickers.dart';
 import 'package:aprende_jugando/screens/album_screen.dart';
+import 'package:aprende_jugando/screens/medals_screen.dart';
 import 'package:aprende_jugando/screens/parents_screen.dart';
+import 'package:aprende_jugando/screens/shop_screen.dart';
 import 'package:aprende_jugando/services/app_state.dart';
 import 'package:aprende_jugando/theme.dart';
 import 'package:flutter/material.dart';
@@ -129,5 +132,75 @@ void main() {
     await tester.tap(nudge);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('gate-input')), findsOneWidget, reason: 'Premium sigue detrás de la pregunta para adultos');
+  });
+
+  test('medalla del día: al terminar las partidas del día, una vez, con estrellas extra', () async {
+    SharedPreferences.setMockInitialValues({});
+    await state.load();
+    var today = DateTime(2026, 10, 5, 10);
+    state.now = () => today;
+    addTearDown(() => state.now = DateTime.now);
+    for (var i = 0; i < AppState.dailyGoal - 1; i++) {
+      state.recordGame('suma-5', 1);
+    }
+    expect((state.medals, state.takeNewMedal(), state.medalToday), (0, false, false));
+    state.recordGame('suma-5', 1);
+    expect((state.medals, state.stars, state.medalToday), (1, AppState.medalBonus, true));
+    expect(state.takeNewMedal(), isTrue);
+    expect(state.takeNewMedal(), isFalse, reason: 'se muestra una sola vez');
+    state.recordGame('suma-5', 1);
+    expect(state.medals, 1, reason: 'una medalla por día');
+
+    // Al día siguiente se puede ganar otra; se guardan y se cuentan en la semana.
+    today = today.add(const Duration(days: 1));
+    for (var i = 0; i < AppState.dailyGoal; i++) {
+      state.recordGame('suma-5', 1);
+    }
+    await state.load();
+    expect((state.medals, state.weekMedals), (2, 2));
+  });
+
+  testWidgets('la tienda separa la ropa del plumaje, de la más barata a la más cara', (tester) async {
+    await startApp(tester);
+    await tester.pumpWidget(MaterialApp(theme: buildTheme(Palette.day), home: const ShopScreen()));
+    await tester.pumpAndSettle();
+    expect(find.text('Ropa y accesorios'), findsOneWidget);
+    expect(find.byKey(const Key('item-gorro')), findsOneWidget, reason: 'primero la ropa, empezando por lo más barato');
+    await tester.scrollUntilVisible(find.byKey(const Key('item-azul')), 300);
+    final plumaje = tester.getTopLeft(find.byKey(const Key('shop-section-plumaje'))).dy;
+    expect(tester.getTopLeft(find.byKey(const Key('item-azul'))).dy, greaterThan(plumaje));
+    final free = shopItems.where((i) => !i.premium);
+    expect(free.where((i) => i.isFeathers).length, greaterThanOrEqualTo(10));
+    expect(free.where((i) => !i.isFeathers).length, greaterThanOrEqualTo(10));
+  });
+
+  test('camino de medallas: los premios se reclaman con medallas, no se compran', () async {
+    SharedPreferences.setMockInitialValues({'stars': 500, 'medals': 6});
+    await state.load();
+    final glasses = shopItem('lentes_estrella')!, fire = shopItem('fuego')!;
+    expect(state.buy(glasses.id, 0), isFalse, reason: 'no se compra con estrellas');
+    expect(state.rewardsToClaim, 1);
+    expect(state.canClaim(fire), isFalse, reason: 'faltan medallas');
+    expect(state.claim(glasses), isTrue);
+    expect(state.wearing, 'lentes_estrella', reason: 'Owlito se lo pone');
+    expect(state.claim(glasses), isFalse, reason: 'una sola vez');
+    expect((state.rewardsToClaim, state.stars), (0, 500));
+    await state.load();
+    expect(state.owned, contains('lentes_estrella'));
+  });
+
+  testWidgets('pantalla del camino de medallas: barra hacia el próximo premio y botón para reclamar', (tester) async {
+    await startApp(tester, prefs: {'medals': 8});
+    await tester.pumpWidget(MaterialApp(theme: buildTheme(Palette.day), home: const MedalsScreen()));
+    await tester.pumpAndSettle();
+    expect(find.text('Tienes 8 medallas'), findsOneWidget);
+    expect(find.text('8 de 12 medallas'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('medal-button-lentes_estrella')));
+    await tester.pumpAndSettle();
+    expect(AppState.instance.wearing, 'lentes_estrella');
+    expect(find.descendant(of: find.byKey(const Key('medal-step-lentes_estrella')), matching: find.text('Puesto')), findsOneWidget);
+    await tester.scrollUntilVisible(find.byKey(const Key('medal-step-campeon')), 300);
+    expect(find.descendant(of: find.byKey(const Key('medal-step-campeon')), matching: find.text('Te faltan 17 medallas')),
+        findsOneWidget);
   });
 }
