@@ -31,8 +31,7 @@ class Config {
 
   /// Anuncio de pantalla completa (con X para cerrarlo): uno cada [gamesPerInterstitial] partidas
   /// terminadas, al salir de la pantalla final. Nunca durante el juego, al abrir la app ni con Premium.
-  /// Mientras no haya ID real (bloque "Intersticial" en AdMob), la versión de Google Play no los muestra.
-  static const _realInterstitialAdUnitId = '';
+  static const _realInterstitialAdUnitId = 'ca-app-pub-4226625652685681/3034103194';
   static const _testInterstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712';
   static const interstitialAdUnitId = playRelease ? _realInterstitialAdUnitId : _testInterstitialAdUnitId;
   static const gamesPerInterstitial = 3;
