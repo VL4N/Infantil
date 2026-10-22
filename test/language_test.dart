@@ -111,6 +111,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Premium active'));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('✅ You have Premium'), 200);
     expect(find.text('✅ You have Premium'), findsOneWidget);
   });
 }

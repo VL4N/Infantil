@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
@@ -6,7 +7,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config.dart';
 import '../logic/lang.dart';
+import '../logic/content.dart';
 import '../logic/shop.dart';
+import '../logic/stickers.dart';
 import '../theme.dart' show OwlMood;
 
 /// Un niño que juega en este teléfono. El primero (id 0) guarda su progreso con las claves
@@ -55,6 +58,12 @@ class AppState extends ChangeNotifier {
 
   /// Los colores de esas plumas, para dibujar a Owlito.
   (int, int, int)? get featherColors => shopItem(feathers)?.feathers;
+
+  /// Dibujo especial de esas plumas ('arcoiris', 'galaxia'), o null.
+  String? get featherPattern => shopItem(feathers)?.pattern;
+
+  /// Si puede ponerse algo de la tienda: lo compró con estrellas, o es un traje Premium y tiene Premium.
+  bool hasItem(ShopItem item) => item.premium ? premium : owned.contains(item.id);
   bool premium = false;
 
   /// Si ya eligieron el idioma de la app (se pregunta la primera vez que se abre).
@@ -110,6 +119,7 @@ class AppState extends ChangeNotifier {
       ..addAll(prefs.getStringList(_k('owned')) ?? const []);
     wearing = prefs.getString(_k('wearing'));
     feathers = prefs.getString(_k('feathers'));
+    _takeOffPremiumWithoutPremium();
     best.clear();
     played.clear();
     misses.clear();
@@ -135,6 +145,19 @@ class AppState extends ChangeNotifier {
           if (e.contains('=')) MapEntry(e.substring(0, e.lastIndexOf('=')), int.tryParse(e.substring(e.lastIndexOf('=') + 1)) ?? 0),
       ]);
     _challengeDay = prefs.getString(_k('challengeDay')) ?? '';
+    stickers
+      ..clear()
+      ..addAll(prefs.getStringList(_k('stickers')) ?? const []);
+    _daily
+      ..clear()
+      ..addEntries([
+        for (final e in prefs.getStringList(_k('daily')) ?? const <String>[])
+          if (e.split(RegExp('[=,]')).length == 3)
+            MapEntry(e.substring(0, e.indexOf('=')), (
+              int.tryParse(e.split(RegExp('[=,]'))[1]) ?? 0,
+              int.tryParse(e.split(RegExp('[=,]'))[2]) ?? 0,
+            )),
+      ]);
     _streak = prefs.getInt(_k('streak')) ?? 0;
     _gamesDay = prefs.getString(_k('gamesDay')) ?? '';
     _gamesOnDay = prefs.getInt(_k('gamesOnDay')) ?? 0;
@@ -193,6 +216,7 @@ class AppState extends ChangeNotifier {
   }
 
   void addStar() {
+    _countToday(answers: 1);
     stars++;
     starsEarned++;
     _prefs?.setInt(_k('stars'), stars);
@@ -214,7 +238,7 @@ class AppState extends ChangeNotifier {
   /// Owlito se pone algo que ya compró: un accesorio o un color de plumas.
   void wear(String id) {
     final item = shopItem(id);
-    if (item == null || !owned.contains(id)) return;
+    if (item == null || !hasItem(item)) return;
     if (item.isFeathers) {
       feathers = id;
       _prefs?.setString(_k('feathers'), id);
@@ -312,8 +336,72 @@ class AppState extends ChangeNotifier {
     _gamesDay = today;
     _prefs?.setString(_k('gamesDay'), today);
     _prefs?.setInt(_k('gamesOnDay'), _gamesOnDay);
+    _countToday(games: 1);
     notifyListeners();
     return earned;
+  }
+
+  // ---------- Resumen de la semana para papás ----------
+
+  /// Partidas terminadas y respuestas correctas a la primera de cada día (se guardan las últimas 2 semanas).
+  final Map<String, (int, int)> _daily = {};
+
+  void _countToday({int games = 0, int answers = 0}) {
+    final today = _day(now());
+    final (g, a) = _daily[today] ?? (0, 0);
+    _daily[today] = (g + games, a + answers);
+    final keep = {for (var i = 0; i < 14; i++) _day(now().subtract(Duration(days: i)))};
+    _daily.removeWhere((day, _) => !keep.contains(day));
+    _prefs?.setStringList(_k('daily'), [for (final e in _daily.entries) '${e.key}=${e.value.$1},${e.value.$2}']);
+  }
+
+  Iterable<(int, int)> get _thisWeek =>
+      [for (var i = 0; i < 7; i++) _daily[_day(now().subtract(Duration(days: i)))]].whereType<(int, int)>();
+
+  /// En los últimos 7 días: días que jugó, partidas terminadas y respuestas correctas a la primera.
+  int get weekDays => _thisWeek.where((d) => d.$1 > 0 || d.$2 > 0).length;
+  int get weekGames => _thisWeek.fold(0, (n, d) => n + d.$1);
+  int get weekAnswers => _thisWeek.fold(0, (n, d) => n + d.$2);
+
+  /// Si ya jugó todos los niveles y temas gratis (para contarle a los papás qué más trae Premium).
+  bool get finishedFreeContent => !premium && [
+        for (final max in Config.freeMathMax) ...[mathKey(max), subtractKey(max)],
+        for (final t in topics) if (isTopicFree(t.key)) topicKey(t),
+        ...Config.freeNumberLevels,
+      ].every((key) => (played[key] ?? 0) > 0);
+
+  // ---------- Álbum de stickers ----------
+
+  /// Stickers que ya tiene ("página:dibujo").
+  final Set<String> stickers = {};
+
+  bool canFillPage(StickerPage page) => !page.premium || premium;
+
+  /// Pega un sticker nuevo en el álbum (al terminar una partida). Llena primero la página
+  /// que va más avanzada, para que se completen. Al completar una página gana [pageBonus] estrellas.
+  /// Devuelve null si ya tiene todos los que puede tener.
+  ({String sticker, StickerPage page, bool completed})? awardSticker([Random? random]) {
+    final open = [
+      for (final page in stickerPages)
+        if (canFillPage(page) && page.stickers.any((s) => !stickers.contains(stickerId(page, s)))) page,
+    ];
+    if (open.isEmpty) return null;
+    int have(StickerPage p) => p.stickers.where((s) => stickers.contains(stickerId(p, s))).length;
+    final page = open.reduce((a, b) => have(b) > have(a) ? b : a);
+    final missing = [for (final s in page.stickers) if (!stickers.contains(stickerId(page, s))) s];
+    final picture = missing[(random ?? Random()).nextInt(missing.length)];
+    final sticker = stickerId(page, picture);
+    stickers.add(sticker);
+    _prefs?.setStringList(_k('stickers'), stickers.toList());
+    final completed = missing.length == 1;
+    if (completed) {
+      stars += pageBonus;
+      starsEarned += pageBonus;
+      _prefs?.setInt(_k('stars'), stars);
+      _prefs?.setInt(_k('starsEarned'), starsEarned);
+    }
+    notifyListeners();
+    return (sticker: sticker, page: page, completed: completed);
   }
 
   /// Anota que se equivocó con una palabra en inglés.
@@ -354,7 +442,21 @@ class AppState extends ChangeNotifier {
     if (premium == value) return;
     premium = value;
     _prefs?.setBool('premium', value);
+    _takeOffPremiumWithoutPremium();
     notifyListeners();
+  }
+
+  /// Sin Premium (p. ej. si se reembolsó), Owlito se quita los trajes Premium.
+  void _takeOffPremiumWithoutPremium() {
+    if (premium) return;
+    if (shopItem(wearing)?.premium ?? false) {
+      wearing = null;
+      _prefs?.remove(_k('wearing'));
+    }
+    if (shopItem(feathers)?.premium ?? false) {
+      feathers = null;
+      _prefs?.remove(_k('feathers'));
+    }
   }
 
   /// Abre Premium con el código de revisión. Devuelve si el código es correcto.
@@ -366,6 +468,7 @@ class AppState extends ChangeNotifier {
 
   bool isMathLevelFree(int max) => Config.freeMathMax.contains(max);
   bool isTopicFree(String key) => Config.freeEnglishTopics.contains(key);
+  bool canPlayNumbers(String key) => premium || Config.freeNumberLevels.contains(key);
   bool canPlayMath(int max) => premium || isMathLevelFree(max);
   bool canPlayTopic(String key) => premium || isTopicFree(key);
 }

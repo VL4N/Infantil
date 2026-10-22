@@ -1,4 +1,5 @@
 import 'package:aprende_jugando/logic/lang.dart';
+import 'package:aprende_jugando/logic/numbers.dart';
 import 'package:aprende_jugando/main.dart';
 import 'package:aprende_jugando/services/app_state.dart';
 import 'package:aprende_jugando/theme.dart';
@@ -47,6 +48,7 @@ void main() {
               'stars': 40,
               'owned': ['gorro'],
               'wearing': 'gorro',
+              'stickers': ['granja:🐶', 'granja:🐱', 'espacio:🚀'],
             });
             await AppState.instance.load();
             await tester.pumpWidget(const AprendeJugandoApp());
@@ -107,6 +109,18 @@ void main() {
 
             // Juego de parejas.
             await open(tr('Parejas', 'Pairs'));
+            await back();
+
+            // Números: cada juego.
+            await open(tr('Números', 'Numbers'));
+            for (final level in numberLevels) {
+              await open(level.label);
+              await back();
+            }
+            await back();
+
+            // Álbum de stickers.
+            await open(tr('Álbum', 'Album'));
             await back();
 
             // Tienda de Owlito.

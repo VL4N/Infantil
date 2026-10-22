@@ -3,6 +3,7 @@ class Config {
   // ---------- Contenido gratuito (lo demás requiere Premium) ----------
   static const freeMathMax = [5, 10];
   static const freeEnglishTopics = ['animales', 'frutas'];
+  static const freeNumberLevels = ['sigue-10', 'mayor-10'];
 
   // ---------- Compra en Google Play ----------
   /// ID del producto "único" (no consumible) creado en Play Console.

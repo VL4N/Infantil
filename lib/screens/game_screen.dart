@@ -6,6 +6,7 @@ import '../config.dart';
 import '../logic/daily.dart';
 import '../logic/lang.dart';
 import '../logic/lines.dart';
+import '../logic/numbers.dart';
 import '../logic/questions.dart';
 import '../services/app_state.dart';
 import '../services/sfx.dart';
@@ -117,6 +118,7 @@ class _GameScreenState extends State<GameScreen> {
     final earned = finished ? AppState.instance.recordGame(widget.progressKey, AppState.starsFor(_correct)) : 0;
     // Al terminar el reto de hoy, estrellas extra (solo la primera vez del día).
     final bonus = finished && widget.progressKey == challengeKey ? AppState.instance.completeChallenge() : 0;
+    final sticker = finished ? AppState.instance.awardSticker() : null;
     if (_q.speechLang == Lang.target) {
       // La felicitación en el idioma del niño y solo la palabra en el que aprende.
       await Voice.say(_firstTry ? praiseFirstTry : praiseRetry, Lang.native);
@@ -140,6 +142,7 @@ class _GameScreenState extends State<GameScreen> {
             earned: earned,
             previousBest: previousBest,
             starsWon: _correct + bonus,
+            sticker: sticker,
             playAgain: () => GameScreen(title: widget.title, progressKey: widget.progressKey, makeQuestion: widget.makeQuestion),
           ),
         ),
@@ -226,6 +229,14 @@ class _GameScreenState extends State<GameScreen> {
                   fontSize: 32,
                   onTap: _explaining ? null : () => Voice.say(q.speech, Lang.target),
                 ),
+              ] else if (q.sequence != null) ...[
+                Text(q.prompt, textAlign: TextAlign.center, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 20),
+                _SequenceRow(q.sequence!, counted: _counted, reveal: _highlightAnswer || _locked),
+              ] else if (q.comparison != null) ...[
+                Text(q.prompt, textAlign: TextAlign.center, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                _ComparisonCards(q.comparison!),
               ] else ...[
                 if (q.addition!.drawable)
                   _CountingPicture(q.addition!, counted: _counted)
@@ -334,7 +345,7 @@ class _HappyOwl extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (star) Icon(Icons.star_rounded, size: 70, color: p.star, shadows: const [Shadow(blurRadius: 8, color: Color(0x55000000))]),
-          Owl(size: 130, night: p.night, wearing: AppState.instance.wearing, feathers: AppState.instance.featherColors),
+          Owl(size: 130, night: p.night, wearing: AppState.instance.wearing, feathers: AppState.instance.featherColors, pattern: AppState.instance.featherPattern),
         ],
       ),
     );
@@ -488,3 +499,80 @@ class _CountingInEnglish extends StatelessWidget {
         ],
       );
 }
+
+/// "¿Qué número sigue?": los números en fila y un "?" al final. Al explicar se marca el que se cuenta.
+class _SequenceRow extends StatelessWidget {
+  const _SequenceRow(this.seq, {this.counted, required this.reveal});
+  final Sequence seq;
+  final int? counted;
+  final bool reveal;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    Widget box(int i, String text, {Color? color, Color? ink, bool marked = false}) => Container(
+          key: ValueKey('sequence-$i'),
+          width: 64,
+          height: 72,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: color ?? p.card,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: marked ? p.accent : (p.cardBorder ?? Colors.transparent), width: marked ? 4 : 2),
+          ),
+          child: FittedBox(
+            child: Text(text, style: TextStyle(fontSize: 36, fontWeight: FontWeight.w800, color: ink ?? p.cardInk)),
+          ),
+        );
+    return Wrap(
+      key: const Key('prompt'),
+      alignment: WrapAlignment.center,
+      spacing: 10,
+      runSpacing: 10,
+      children: [
+        for (final (i, n) in seq.numbers.indexed) box(i, '$n', marked: counted == n),
+        reveal
+            ? box(3, '${seq.next}', color: AppColors.yellow, ink: const Color(0xFF3B2A55))
+            : box(3, '?', color: p.accent, ink: p.accentInk),
+      ],
+    );
+  }
+}
+
+/// "¿Cuál es mayor?": dos grupos de dibujos (o dos números), uno sobre cada botón.
+class _ComparisonCards extends StatelessWidget {
+  const _ComparisonCards(this.cmp);
+  final Comparison cmp;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    Widget side(int n) => Expanded(
+          child: Container(
+            key: const Key('compare-side'),
+            margin: const EdgeInsets.symmetric(horizontal: 6),
+            padding: const EdgeInsets.all(10),
+            constraints: const BoxConstraints(minHeight: 130),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: p.card,
+              borderRadius: BorderRadius.circular(20),
+              border: p.cardBorder == null ? null : Border.all(color: p.cardBorder!, width: 2),
+            ),
+            child: cmp.object == null
+                ? Text('$n', style: TextStyle(fontSize: 64, fontWeight: FontWeight.w800, color: p.cardInk))
+                : Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 2,
+                    runSpacing: 2,
+                    children: [for (var i = 0; i < n; i++) Text(cmp.object!, style: const TextStyle(fontSize: 26))],
+                  ),
+          ),
+        );
+    return IntrinsicHeight(
+      key: const Key('prompt'),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [side(cmp.a), side(cmp.b)]),
+    );
+  }
+}
+

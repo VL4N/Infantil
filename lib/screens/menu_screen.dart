@@ -4,10 +4,13 @@ import '../logic/content.dart';
 import '../logic/daily.dart';
 import '../logic/lang.dart';
 import '../logic/lines.dart';
+import '../logic/numbers.dart';
 import '../logic/questions.dart';
+import '../logic/stickers.dart';
 import '../services/app_state.dart';
 import '../services/voice.dart';
 import '../theme.dart';
+import 'album_screen.dart';
 import 'game_screen.dart';
 import 'memory_screen.dart';
 import 'parental_gate.dart';
@@ -23,7 +26,7 @@ Future<void> openPremium(BuildContext context) async {
 }
 
 /// Contenido bloqueado: avisa al niño y pide la pregunta para adultos.
-Future<void> _lockedTap(BuildContext context) {
+Future<void> askPremium(BuildContext context) {
   Voice.say(askForHelp, Lang.native);
   return openPremium(context);
 }
@@ -54,6 +57,10 @@ class MenuScreen extends StatelessWidget {
           () => _open(context, const EnglishTopicsScreen())),
       _Game(tr('Parejas', 'Pairs'), tr('Memoria en inglés', 'Memory in Spanish'), p.memory, p.memoryInk, const _CardsIcon(),
           () => _open(context, const EnglishTopicsScreen(memory: true))),
+      _Game(tr('Números', 'Numbers'), tr('¿Qué sigue? · ¿Cuál es mayor?', 'What comes next? · Which is bigger?'), p.numbers,
+          p.numbersInk, const _NumbersIcon(), () => _open(context, const NumbersScreen())),
+      _Game(tr('Álbum', 'Album'), tr('${AppState.instance.stickers.length} de $totalStickers stickers', '${AppState.instance.stickers.length} of $totalStickers stickers'),
+          p.album, p.albumInk, const _AlbumIcon(), () => _open(context, const AlbumScreen())),
       _Game(tr('Tienda', 'Shop'), tr('Gasta tus estrellas en Owlito', 'Spend your stars on Owlito'), p.star, const Color(0xFF3B2A55), const _StoreIcon(),
           () => _open(context, const ShopScreen())),
     ];
@@ -94,20 +101,22 @@ class MenuScreen extends StatelessWidget {
       Text(tr('¿Qué jugamos?', 'What shall we play?'),
           textAlign: TextAlign.center, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
       const SizedBox(height: 12),
-      for (final pair in [games.sublist(0, 2), games.sublist(2, 4)]) ...[
+      for (var i = 0; i < games.length; i += 2) ...[
         IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(child: _GameButton(pair[0])),
-              const SizedBox(width: 14),
-              Expanded(child: _GameButton(pair[1])),
+              Expanded(child: _GameButton(games[i])),
+              // La tienda (la última, si quedan impares) ocupa toda la fila.
+              if (i + 1 < games.length) ...[
+                const SizedBox(width: 14),
+                Expanded(child: _GameButton(games[i + 1])),
+              ],
             ],
           ),
         ),
         const SizedBox(height: 16),
       ],
-      _GameButton(games[4], wide: true),
     ];
   }
 }
@@ -149,7 +158,7 @@ class _ChallengeCard extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             children: [
-              LivelyOwl(size: 64, night: p.night, wearing: state.wearing, feathers: state.featherColors, mood: mood),
+              LivelyOwl(size: 64, night: p.night, wearing: state.wearing, feathers: state.featherColors, pattern: state.featherPattern, mood: mood),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -235,6 +244,7 @@ class _Header extends StatelessWidget {
               night: night,
               wearing: AppState.instance.wearing,
               feathers: AppState.instance.featherColors,
+              pattern: AppState.instance.featherPattern,
               mood: AppState.instance.owlMood),
           const SizedBox(width: 8),
           Expanded(
@@ -298,17 +308,16 @@ class _Card extends StatelessWidget {
 
 /// Botón grande de un juego: color vivo con relieve.
 class _GameButton extends StatelessWidget {
-  const _GameButton(this.game, {this.wide = false});
+  const _GameButton(this.game);
   final _Game game;
-  final bool wide;
 
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(30);
     // El cuadrito del ícono: blanco de día, azul noche de noche.
     final tile = context.palette.night ? context.palette.bg : Colors.white;
-    final title = Text(game.title, style: TextStyle(fontSize: wide ? 34 : 26, fontWeight: FontWeight.w700, color: game.ink, height: 1));
-    final subtitle = Text(game.subtitle, style: TextStyle(fontSize: wide ? 17 : 15, color: game.ink));
+    final title = Text(game.title, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: game.ink, height: 1));
+    final subtitle = Text(game.subtitle, style: TextStyle(fontSize: 15, color: game.ink));
     return Container(
       decoration: BoxDecoration(
         borderRadius: radius,
@@ -322,25 +331,16 @@ class _GameButton extends StatelessWidget {
           onTap: game.onTap,
           child: Padding(
             padding: const EdgeInsets.all(20),
-            child: wide
-                ? Row(
-                    children: [
-                      Expanded(
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [title, const SizedBox(height: 4), subtitle]),
-                      ),
-                      _IconTile(color: tile, size: 76, child: game.icon),
-                    ],
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _IconTile(color: tile, size: 56, child: game.icon),
-                      const SizedBox(height: 12),
-                      title,
-                      const SizedBox(height: 4),
-                      subtitle,
-                    ],
-                  ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _IconTile(color: tile, size: 56, child: game.icon),
+                const SizedBox(height: 12),
+                title,
+                const SizedBox(height: 4),
+                subtitle,
+              ],
+            ),
           ),
         ),
       ),
@@ -387,10 +387,24 @@ class _AbcIcon extends StatelessWidget {
       style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _iconInk(context, context.palette.english, .1)));
 }
 
+class _NumbersIcon extends StatelessWidget {
+  const _NumbersIcon();
+  @override
+  Widget build(BuildContext context) => Text('123',
+      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _iconInk(context, context.palette.numbers, .1)));
+}
+
 class _CardsIcon extends StatelessWidget {
   const _CardsIcon();
   @override
   Widget build(BuildContext context) => Icon(Icons.style_rounded, size: 40, color: _iconInk(context, context.palette.memory));
+}
+
+class _AlbumIcon extends StatelessWidget {
+  const _AlbumIcon();
+  @override
+  Widget build(BuildContext context) =>
+      Icon(Icons.collections_bookmark_rounded, size: 40, color: _iconInk(context, context.palette.album, .15));
 }
 
 class _StoreIcon extends StatelessWidget {
@@ -422,6 +436,31 @@ class _ParentsCard extends StatelessWidget {
               ),
             ],
           ),
+          // Ya jugó todo lo gratis: se les cuenta a los papás (con calma, sin insistir) qué más trae Premium.
+          if (AppState.instance.finishedFreeContent) ...[
+            const SizedBox(height: 10),
+            InkWell(
+              key: const Key('free-done'),
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => openPremium(context),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: p.star.withValues(alpha: .25),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  tr('🎉 ${AppState.instance.profile.name} ya jugó todo lo gratis. Con Premium sigue con '
+                          '${topics.where((t) => !AppState.instance.isTopicFree(t.key)).length} temas más, '
+                          'más niveles, trajes y páginas del álbum.',
+                      '🎉 ${AppState.instance.profile.name} has played everything free. Premium adds '
+                          '${topics.where((t) => !AppState.instance.isTopicFree(t.key)).length} more topics, '
+                          'more levels, outfits and album pages.'),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, height: 1.25),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           _ParentButton(
             icon: Icons.insights_rounded,
@@ -502,7 +541,7 @@ class MathLevelsScreen extends StatelessWidget {
                             ? GameScreen(title: tr('Restar', 'Subtract'), progressKey: subtractKey(max), makeQuestion: (r) => subtractionQuestion(r, max))
                             : GameScreen(title: tr('Sumar', 'Add'), progressKey: mathKey(max), makeQuestion: (r) => mathQuestion(r, max)),
                       ))
-                    : _lockedTap(context),
+                    : askPremium(context),
               ),
             ],
           ],
@@ -543,7 +582,43 @@ class EnglishTopicsScreen extends StatelessWidget {
                             ? MemoryScreen(topic: topic, progressKey: memoryKey(topic))
                             : GameScreen(title: learnName, progressKey: topicKey(topic), makeQuestion: (r) => englishMixedQuestion(r, topic)),
                       ))
-                    : _lockedTap(context),
+                    : askPremium(context),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Sección Números: "¿Qué número sigue?" y "¿Cuál es mayor?".
+class NumbersScreen extends StatelessWidget {
+  const NumbersScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final state = AppState.instance;
+    return Scaffold(
+      appBar: _appBar(tr('Números', 'Numbers')),
+      body: ListenableBuilder(
+        listenable: state,
+        builder: (context, _) => ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Text(tr('Elige un juego', 'Pick a game'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 26)),
+            for (final level in numberLevels) ...[
+              const SizedBox(height: 16),
+              BigButton(
+                label: level.label,
+                fontSize: 22,
+                locked: !state.canPlayNumbers(level.key),
+                stars: state.canPlayNumbers(level.key) ? state.todayFor(level.key) : null,
+                onTap: () => state.canPlayNumbers(level.key)
+                    ? Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => GameScreen(title: tr('Números', 'Numbers'), progressKey: level.key, makeQuestion: level.make),
+                      ))
+                    : askPremium(context),
               ),
             ],
           ],

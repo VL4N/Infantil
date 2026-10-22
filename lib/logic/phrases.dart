@@ -1,6 +1,7 @@
 import 'content.dart';
 import 'lang.dart';
 import 'lines.dart';
+import 'numbers.dart';
 import 'questions.dart';
 
 /// Catálogo de TODO lo que dice la voz de la app, para grabarlo de antemano con una
@@ -46,8 +47,14 @@ void _addPhrases(Set<(String, String)> p) {
     listenAndTouch,
     praiseFirstTry,
     praiseRetry,
+    askNext,
+    askBigger,
+    countByTwo,
   ]) {
     native(t);
+  }
+  for (var n = 1; n <= 20; n++) {
+    native(biggerIs(n));
   }
 
   // Números: en palabras (al contar) y en cifras (al acertar), y lo que tocó al equivocarse.

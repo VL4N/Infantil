@@ -2,8 +2,9 @@ import 'dart:math';
 
 import 'content.dart';
 import 'lang.dart';
+import 'numbers.dart';
 
-const _objects = ['🍎', '⭐', '🐟', '🎈', '🍓', '🐞', '🚗', '🌸'];
+const _objects = ['🍎', '⭐', '🐟', '🎈', '🍓', '🐢', '🚗', '🌸'];
 
 /// Cómo se pregunta por cada dibujo al contar: "¿Cuántas manzanas hay?".
 const _howMany = {
@@ -12,7 +13,7 @@ const _howMany = {
   '🐟': ('¿Cuántos peces hay?', 'How many fish are there?'),
   '🎈': ('¿Cuántos globos hay?', 'How many balloons are there?'),
   '🍓': ('¿Cuántas fresas hay?', 'How many strawberries are there?'),
-  '🐞': ('¿Cuántas mariquitas hay?', 'How many ladybugs are there?'),
+  '🐢': ('¿Cuántas tortugas hay?', 'How many turtles are there?'),
   '🚗': ('¿Cuántos carros hay?', 'How many cars are there?'),
   '🌸': ('¿Cuántas flores hay?', 'How many flowers are there?'),
 };
@@ -37,6 +38,8 @@ class Question {
     this.intro,
     this.count,
     this.addition,
+    this.sequence,
+    this.comparison,
     this.optionWords,
     this.pictureOptions = false,
   });
@@ -46,6 +49,12 @@ class Question {
 
   /// Datos de la suma (para dibujar y explicar los errores).
   final Addition? addition;
+
+  /// "¿Qué número sigue?": los números que se ven (ver logic/numbers.dart).
+  final Sequence? sequence;
+
+  /// "¿Cuál es mayor?": los dos grupos o números que se comparan.
+  final Comparison? comparison;
 
   /// Palabra (en el idioma que aprende) de cada opción, para explicar los errores.
   final List<String>? optionWords;
@@ -170,6 +179,7 @@ String countBack(int b) => tr('Contamos $b hacia atrás.', 'We count back $b.');
 
 /// Explicación con voz de una respuesta equivocada, para aprender en ese momento.
 List<ExplainStep> explainMistake(Question q, int chosen) {
+  if (q.sequence != null || q.comparison != null) return explainNumbers(q, chosen);
   final add = q.addition;
   final n = Lang.native;
   if (add != null && add.kind == AddKind.count) {
@@ -262,6 +272,10 @@ typedef QuestionMaker = Question Function(Random random);
 String questionKey(Question q) {
   final add = q.addition;
   if (add != null) return '${add.kind.name} ${add.a} ${add.b}';
+  final seq = q.sequence;
+  if (seq != null) return 'seq ${seq.numbers.first} ${seq.step}';
+  final cmp = q.comparison;
+  if (cmp != null) return 'cmp ${cmp.a} ${cmp.b}';
   if (q.count != null) return 'count ${q.count}';
   return q.speech;
 }
