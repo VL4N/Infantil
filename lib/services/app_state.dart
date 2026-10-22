@@ -387,6 +387,7 @@ class AppState extends ChangeNotifier {
 
   bool isMathLevelFree(int max) => Config.freeMathMax.contains(max);
   bool isTopicFree(String key) => Config.freeEnglishTopics.contains(key);
+  bool canPlayNumbers(String key) => premium || Config.freeNumberLevels.contains(key);
   bool canPlayMath(int max) => premium || isMathLevelFree(max);
   bool canPlayTopic(String key) => premium || isTopicFree(key);
 }

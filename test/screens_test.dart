@@ -1,4 +1,5 @@
 import 'package:aprende_jugando/logic/lang.dart';
+import 'package:aprende_jugando/logic/numbers.dart';
 import 'package:aprende_jugando/main.dart';
 import 'package:aprende_jugando/services/app_state.dart';
 import 'package:aprende_jugando/theme.dart';
@@ -109,7 +110,15 @@ void main() {
             await open(tr('Parejas', 'Pairs'));
             await back();
 
-            // Tienda de Owlito.
+            // Números: cada juego.
+          await open(tr('Números', 'Numbers'));
+          for (final level in numberLevels) {
+            await open(level.label);
+            await back();
+          }
+          await back();
+
+          // Tienda de Owlito.
             await open(tr('Tienda', 'Shop'));
             await back();
           });

@@ -4,6 +4,7 @@ import '../logic/content.dart';
 import '../logic/daily.dart';
 import '../logic/lang.dart';
 import '../logic/lines.dart';
+import '../logic/numbers.dart';
 import '../logic/questions.dart';
 import '../services/app_state.dart';
 import '../services/voice.dart';
@@ -54,6 +55,8 @@ class MenuScreen extends StatelessWidget {
           () => _open(context, const EnglishTopicsScreen())),
       _Game(tr('Parejas', 'Pairs'), tr('Memoria en inglés', 'Memory in Spanish'), p.memory, p.memoryInk, const _CardsIcon(),
           () => _open(context, const EnglishTopicsScreen(memory: true))),
+      _Game(tr('Números', 'Numbers'), tr('¿Qué sigue? · ¿Cuál es mayor?', 'What comes next? · Which is bigger?'), p.numbers,
+          p.numbersInk, const _NumbersIcon(), () => _open(context, const NumbersScreen())),
       _Game(tr('Tienda', 'Shop'), tr('Gasta tus estrellas en Owlito', 'Spend your stars on Owlito'), p.star, const Color(0xFF3B2A55), const _StoreIcon(),
           () => _open(context, const ShopScreen())),
     ];
@@ -94,7 +97,7 @@ class MenuScreen extends StatelessWidget {
       Text(tr('¿Qué jugamos?', 'What shall we play?'),
           textAlign: TextAlign.center, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
       const SizedBox(height: 12),
-      for (final pair in [games.sublist(0, 2), games.sublist(2, 4)]) ...[
+      for (final pair in [games.sublist(0, 2), games.sublist(2, 4), games.sublist(4, 6)]) ...[
         IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -107,7 +110,6 @@ class MenuScreen extends StatelessWidget {
         ),
         const SizedBox(height: 16),
       ],
-      _GameButton(games[4], wide: true),
     ];
   }
 }
@@ -299,17 +301,16 @@ class _Card extends StatelessWidget {
 
 /// Botón grande de un juego: color vivo con relieve.
 class _GameButton extends StatelessWidget {
-  const _GameButton(this.game, {this.wide = false});
+  const _GameButton(this.game);
   final _Game game;
-  final bool wide;
 
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(30);
     // El cuadrito del ícono: blanco de día, azul noche de noche.
     final tile = context.palette.night ? context.palette.bg : Colors.white;
-    final title = Text(game.title, style: TextStyle(fontSize: wide ? 34 : 26, fontWeight: FontWeight.w700, color: game.ink, height: 1));
-    final subtitle = Text(game.subtitle, style: TextStyle(fontSize: wide ? 17 : 15, color: game.ink));
+    final title = Text(game.title, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: game.ink, height: 1));
+    final subtitle = Text(game.subtitle, style: TextStyle(fontSize: 15, color: game.ink));
     return Container(
       decoration: BoxDecoration(
         borderRadius: radius,
@@ -323,25 +324,16 @@ class _GameButton extends StatelessWidget {
           onTap: game.onTap,
           child: Padding(
             padding: const EdgeInsets.all(20),
-            child: wide
-                ? Row(
-                    children: [
-                      Expanded(
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [title, const SizedBox(height: 4), subtitle]),
-                      ),
-                      _IconTile(color: tile, size: 76, child: game.icon),
-                    ],
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _IconTile(color: tile, size: 56, child: game.icon),
-                      const SizedBox(height: 12),
-                      title,
-                      const SizedBox(height: 4),
-                      subtitle,
-                    ],
-                  ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _IconTile(color: tile, size: 56, child: game.icon),
+                const SizedBox(height: 12),
+                title,
+                const SizedBox(height: 4),
+                subtitle,
+              ],
+            ),
           ),
         ),
       ),
@@ -386,6 +378,13 @@ class _AbcIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text('ABC',
       style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _iconInk(context, context.palette.english, .1)));
+}
+
+class _NumbersIcon extends StatelessWidget {
+  const _NumbersIcon();
+  @override
+  Widget build(BuildContext context) => Text('123',
+      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _iconInk(context, context.palette.numbers, .1)));
 }
 
 class _CardsIcon extends StatelessWidget {
@@ -543,6 +542,42 @@ class EnglishTopicsScreen extends StatelessWidget {
                         builder: (_) => memory
                             ? MemoryScreen(topic: topic, progressKey: memoryKey(topic))
                             : GameScreen(title: learnName, progressKey: topicKey(topic), makeQuestion: (r) => englishMixedQuestion(r, topic)),
+                      ))
+                    : _lockedTap(context),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Sección Números: "¿Qué número sigue?" y "¿Cuál es mayor?".
+class NumbersScreen extends StatelessWidget {
+  const NumbersScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final state = AppState.instance;
+    return Scaffold(
+      appBar: _appBar(tr('Números', 'Numbers')),
+      body: ListenableBuilder(
+        listenable: state,
+        builder: (context, _) => ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Text(tr('Elige un juego', 'Pick a game'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 26)),
+            for (final level in numberLevels) ...[
+              const SizedBox(height: 16),
+              BigButton(
+                label: level.label,
+                fontSize: 22,
+                locked: !state.canPlayNumbers(level.key),
+                stars: state.canPlayNumbers(level.key) ? state.todayFor(level.key) : null,
+                onTap: () => state.canPlayNumbers(level.key)
+                    ? Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => GameScreen(title: tr('Números', 'Numbers'), progressKey: level.key, makeQuestion: level.make),
                       ))
                     : _lockedTap(context),
               ),

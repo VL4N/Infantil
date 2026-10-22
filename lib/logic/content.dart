@@ -1,4 +1,5 @@
 import 'lang.dart';
+import 'numbers.dart';
 
 /// Una palabra de un tema, en los dos idiomas, con su dibujo.
 class Word {
@@ -93,6 +94,27 @@ const topics = [
     Word('sing', 'cantar', '🎤'), Word('dance', 'bailar', '💃'), Word('write', 'escribir', '✍️'), Word('play', 'jugar', '⚽'),
     Word('eat', 'comer', '🍴'), Word('drink', 'beber', '🍹'),
   ]),
+  Topic('vehiculos', '🚗', 'Vehículos', 'Vehicles', [
+    Word('car', 'carro', '🚗'), Word('airplane', 'avión', '✈️'), Word('bicycle', 'bicicleta', '🚲'),
+    Word('ship', 'barco', '🚢'), Word('train', 'tren', '🚆'), Word('truck', 'camión', '🚚'),
+    Word('motorcycle', 'moto', '🏍️'), Word('helicopter', 'helicóptero', '🚁'), Word('rocket', 'cohete', '🚀'),
+    Word('ambulance', 'ambulancia', '🚑'),
+  ]),
+  Topic('juguetes', '⚽', 'Juguetes', 'Toys', [
+    Word('ball', 'pelota', '⚽'), Word('balloon', 'globo', '🎈'), Word('robot', 'robot', '🤖'), Word('dice', 'dado', '🎲'),
+    Word('video game', 'videojuego', '🎮'), Word('guitar', 'guitarra', '🎸'), Word('drum', 'tambor', '🥁'),
+    Word('trumpet', 'trompeta', '🎺'),
+  ]),
+  Topic('mar', '🐙', 'Animales del mar', 'Sea animals', [
+    Word('whale', 'ballena', '🐋'), Word('dolphin', 'delfín', '🐬'), Word('octopus', 'pulpo', '🐙'),
+    Word('shark', 'tiburón', '🦈'), Word('crab', 'cangrejo', '🦀'), Word('turtle', 'tortuga', '🐢'),
+    Word('shell', 'concha', '🐚'), Word('squid', 'calamar', '🦑'),
+  ]),
+  Topic('emociones', '😀', 'Emociones', 'Feelings', [
+    Word('happy', 'feliz', '😀'), Word('sad', 'triste', '😢'), Word('angry', 'enojado', '😠'),
+    Word('scared', 'asustado', '😱'), Word('surprised', 'sorprendido', '😮'), Word('tired', 'cansado', '😩'),
+    Word('sick', 'enfermo', '🤒'), Word('calm', 'tranquilo', '😌'),
+  ]),
 ];
 
 const mathLevels = [(5, '🐣'), (10, '🐥'), (20, '🦅')];
@@ -112,6 +134,8 @@ String memoryKey(Topic topic) => 'parejas-${topic.key}';
 /// Nombre para papás de un nivel o tema guardado con [mathKey], [topicKey] o [memoryKey].
 String progressLabel(String key) {
   if (key == 'reto-hoy') return tr('Reto de hoy', "Today's challenge");
+  final number = numberLevels.where((l) => l.key == key).firstOrNull;
+  if (number != null) return '${tr('Números', 'Numbers')} ${number.label}';
   final dash = key.indexOf('-');
   final kind = dash < 0 ? '' : key.substring(0, dash);
   final rest = key.substring(dash + 1);

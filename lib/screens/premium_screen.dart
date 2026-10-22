@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../config.dart';
 import '../logic/content.dart';
 import '../logic/lang.dart';
+import '../logic/numbers.dart';
 import '../logic/shop.dart';
 import '../services/app_state.dart';
 import '../services/billing.dart';
@@ -160,6 +161,7 @@ class _Comparison extends StatelessWidget {
     final freeOutfits = shopItems.where((i) => !i.premium).length;
     final rows = [
       (tr('Sumar y restar', 'Add and subtract'), '${tr('Hasta', 'Up to')} $freeMax', '${tr('Hasta', 'Up to')} $allMax'),
+      (tr('Juegos de números', 'Number games'), '${Config.freeNumberLevels.length}', '${numberLevels.length}'),
       (
         tr('Temas de inglés y Parejas', 'Spanish topics and Pairs'),
         '${Config.freeEnglishTopics.length}',

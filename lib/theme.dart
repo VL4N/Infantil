@@ -32,6 +32,8 @@ class Palette extends ThemeExtension<Palette> {
     required this.englishInk,
     required this.memory,
     required this.memoryInk,
+    required this.numbers,
+    required this.numbersInk,
     required this.accent,
     required this.accentInk,
     required this.star,
@@ -49,7 +51,7 @@ class Palette extends ThemeExtension<Palette> {
   final Color cardInk;
   final Color? cardBorder;
 
-  /// Color de cada juego (Sumar, Inglés, Parejas) y de su texto encima.
+  /// Color de cada juego (Sumar, Restar, Inglés, Parejas, Números) y de su texto encima.
   final Color math;
   final Color mathInk;
   final Color subtract;
@@ -58,6 +60,8 @@ class Palette extends ThemeExtension<Palette> {
   final Color englishInk;
   final Color memory;
   final Color memoryInk;
+  final Color numbers;
+  final Color numbersInk;
 
   /// Botones de escuchar, números al contar, cartas boca abajo.
   final Color accent;
@@ -84,6 +88,8 @@ class Palette extends ThemeExtension<Palette> {
     englishInk: Color(0xFF10372F),
     memory: Color(0xFF8162F0),
     memoryInk: Color(0xFFFFFFFF),
+    numbers: Color(0xFF4A90D9),
+    numbersInk: Color(0xFFFFFFFF),
     accent: Color(0xFF8162F0),
     accentInk: Color(0xFFFFFFFF),
     star: Color(0xFFFFC93C),
@@ -107,6 +113,8 @@ class Palette extends ThemeExtension<Palette> {
     englishInk: Color(0xFF1B1F4B),
     memory: Color(0xFFFF8A70),
     memoryInk: Color(0xFF1B1F4B),
+    numbers: Color(0xFF7FB2FF),
+    numbersInk: Color(0xFF1B1F4B),
     accent: Color(0xFF5EE1C9),
     accentInk: Color(0xFF1B1F4B),
     star: Color(0xFFFFD45C),
