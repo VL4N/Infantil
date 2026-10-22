@@ -22,6 +22,18 @@ PRONUNCIATION = {
 }
 
 
+# Palabras que suenan mal dentro de una frase: se graban escritas de otra forma.
+WORD_FIXES = {"es": {"fresa": "fressa"}}
+
+
+def fix_words(text: str, lang: str) -> str:
+    import re
+
+    for word, spoken in WORD_FIXES.get(lang, {}).items():
+        text = re.sub(rf"\b{word}\b", spoken, text, flags=re.IGNORECASE)
+    return text
+
+
 def clip_name(text: str, lang: str) -> str:
     """Igual que clipName() en lib/logic/phrases.dart (FNV-1a de 64 bits)."""
     h = 0xCBF29CE484222325
@@ -66,7 +78,7 @@ def main() -> None:
                 continue
             wav = os.path.join(tmp, "frase.wav")
             # Con punto final la voz pronuncia entera una palabra suelta ("4" -> "cuatro.").
-            spoken = fixed or (text if text[-1] in ".!?" else text + ".")
+            spoken = fixed or fix_words(text if text[-1] in ".!?" else text + ".", lang)
             synthesize(voices[lang], spoken, wav, speed[lang])
             # Silencio al principio y al final: algunos teléfonos se comen el comienzo
             # del audio al empezar a sonar (la "c" de "cuatro").

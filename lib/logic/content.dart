@@ -1,4 +1,5 @@
 import 'lang.dart';
+import 'letters.dart';
 import 'numbers.dart';
 
 /// Una palabra de un tema, en los dos idiomas, con su dibujo.
@@ -136,6 +137,8 @@ String progressLabel(String key) {
   if (key == 'reto-hoy') return tr('Reto de hoy', "Today's challenge");
   final number = numberLevels.where((l) => l.key == key).firstOrNull;
   if (number != null) return '${tr('Números', 'Numbers')} ${number.label}';
+  final letters = letterLevels.where((l) => l.key == key).firstOrNull;
+  if (letters != null) return '${tr('Letras', 'Letters')} ${letters.label}';
   final dash = key.indexOf('-');
   final kind = dash < 0 ? '' : key.substring(0, dash);
   final rest = key.substring(dash + 1);

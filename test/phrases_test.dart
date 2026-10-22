@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:aprende_jugando/logic/content.dart';
 import 'package:aprende_jugando/logic/lang.dart';
+import 'package:aprende_jugando/logic/letters.dart';
 import 'package:aprende_jugando/logic/lines.dart';
 import 'package:aprende_jugando/logic/numbers.dart';
 import 'package:aprende_jugando/logic/phrases.dart';
@@ -19,7 +20,9 @@ void main() {
     if (q.intro != null) yield (q.intro!, Lang.native);
     yield (q.ask ?? q.speech, q.askLang ?? lang);
     yield (q.speech, lang);
-    if (lang == Lang.target) {
+    if (q.letters case final l?) {
+      yield (l.praise, Lang.native);
+    } else if (lang == Lang.target) {
       yield (praiseFirstTry, Lang.native);
       yield (praiseRetry, Lang.native);
       for (final o in q.optionWords ?? const <String>[]) {
@@ -48,6 +51,20 @@ void main() {
             if (!catalog.contains(p)) missing.add('${p.$2}: ${p.$1}');
           }
           for (final p in spoken(subtractionQuestion(r, max))) {
+            if (!catalog.contains(p)) missing.add('${p.$2}: ${p.$1}');
+          }
+        }
+      }
+      expect(missing, isEmpty);
+    });
+
+    test('todas las frases de la sección Letras están grabadas (${lang.name})', () {
+      Lang.current = lang;
+      final r = Random(11);
+      final missing = <String>{};
+      for (final level in letterLevels) {
+        for (var i = 0; i < 2000; i++) {
+          for (final p in spoken(level.make(r))) {
             if (!catalog.contains(p)) missing.add('${p.$2}: ${p.$1}');
           }
         }
