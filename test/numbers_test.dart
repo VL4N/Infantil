@@ -49,12 +49,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(spoken, ['¿Qué número sigue?']);
     expect(find.byKey(const ValueKey('sequence-3')), findsOneWidget, reason: 'tres números y el "?"');
-    expect(find.text('+1'), findsNWidgets(3), reason: 'se ve el salto entre número y número');
+    expect(find.text('+1'), findsNothing, reason: 'el salto no se ve antes de responder');
     expect(find.text('?'), findsOneWidget);
     final options = [for (var i = 0; i < 3; i++) tester.widget<Text>(find.descendant(of: find.byKey(Key('option-$i')), matching: find.byType(Text))).data!];
     final seqText = [for (final e in find.descendant(of: find.byKey(const Key('prompt')), matching: find.byType(Text)).evaluate()) (e.widget as Text).data!];
     final next = int.parse(seqText[2]) + 1;
     await tester.tap(find.byKey(Key('option-${options.indexWhere((o) => o != '$next')}')));
+    await tester.pump();
+    expect(find.text('+1'), findsNWidgets(3), reason: 'al equivocarse se ve el salto entre número y número');
     await waitFor(tester, seconds: 15);
     expect(spoken, containsAllInOrder(['¡Vamos a contar juntos!', '¡Toca el $next!']));
   });

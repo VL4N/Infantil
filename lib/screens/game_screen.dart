@@ -232,7 +232,7 @@ class _GameScreenState extends State<GameScreen> {
               ] else if (q.sequence != null) ...[
                 Text(q.prompt, textAlign: TextAlign.center, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 20),
-                _SequenceRow(q.sequence!, counted: _counted, reveal: _highlightAnswer || _locked),
+                _SequenceRow(q.sequence!, counted: _counted, reveal: _highlightAnswer || _locked, showJumps: _wrong.isNotEmpty),
               ] else if (q.comparison != null) ...[
                 Text(q.prompt, textAlign: TextAlign.center, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
@@ -502,10 +502,13 @@ class _CountingInEnglish extends StatelessWidget {
 
 /// "¿Qué número sigue?": los números en fila y un "?" al final. Al explicar se marca el que se cuenta.
 class _SequenceRow extends StatelessWidget {
-  const _SequenceRow(this.seq, {this.counted, required this.reveal});
+  const _SequenceRow(this.seq, {this.counted, required this.reveal, required this.showJumps});
   final Sequence seq;
   final int? counted;
   final bool reveal;
+
+  /// El salto ("+1" o "+2") solo se ve después de equivocarse: antes, el niño tiene que descubrirlo.
+  final bool showJumps;
 
   @override
   Widget build(BuildContext context) {
@@ -524,7 +527,7 @@ class _SequenceRow extends StatelessWidget {
             child: Text(text, style: TextStyle(fontSize: 36, fontWeight: FontWeight.w800, color: ink ?? p.cardInk)),
           ),
         );
-    // Entre número y número, el salto ("+1" o "+2"), para que se vea qué se está haciendo.
+    // Entre número y número, el salto ("+1" o "+2"). Su lugar queda reservado para que nada se mueva al aparecer.
     const width = 64.0, gap = 16.0, hop = 30.0;
     Widget jump(int i) => Positioned(
           key: ValueKey('sequence-step-$i'),
@@ -554,7 +557,7 @@ class _SequenceRow extends StatelessWidget {
         child: Stack(
           children: [
             for (final (i, b) in boxes.indexed) Positioned(left: i * (width + gap), top: hop, child: b),
-            for (var i = 0; i < 3; i++) jump(i),
+            if (showJumps) for (var i = 0; i < 3; i++) jump(i),
           ],
         ),
       ),
