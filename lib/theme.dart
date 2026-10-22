@@ -34,6 +34,8 @@ class Palette extends ThemeExtension<Palette> {
     required this.memoryInk,
     required this.numbers,
     required this.numbersInk,
+    required this.album,
+    required this.albumInk,
     required this.accent,
     required this.accentInk,
     required this.star,
@@ -62,6 +64,8 @@ class Palette extends ThemeExtension<Palette> {
   final Color memoryInk;
   final Color numbers;
   final Color numbersInk;
+  final Color album;
+  final Color albumInk;
 
   /// Botones de escuchar, números al contar, cartas boca abajo.
   final Color accent;
@@ -90,6 +94,8 @@ class Palette extends ThemeExtension<Palette> {
     memoryInk: Color(0xFFFFFFFF),
     numbers: Color(0xFF4A90D9),
     numbersInk: Color(0xFFFFFFFF),
+    album: Color(0xFF6CC24A),
+    albumInk: Color(0xFF173A0B),
     accent: Color(0xFF8162F0),
     accentInk: Color(0xFFFFFFFF),
     star: Color(0xFFFFC93C),
@@ -115,6 +121,8 @@ class Palette extends ThemeExtension<Palette> {
     memoryInk: Color(0xFF1B1F4B),
     numbers: Color(0xFF7FB2FF),
     numbersInk: Color(0xFF1B1F4B),
+    album: Color(0xFFA5E884),
+    albumInk: Color(0xFF1B1F4B),
     accent: Color(0xFF5EE1C9),
     accentInk: Color(0xFF1B1F4B),
     star: Color(0xFFFFD45C),

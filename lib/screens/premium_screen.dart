@@ -5,6 +5,7 @@ import '../logic/content.dart';
 import '../logic/lang.dart';
 import '../logic/numbers.dart';
 import '../logic/shop.dart';
+import '../logic/stickers.dart';
 import '../services/app_state.dart';
 import '../services/billing.dart';
 import '../theme.dart';
@@ -168,6 +169,11 @@ class _Comparison extends StatelessWidget {
         '${topics.length}',
       ),
       (tr('Trajes de Owlito', "Owlito's outfits"), '$freeOutfits', '${shopItems.length}'),
+      (
+        tr('Páginas del álbum', 'Album pages'),
+        '${stickerPages.where((s) => !s.premium).length}',
+        '${stickerPages.length}',
+      ),
       (tr('Anuncios', 'Ads'), tr('Sí', 'Yes'), tr('No', 'No')),
       (tr('Pago', 'Payment'), '—', tr('Una sola vez', 'Just once')),
     ];

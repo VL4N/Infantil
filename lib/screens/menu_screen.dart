@@ -6,9 +6,11 @@ import '../logic/lang.dart';
 import '../logic/lines.dart';
 import '../logic/numbers.dart';
 import '../logic/questions.dart';
+import '../logic/stickers.dart';
 import '../services/app_state.dart';
 import '../services/voice.dart';
 import '../theme.dart';
+import 'album_screen.dart';
 import 'game_screen.dart';
 import 'memory_screen.dart';
 import 'parental_gate.dart';
@@ -24,7 +26,7 @@ Future<void> openPremium(BuildContext context) async {
 }
 
 /// Contenido bloqueado: avisa al niño y pide la pregunta para adultos.
-Future<void> _lockedTap(BuildContext context) {
+Future<void> askPremium(BuildContext context) {
   Voice.say(askForHelp, Lang.native);
   return openPremium(context);
 }
@@ -57,6 +59,8 @@ class MenuScreen extends StatelessWidget {
           () => _open(context, const EnglishTopicsScreen(memory: true))),
       _Game(tr('Números', 'Numbers'), tr('¿Qué sigue? · ¿Cuál es mayor?', 'What comes next? · Which is bigger?'), p.numbers,
           p.numbersInk, const _NumbersIcon(), () => _open(context, const NumbersScreen())),
+      _Game(tr('Álbum', 'Album'), tr('${AppState.instance.stickers.length} de $totalStickers stickers', '${AppState.instance.stickers.length} of $totalStickers stickers'),
+          p.album, p.albumInk, const _AlbumIcon(), () => _open(context, const AlbumScreen())),
       _Game(tr('Tienda', 'Shop'), tr('Gasta tus estrellas en Owlito', 'Spend your stars on Owlito'), p.star, const Color(0xFF3B2A55), const _StoreIcon(),
           () => _open(context, const ShopScreen())),
     ];
@@ -97,14 +101,17 @@ class MenuScreen extends StatelessWidget {
       Text(tr('¿Qué jugamos?', 'What shall we play?'),
           textAlign: TextAlign.center, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
       const SizedBox(height: 12),
-      for (final pair in [games.sublist(0, 2), games.sublist(2, 4), games.sublist(4, 6)]) ...[
+      for (var i = 0; i < games.length; i += 2) ...[
         IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(child: _GameButton(pair[0])),
-              const SizedBox(width: 14),
-              Expanded(child: _GameButton(pair[1])),
+              Expanded(child: _GameButton(games[i])),
+              // La tienda (la última, si quedan impares) ocupa toda la fila.
+              if (i + 1 < games.length) ...[
+                const SizedBox(width: 14),
+                Expanded(child: _GameButton(games[i + 1])),
+              ],
             ],
           ),
         ),
@@ -393,6 +400,13 @@ class _CardsIcon extends StatelessWidget {
   Widget build(BuildContext context) => Icon(Icons.style_rounded, size: 40, color: _iconInk(context, context.palette.memory));
 }
 
+class _AlbumIcon extends StatelessWidget {
+  const _AlbumIcon();
+  @override
+  Widget build(BuildContext context) =>
+      Icon(Icons.collections_bookmark_rounded, size: 40, color: _iconInk(context, context.palette.album, .15));
+}
+
 class _StoreIcon extends StatelessWidget {
   const _StoreIcon();
   @override
@@ -422,6 +436,31 @@ class _ParentsCard extends StatelessWidget {
               ),
             ],
           ),
+          // Ya jugó todo lo gratis: se les cuenta a los papás (con calma, sin insistir) qué más trae Premium.
+          if (AppState.instance.finishedFreeContent) ...[
+            const SizedBox(height: 10),
+            InkWell(
+              key: const Key('free-done'),
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => openPremium(context),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: p.star.withValues(alpha: .25),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  tr('🎉 ${AppState.instance.profile.name} ya jugó todo lo gratis. Con Premium sigue con '
+                          '${topics.where((t) => !AppState.instance.isTopicFree(t.key)).length} temas más, '
+                          'más niveles, trajes y páginas del álbum.',
+                      '🎉 ${AppState.instance.profile.name} has played everything free. Premium adds '
+                          '${topics.where((t) => !AppState.instance.isTopicFree(t.key)).length} more topics, '
+                          'more levels, outfits and album pages.'),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, height: 1.25),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           _ParentButton(
             icon: Icons.insights_rounded,
@@ -502,7 +541,7 @@ class MathLevelsScreen extends StatelessWidget {
                             ? GameScreen(title: tr('Restar', 'Subtract'), progressKey: subtractKey(max), makeQuestion: (r) => subtractionQuestion(r, max))
                             : GameScreen(title: tr('Sumar', 'Add'), progressKey: mathKey(max), makeQuestion: (r) => mathQuestion(r, max)),
                       ))
-                    : _lockedTap(context),
+                    : askPremium(context),
               ),
             ],
           ],
@@ -543,7 +582,7 @@ class EnglishTopicsScreen extends StatelessWidget {
                             ? MemoryScreen(topic: topic, progressKey: memoryKey(topic))
                             : GameScreen(title: learnName, progressKey: topicKey(topic), makeQuestion: (r) => englishMixedQuestion(r, topic)),
                       ))
-                    : _lockedTap(context),
+                    : askPremium(context),
               ),
             ],
           ],
@@ -579,7 +618,7 @@ class NumbersScreen extends StatelessWidget {
                     ? Navigator.push(context, MaterialPageRoute(
                         builder: (_) => GameScreen(title: tr('Números', 'Numbers'), progressKey: level.key, makeQuestion: level.make),
                       ))
-                    : _lockedTap(context),
+                    : askPremium(context),
               ),
             ],
           ],

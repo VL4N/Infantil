@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../logic/content.dart';
 import '../logic/lang.dart';
+import '../logic/stickers.dart';
 import '../services/app_state.dart';
 import '../services/reminder.dart';
 import '../theme.dart';
@@ -24,9 +25,14 @@ class ParentsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          _Week(name: state.profile.name),
+          const SizedBox(height: 24),
+          Text(tr('Desde el principio', 'Since the start'), style: title),
+          const SizedBox(height: 8),
           Text('📅 ${tr('Días jugados', 'Days played')}: ${state.days.length}', style: body),
           Text('🎮 ${tr('Partidas terminadas', 'Games finished')}: ${state.played.values.fold(0, (a, b) => a + b)}', style: body),
           Text('⭐ ${tr('Estrellas ganadas', 'Stars earned')}: ${state.starsEarned} (${tr('para gastar', 'to spend')}: ${state.stars})', style: body),
+          Text('📒 ${tr('Stickers del álbum', 'Album stickers')}: ${state.stickers.length} / $totalStickers', style: body),
           const SizedBox(height: 24),
           Text(tr('Lo que practicó', 'What they practiced'), style: title),
           const SizedBox(height: 8),
@@ -56,6 +62,64 @@ class ParentsScreen extends StatelessWidget {
           const _ReminderSetting(),
           const SizedBox(height: 32),
           const _LanguageSetting(),
+        ],
+      ),
+    );
+  }
+}
+
+/// Resumen de los últimos 7 días, en una frase fácil de leer.
+class _Week extends StatelessWidget {
+  const _Week({required this.name});
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    final state = AppState.instance;
+    final p = context.palette;
+    final days = state.weekDays;
+    final text = days == 0
+        ? tr('Esta semana $name todavía no jugó. ¡Un ratito al día ayuda mucho!',
+            "$name hasn't played this week yet. A little every day helps a lot!")
+        : tr(
+            'Esta semana $name jugó ${days == 1 ? '1 día' : '$days días'}, '
+                'terminó ${state.weekGames == 1 ? '1 partida' : '${state.weekGames} partidas'} '
+                'y respondió bien a la primera ${state.weekAnswers == 1 ? '1 pregunta' : '${state.weekAnswers} preguntas'}.',
+            'This week $name played ${days == 1 ? '1 day' : '$days days'}, '
+                'finished ${state.weekGames == 1 ? '1 game' : '${state.weekGames} games'} '
+                'and got ${state.weekAnswers == 1 ? '1 answer' : '${state.weekAnswers} answers'} right on the first try.');
+    return Container(
+      key: const Key('week-summary'),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: p.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: p.cardBorder ?? p.star, width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('🗓️ ${tr('Esta semana', 'This week')}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text(text, style: const TextStyle(fontSize: 18, height: 1.3)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              for (final (icon, n, label) in [
+                ('📅', days, tr('días', 'days')),
+                ('🎮', state.weekGames, tr('partidas', 'games')),
+                ('⭐', state.weekAnswers, tr('aciertos', 'right')),
+              ])
+                Expanded(
+                  child: Column(
+                    children: [
+                      Text('$icon $n', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+                      Text(label, style: TextStyle(fontSize: 15, color: p.inkSoft)),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ],
       ),
     );

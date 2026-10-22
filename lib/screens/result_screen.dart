@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../logic/lang.dart';
 import '../logic/lines.dart';
+import '../logic/stickers.dart';
 import '../services/ads.dart';
 import '../services/app_state.dart';
 import '../services/sfx.dart';
@@ -17,6 +18,7 @@ class ResultScreen extends StatefulWidget {
     required this.previousBest,
     required this.playAgain,
     this.starsWon = 0,
+    this.sticker,
   });
 
   /// Cómo le fue, p. ej. "8 de 10 a la primera."
@@ -30,6 +32,9 @@ class ResultScreen extends StatefulWidget {
 
   /// Estrellas que sumó en esta partida al contador (una por acierto a la primera o por pareja).
   final int starsWon;
+
+  /// El sticker que ganó para el álbum (ver AppState.awardSticker), o null.
+  final ({String sticker, StickerPage page, bool completed})? sticker;
 
   @override
   State<ResultScreen> createState() => _ResultScreenState();
@@ -46,7 +51,11 @@ class _ResultScreenState extends State<ResultScreen> {
   void initState() {
     super.initState();
     Sfx.celebracion();
-    Voice.say(_message, Lang.native);
+    () async {
+      await Voice.say(_message, Lang.native);
+      final won = widget.sticker;
+      if (won != null && mounted) await Voice.say(won.completed ? pageComplete : newSticker, Lang.native);
+    }();
   }
 
   @override
@@ -78,6 +87,10 @@ class _ResultScreenState extends State<ResultScreen> {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
           ],
+          if (widget.sticker case final won?) ...[
+            const SizedBox(height: 16),
+            _StickerWon(won),
+          ],
           const SizedBox(height: 20),
           // Único lugar con publicidad: al terminar, nunca durante el juego.
           const Center(child: AdBanner()),
@@ -93,3 +106,47 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 }
+
+/// El sticker nuevo para el álbum, y si con él completó una página.
+class _StickerWon extends StatelessWidget {
+  const _StickerWon(this.won);
+  final ({String sticker, StickerPage page, bool completed}) won;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final have = won.page.stickers.where((s) => AppState.instance.stickers.contains(stickerId(won.page, s))).length;
+    return Container(
+      key: const Key('sticker-won'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: p.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.yellow, width: 3),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(color: Color(0xFFFFF4D6), shape: BoxShape.circle),
+            child: Text(stickerPicture(won.sticker), style: const TextStyle(fontSize: 42)),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              won.completed
+                  ? tr('¡Completaste la página ${won.page.name}! +$pageBonus estrellas.',
+                      'You completed the ${won.page.name} page! +$pageBonus stars.')
+                  : tr('¡Sticker nuevo para tu álbum! Página ${won.page.name}: $have de ${won.page.stickers.length}.',
+                      'New sticker for your album! ${won.page.name} page: $have of ${won.page.stickers.length}.'),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: p.cardInk),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

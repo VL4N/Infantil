@@ -76,6 +76,7 @@ void main() {
 
     await answerGate(tester, correctly: true);
     expect(find.text('👑 Aprende Jugando Premium'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Desbloquear por ${Config.fallbackPrice}'), 200);
     expect(find.text('Desbloquear por ${Config.fallbackPrice}'), findsOneWidget);
   });
 
@@ -109,9 +110,13 @@ void main() {
     expect(find.text('★★★'), findsOneWidget);
     expect(AppState.instance.stars, 10);
     expect(find.textContaining('+10 estrellas para la tienda. Ahora tienes 10.'), findsOneWidget);
+    // Y un sticker nuevo para el álbum.
+    expect(AppState.instance.stickers, hasLength(1));
+    expect(find.byKey(const Key('sticker-won')), findsOneWidget);
+    expect(spoken, contains('¡Ganaste un sticker nuevo!'));
 
     // El mejor resultado queda guardado y se ve en el botón del nivel.
-    await tester.ensureVisible(find.text('🏠 Inicio'));
+    await tester.scrollUntilVisible(find.text('🏠 Inicio'), 200);
     await tester.pumpAndSettle();
     await tester.tap(find.text('🏠 Inicio'));
     await tester.pumpAndSettle();
@@ -300,6 +305,7 @@ void main() {
     expect(find.text('Sumar 🐣 Hasta 5'), findsOneWidget);
     expect(find.text('2 partidas'), findsOneWidget);
     expect(find.text('Inglés 🐶 Animales'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('• duck: 1 error'), 200);
     expect(find.text('• cow: 2 errores'), findsOneWidget);
     expect(find.text('• duck: 1 error'), findsOneWidget);
 
@@ -419,6 +425,8 @@ void main() {
     addTearDown(() => Reminder.debugSchedule = null);
     await tester.pumpWidget(const MaterialApp(home: ParentsScreen()));
     await tester.scrollUntilVisible(find.byKey(const Key('reminder-switch')), 200);
+    await tester.ensureVisible(find.byKey(const Key('reminder-switch')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('reminder-switch')));
     await tester.pumpAndSettle();
     expect(AppState.instance.reminderOn, isTrue);

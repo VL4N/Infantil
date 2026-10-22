@@ -48,6 +48,7 @@ void main() {
               'stars': 40,
               'owned': ['gorro'],
               'wearing': 'gorro',
+              'stickers': ['granja:🐶', 'granja:🐱', 'espacio:🚀'],
             });
             await AppState.instance.load();
             await tester.pumpWidget(const AprendeJugandoApp());
@@ -111,14 +112,18 @@ void main() {
             await back();
 
             // Números: cada juego.
-          await open(tr('Números', 'Numbers'));
-          for (final level in numberLevels) {
-            await open(level.label);
+            await open(tr('Números', 'Numbers'));
+            for (final level in numberLevels) {
+              await open(level.label);
+              await back();
+            }
             await back();
-          }
-          await back();
 
-          // Tienda de Owlito.
+            // Álbum de stickers.
+            await open(tr('Álbum', 'Album'));
+            await back();
+
+            // Tienda de Owlito.
             await open(tr('Tienda', 'Shop'));
             await back();
           });

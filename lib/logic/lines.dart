@@ -9,7 +9,9 @@ String get whoIsPlaying => tr('¿Quién va a jugar?', "Who's playing?");
 String get youAreAStar => tr('¡Eres una estrella!', "You're a star!");
 String get greatJob => tr('¡Muy bien!', 'Great job!');
 String get keepPracticing => tr('¡Sigue practicando!', 'Keep practicing!');
+String get newSticker => tr('¡Ganaste un sticker nuevo!', 'You won a new sticker!');
+String get pageComplete => tr('¡Completaste una página del álbum!', 'You completed an album page!');
 
 /// Todas las de arriba (para grabarlas).
 List<String> get screenLines =>
-    [letsReview, askForHelp, findThePairs, whoIsPlaying, youAreAStar, greatJob, keepPracticing];
+    [letsReview, askForHelp, findThePairs, whoIsPlaying, youAreAStar, greatJob, keepPracticing, newSticker, pageComplete];
