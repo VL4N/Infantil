@@ -3,7 +3,7 @@ import 'dart:math';
 import 'content.dart';
 import 'lang.dart';
 
-const _objects = ['🍎', '⭐', '🐟', '🎈', '🍓', '🐞', '🚗', '🌸'];
+const _objects = ['🍎', '⭐', '🐟', '🎈', '🍓', '🐢', '🚗', '🌸'];
 
 /// Cómo se pregunta por cada dibujo al contar: "¿Cuántas manzanas hay?".
 const _howMany = {
@@ -12,7 +12,7 @@ const _howMany = {
   '🐟': ('¿Cuántos peces hay?', 'How many fish are there?'),
   '🎈': ('¿Cuántos globos hay?', 'How many balloons are there?'),
   '🍓': ('¿Cuántas fresas hay?', 'How many strawberries are there?'),
-  '🐞': ('¿Cuántas mariquitas hay?', 'How many ladybugs are there?'),
+  '🐢': ('¿Cuántas tortugas hay?', 'How many turtles are there?'),
   '🚗': ('¿Cuántos carros hay?', 'How many cars are there?'),
   '🌸': ('¿Cuántas flores hay?', 'How many flowers are there?'),
 };

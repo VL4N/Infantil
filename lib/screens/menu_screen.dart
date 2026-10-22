@@ -149,7 +149,7 @@ class _ChallengeCard extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             children: [
-              LivelyOwl(size: 64, night: p.night, wearing: state.wearing, feathers: state.featherColors, mood: mood),
+              LivelyOwl(size: 64, night: p.night, wearing: state.wearing, feathers: state.featherColors, pattern: state.featherPattern, mood: mood),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -235,6 +235,7 @@ class _Header extends StatelessWidget {
               night: night,
               wearing: AppState.instance.wearing,
               feathers: AppState.instance.featherColors,
+              pattern: AppState.instance.featherPattern,
               mood: AppState.instance.owlMood),
           const SizedBox(width: 8),
           Expanded(

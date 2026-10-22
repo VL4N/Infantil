@@ -71,11 +71,11 @@ void main() {
     await tester.tap(find.text('🦅 Hasta 20 🔒'));
     await tester.pumpAndSettle();
     await answerGate(tester, correctly: false);
-    expect(find.text('Aprende Jugando Premium'), findsNothing);
+    expect(find.text('👑 Aprende Jugando Premium'), findsNothing);
     expect(find.textContaining('Respuesta incorrecta'), findsOneWidget);
 
     await answerGate(tester, correctly: true);
-    expect(find.text('Aprende Jugando Premium'), findsOneWidget);
+    expect(find.text('👑 Aprende Jugando Premium'), findsOneWidget);
     expect(find.text('Desbloquear por ${Config.fallbackPrice}'), findsOneWidget);
   });
 

@@ -55,6 +55,12 @@ class AppState extends ChangeNotifier {
 
   /// Los colores de esas plumas, para dibujar a Owlito.
   (int, int, int)? get featherColors => shopItem(feathers)?.feathers;
+
+  /// Dibujo especial de esas plumas ('arcoiris', 'galaxia'), o null.
+  String? get featherPattern => shopItem(feathers)?.pattern;
+
+  /// Si puede ponerse algo de la tienda: lo compró con estrellas, o es un traje Premium y tiene Premium.
+  bool hasItem(ShopItem item) => item.premium ? premium : owned.contains(item.id);
   bool premium = false;
 
   /// Si ya eligieron el idioma de la app (se pregunta la primera vez que se abre).
@@ -110,6 +116,7 @@ class AppState extends ChangeNotifier {
       ..addAll(prefs.getStringList(_k('owned')) ?? const []);
     wearing = prefs.getString(_k('wearing'));
     feathers = prefs.getString(_k('feathers'));
+    _takeOffPremiumWithoutPremium();
     best.clear();
     played.clear();
     misses.clear();
@@ -214,7 +221,7 @@ class AppState extends ChangeNotifier {
   /// Owlito se pone algo que ya compró: un accesorio o un color de plumas.
   void wear(String id) {
     final item = shopItem(id);
-    if (item == null || !owned.contains(id)) return;
+    if (item == null || !hasItem(item)) return;
     if (item.isFeathers) {
       feathers = id;
       _prefs?.setString(_k('feathers'), id);
@@ -354,7 +361,21 @@ class AppState extends ChangeNotifier {
     if (premium == value) return;
     premium = value;
     _prefs?.setBool('premium', value);
+    _takeOffPremiumWithoutPremium();
     notifyListeners();
+  }
+
+  /// Sin Premium (p. ej. si se reembolsó), Owlito se quita los trajes Premium.
+  void _takeOffPremiumWithoutPremium() {
+    if (premium) return;
+    if (shopItem(wearing)?.premium ?? false) {
+      wearing = null;
+      _prefs?.remove(_k('wearing'));
+    }
+    if (shopItem(feathers)?.premium ?? false) {
+      feathers = null;
+      _prefs?.remove(_k('feathers'));
+    }
   }
 
   /// Abre Premium con el código de revisión. Devuelve si el código es correcto.

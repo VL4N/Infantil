@@ -7,6 +7,7 @@ import '../services/app_state.dart';
 import '../services/sfx.dart';
 import '../services/voice.dart';
 import '../theme.dart';
+import 'menu_screen.dart' show openPremium;
 
 /// Tienda de Owlito: las estrellas ganadas se gastan en ropa y accesorios para el búho.
 class ShopScreen extends StatelessWidget {
@@ -26,7 +27,7 @@ class ShopScreen extends StatelessWidget {
         builder: (context, _) => ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            Center(child: Owl(size: 130, night: p.night, wearing: state.wearing, feathers: state.featherColors)),
+            Center(child: Owl(size: 130, night: p.night, wearing: state.wearing, feathers: state.featherColors, pattern: state.featherPattern)),
             const SizedBox(height: 12),
             Text(
               tr('Tienes ${state.stars} ${state.stars == 1 ? 'estrella' : 'estrellas'} para gastar',
@@ -36,8 +37,10 @@ class ShopScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
             ),
             Text(
-              tr('Ganas una estrella por cada respuesta correcta a la primera y por cada pareja.',
-                  'You win a star for every answer right on the first try and for every pair.'),
+              tr('Ganas una estrella por cada respuesta correcta a la primera y por cada pareja. '
+                      'Los trajes con 👑 vienen con Premium.',
+                  'You win a star for every answer right on the first try and for every pair. '
+                      'Outfits with 👑 come with Premium.'),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 15, color: p.inkSoft),
             ),
@@ -77,7 +80,7 @@ class _ItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = AppState.instance;
     final p = context.palette;
-    final owned = state.owned.contains(item.id);
+    final owned = state.hasItem(item);
     final wearing = state.wearing == item.id || state.feathers == item.id;
     final missing = item.price - state.stars;
     final String label;
@@ -93,6 +96,15 @@ class _ItemCard extends StatelessWidget {
     } else if (owned) {
       label = tr('Ponérselo', 'Put on');
       onTap = () => state.wear(item.id);
+    } else if (item.premium) {
+      // Sin Premium: el niño pide ayuda y se abre la pregunta para adultos.
+      label = '👑 Premium';
+      color = p.accent;
+      ink = p.accentInk;
+      onTap = () {
+        Voice.say(askForHelp, Lang.native);
+        openPremium(context);
+      };
     } else if (missing <= 0) {
       label = tr('Comprar', 'Buy');
       price = item.price;
@@ -121,10 +133,10 @@ class _ItemCard extends StatelessWidget {
       child: Column(
         children: [
           item.isFeathers
-              ? Owl(size: 72, night: p.night, feathers: item.feathers)
+              ? Owl(size: 72, night: p.night, feathers: item.feathers, pattern: item.pattern)
               : Owl(size: 72, night: p.night, wearing: item.id),
           const SizedBox(height: 6),
-          Text(item.name,
+          Text('${item.premium ? '👑 ' : ''}${item.name}',
               textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: p.cardInk)),
           const SizedBox(height: 8),
           SizedBox(

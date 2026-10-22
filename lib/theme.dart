@@ -300,6 +300,7 @@ class Owl extends StatelessWidget {
     this.mood = OwlMood.normal,
     this.blink = 0,
     this.tear = 0,
+    this.pattern,
   });
   final double size;
   final bool night;
@@ -317,6 +318,9 @@ class Owl extends StatelessWidget {
   /// Colores de plumas comprados (orejas, cuerpo, pecho), o null para los de siempre.
   final (int, int, int)? feathers;
 
+  /// Dibujo especial de las plumas: 'arcoiris' o 'galaxia' (plumas Premium).
+  final String? pattern;
+
   @override
   Widget build(BuildContext context) => Semantics(
         label: switch (mood) {
@@ -324,18 +328,19 @@ class Owl extends StatelessWidget {
           OwlMood.sad => tr('Owlito, el búho, está triste', 'Owlito the owl is sad'),
           OwlMood.normal => tr('Owlito, el búho', 'Owlito the owl'),
         },
-        child: CustomPaint(size: Size(size, size * 112 / 104), painter: _OwlPainter(night, wearing, feathers, mood, blink, tear)),
+        child: CustomPaint(size: Size(size, size * 112 / 104), painter: _OwlPainter(night, wearing, feathers, mood, blink, tear, pattern)),
       );
 }
 
 class _OwlPainter extends CustomPainter {
-  _OwlPainter(this.night, this.wearing, this.feathers, this.mood, this.blink, this.tear);
+  _OwlPainter(this.night, this.wearing, this.feathers, this.mood, this.blink, this.tear, this.pattern);
   final bool night;
   final String? wearing;
   final (int, int, int)? feathers;
   final OwlMood mood;
   final double blink;
   final double tear;
+  final String? pattern;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -345,8 +350,30 @@ class _OwlPainter extends CustomPainter {
       ..moveTo(22, 26)..lineTo(30, 6)..lineTo(42, 22)..close()
       ..moveTo(82, 26)..lineTo(74, 6)..lineTo(62, 22)..close();
     final (earC, bodyC, bellyC) = feathers ?? (night ? (0xFF6E5BD8, 0xFF8270F0, 0xFFB9AFFF) : (0xFF8A5A3B, 0xFFA86B45, 0xFFF3D9B1));
+    // La capa de superhéroe va detrás de Owlito.
+    if (wearing == 'capa') {
+      canvas.drawPath(
+        Path()..moveTo(22, 40)..lineTo(82, 40)..lineTo(100, 110)..quadraticBezierTo(52, 100, 4, 110)..close(),
+        fill(0xFFE5484D),
+      );
+    }
     canvas.drawPath(ears, fill(earC));
-    canvas.drawOval(Rect.fromCenter(center: const Offset(52, 64), width: 80, height: 88), fill(bodyC));
+    final body = Rect.fromCenter(center: const Offset(52, 64), width: 80, height: 88);
+    canvas.drawOval(body, switch (pattern) {
+      'arcoiris' => Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFE74C3C), Color(0xFFF39C12), Color(0xFFF1C40F), Color(0xFF2ECC71), Color(0xFF3498DB), Color(0xFF8E44AD)],
+        ).createShader(body),
+      _ => fill(bodyC),
+    });
+    if (pattern == 'galaxia') {
+      // Estrellitas en las plumas.
+      for (final (x, y, r) in [(24.0, 40.0, 1.6), (78.0, 34.0, 1.3), (30.0, 88.0, 1.5), (80.0, 84.0, 1.7), (20.0, 64.0, 1.2), (86.0, 60.0, 1.4)]) {
+        canvas.drawCircle(Offset(x, y), r, fill(0xFFFFFFFF));
+      }
+    }
     canvas.drawOval(Rect.fromCenter(center: const Offset(52, 78), width: 52, height: 56), fill(bellyC));
     final eye = fill(night ? 0xFFFFE9A8 : 0xFFFFFFFF);
     canvas.drawCircle(const Offset(36, 46), 15, eye);
@@ -460,22 +487,74 @@ class _OwlPainter extends CustomPainter {
         canvas.drawCircle(const Offset(52, 18), 3.2, fill(0xFFE5508E));
         canvas.drawCircle(const Offset(41, 21), 2.4, fill(0xFF2EC4A6));
         canvas.drawCircle(const Offset(63, 21), 2.4, fill(0xFF2EC4A6));
+      // Trajes Premium.
+      case 'astronauta':
+        canvas.drawCircle(const Offset(52, 54), 47, fill(0x33BFE8FF));
+        canvas.drawCircle(const Offset(52, 54), 47, Paint()
+          ..color = const Color(0xFFE8EEF6)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 5);
+        canvas.drawArc(Rect.fromCircle(center: const Offset(52, 54), radius: 39), 3.6, 0.9, false, Paint()
+          ..color = const Color(0xCCFFFFFF)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 4
+          ..strokeCap = StrokeCap.round);
+        canvas.drawLine(const Offset(52, 7), const Offset(52, -4), Paint()
+          ..color = const Color(0xFFE8EEF6)
+          ..strokeWidth = 3);
+        canvas.drawCircle(const Offset(52, -6), 4, fill(0xFFE5484D));
+      case 'pirata':
+        canvas.drawPath(Path()..moveTo(22, 26)..quadraticBezierTo(52, -14, 82, 26)..close(), fill(0xFF22223B));
+        canvas.drawRRect(RRect.fromLTRBR(18, 22, 86, 29, const Radius.circular(4)), fill(0xFF22223B));
+        canvas.drawCircle(const Offset(52, 12), 4, fill(0xFFFFFFFF));
+        // Parche en el ojo.
+        canvas.drawLine(const Offset(18, 30), const Offset(86, 40), Paint()
+          ..color = const Color(0xFF22223B)
+          ..strokeWidth = 3);
+        canvas.drawCircle(const Offset(68, 46), 13, fill(0xFF22223B));
+      case 'capa':
+        // La capa se dibuja detrás; adelante, el escudo con una estrella.
+        canvas.drawCircle(const Offset(52, 84), 11, fill(0xFFE5484D));
+        canvas.drawPath(_starPath(const Offset(52, 84), 8), fill(0xFFFFC93C));
+      case 'mago':
+        canvas.drawPath(Path()..moveTo(32, 24)..lineTo(72, 24)..lineTo(58, -16)..close(), fill(0xFF6A4BC4));
+        canvas.drawOval(const Rect.fromLTRB(22, 18, 82, 30), fill(0xFF5A3BB0));
+        canvas.drawPath(_starPath(const Offset(52, 6), 5), fill(0xFFFFC93C));
+        canvas.drawCircle(const Offset(60, 14), 2, fill(0xFFFFC93C));
+        canvas.drawCircle(const Offset(46, 18), 1.6, fill(0xFFFFC93C));
+      case 'tiara':
+        canvas.drawPath(
+          Path()
+            ..moveTo(34, 26)..lineTo(38, 14)..lineTo(45, 21)..lineTo(52, 8)
+            ..lineTo(59, 21)..lineTo(66, 14)..lineTo(70, 26)..close(),
+          fill(0xFFD9DDE8),
+        );
+        canvas.drawCircle(const Offset(52, 17), 3.2, fill(0xFFE77FB0));
+        canvas.drawCircle(const Offset(40, 21), 2, fill(0xFF7FD3F7));
+        canvas.drawCircle(const Offset(64, 21), 2, fill(0xFF7FD3F7));
+      case 'dino':
+        for (final x in [30.0, 41.0, 52.0, 63.0, 74.0]) {
+          canvas.drawPath(Path()..moveTo(x - 6, 25)..lineTo(x, 9)..lineTo(x + 6, 25)..close(), fill(0xFF4CAF50));
+        }
+        canvas.drawPath(Path()..moveTo(86, 76)..lineTo(102, 70)..lineTo(90, 90)..close(), fill(0xFF4CAF50));
     }
   }
 
   @override
-  bool shouldRepaint(_OwlPainter old) => old.night != night || old.wearing != wearing || old.feathers != feathers || old.mood != mood || old.blink != blink || old.tear != tear;
+  bool shouldRepaint(_OwlPainter old) => old.night != night || old.wearing != wearing || old.feathers != feathers || old.mood != mood || old.blink != blink || old.tear != tear || old.pattern != pattern;
 }
 
 /// Owlito con vida en el menú, según su cara:
 /// normal parpadea y se mece; feliz da saltitos con estrellitas; triste suspira y le cae una lágrima.
 /// Con "reducir animaciones" del teléfono se queda quieto.
 class LivelyOwl extends StatefulWidget {
-  const LivelyOwl({super.key, this.size = 100, this.night = false, this.wearing, this.feathers, this.mood = OwlMood.normal});
+  const LivelyOwl(
+      {super.key, this.size = 100, this.night = false, this.wearing, this.feathers, this.pattern, this.mood = OwlMood.normal});
   final double size;
   final bool night;
   final String? wearing;
   final (int, int, int)? feathers;
+  final String? pattern;
   final OwlMood mood;
 
   /// Las pruebas lo apagan para que `pumpAndSettle` no espere para siempre.
@@ -531,6 +610,7 @@ class _LivelyOwlState extends State<LivelyOwl> with SingleTickerProviderStateMix
             night: widget.night,
             wearing: widget.wearing,
             feathers: widget.feathers,
+            pattern: widget.pattern,
             mood: widget.mood,
             blink: blink.clamp(0, 1).toDouble(),
             tear: widget.mood == OwlMood.sad ? (t * 2) % 1 : 0,
@@ -574,21 +654,24 @@ class _LivelyOwlState extends State<LivelyOwl> with SingleTickerProviderStateMix
       );
 }
 
+/// Estrella de cinco puntas con centro [c] y radio [r].
+Path _starPath(Offset c, double r) {
+  final star = Path();
+  for (var i = 0; i < 10; i++) {
+    final a = -math.pi / 2 + i * math.pi / 5;
+    final d = i.isEven ? r : r * .45;
+    final pt = c + Offset(math.cos(a) * d, math.sin(a) * d);
+    i == 0 ? star.moveTo(pt.dx, pt.dy) : star.lineTo(pt.dx, pt.dy);
+  }
+  return star..close();
+}
+
 class _StarPainter extends CustomPainter {
   const _StarPainter();
 
   @override
   void paint(Canvas canvas, Size size) {
-    final c = size.center(Offset.zero);
-    final r = size.width / 2;
-    final star = Path();
-    for (var i = 0; i < 10; i++) {
-      final a = -math.pi / 2 + i * math.pi / 5;
-      final d = i.isEven ? r : r * .45;
-      final pt = c + Offset(math.cos(a) * d, math.sin(a) * d);
-      i == 0 ? star.moveTo(pt.dx, pt.dy) : star.lineTo(pt.dx, pt.dy);
-    }
-    canvas.drawPath(star..close(), Paint()..color = AppColors.yellow);
+    canvas.drawPath(_starPath(size.center(Offset.zero), size.width / 2), Paint()..color = AppColors.yellow);
   }
 
   @override
