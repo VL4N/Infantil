@@ -9,31 +9,35 @@ Aprende Jugando con Owlito
 ## Descripción breve (máx. 80)
 
 ```
-Sumas, restas e inglés para niños de 3 a 8 años, con Owlito el búho.
+Sumas, números e inglés para niños de 3 a 8 años, con Owlito el búho.
 ```
 
 ## Descripción completa (máx. 4000)
 
 ```
-Aprende Jugando es una app educativa para niños de 3 a 8 años. Con Owlito, un búho amigable, tu hijo practica sumas, restas e inglés jugando, a su ritmo y sin presiones.
+Aprende Jugando es una app educativa para niños de 3 a 8 años. Con Owlito, un búho amigable, tu hijo practica sumas, restas, números e inglés jugando, a su ritmo y sin presiones.
 
 ¿QUÉ APRENDE TU HIJO?
-• Sumas hasta 5, 10 y 20, con dibujos para contar.
-• Restas con dibujos que se tachan, para ver cuántos quedan.
-• Inglés: animales, frutas, colores, números, familia, cuerpo, ropa, saludos, comida, casa, escuela, clima y acciones.
+• Sumas y restas hasta 5, 10 y 20, con dibujos para contar.
+• Números: "¿Qué número sigue?", contar de 2 en 2 y "¿Cuál es mayor?".
+• Inglés: 17 temas, como animales, frutas, colores, números, familia, cuerpo, ropa, comida, casa, escuela, clima, vehículos, juguetes, animales del mar y emociones.
 • Juego de parejas para memorizar las palabras en inglés.
 
 UNA VOZ QUE ENSEÑA
-Owlito lee cada pregunta en voz alta. Si tu hijo se equivoca, le explica la respuesta con calma y contando, para que aprenda del error en lugar de frustrarse. Las palabras en inglés se escuchan con buena pronunciación.
+Owlito lee cada pregunta en voz alta. Si tu hijo se equivoca, le explica la respuesta con calma y contando, para que aprenda del error en lugar de frustrarse.
 
-UN RETO NUEVO CADA DÍA
-Cada día hay un "Reto de hoy" con preguntas nuevas y estrellas extra. Las estrellas de cada nivel vuelven a empezar cada día, así siempre hay algo que ganar. Si un día no juegan, Owlito se pone un poco triste… ¡y se alegra cuando vuelven!
+MOTIVACIÓN PARA VOLVER CADA DÍA
+• Reto de hoy: preguntas nuevas cada día y estrellas extra.
+• Medalla del día: al terminar 5 partidas. Con las medallas se avanza en el Camino de medallas y se ganan premios especiales para Owlito.
+• Álbum de stickers: un sticker nuevo en cada partida terminada.
+• Si un día no juegan, Owlito se pone un poco triste… ¡y se alegra cuando vuelven!
 
-ESTRELLAS Y TIENDA DE OWLITO
-Cada respuesta correcta a la primera da una estrella. Con las estrellas tu hijo compra gorros, lentes, bufandas y plumas de colores para vestir a Owlito.
+TIENDA DE OWLITO
+Con las estrellas que gana, tu hijo compra gorros, lentes, audífonos, sombreros y plumas de muchos colores para vestir a Owlito.
 
 PARA PAPÁS Y MAMÁS
-• Resumen del progreso: días jugados, partidas y las palabras que más le cuestan.
+• Resumen de la semana: días jugados, partidas, aciertos y medallas.
+• Las palabras que más le cuestan, para repasarlas juntos.
 • Hasta 4 niños en el mismo teléfono, cada uno con su propio progreso.
 • Recordatorio diario opcional a la hora que elijas.
 • La zona para padres y las compras están protegidas con una pregunta para adultos.
@@ -43,10 +47,10 @@ PARA PAPÁS Y MAMÁS
 SEGURA PARA NIÑOS
 • Sin registro, sin cuentas y sin chat.
 • El progreso se guarda solo en el teléfono.
-• Los anuncios son aptos para niños y no se personalizan.
+• Los anuncios son aptos para niños, no se personalizan y nunca aparecen en medio de un ejercicio.
 
 GRATIS Y PREMIUM
-La app es gratis, con algunos niveles y temas abiertos. Con Premium, un pago único sin suscripción, se abren todos los niveles y temas y se quitan los anuncios.
+La app es gratis, con niveles, temas y juegos de números abiertos. Con Premium, un pago único sin suscripción, se abren todos los niveles y temas, trajes especiales y más páginas del álbum, y se quitan los anuncios.
 
 Política de privacidad: https://vl4n.github.io/Infantil/privacidad.html
 ```
@@ -57,7 +61,7 @@ Política de privacidad: https://vl4n.github.io/Infantil/privacidad.html
 |---|---|---|
 | Ícono de la app | `icono_512.png` | 512 × 512 |
 | Gráfico de funciones (portada) | `portada_1024x500.png` | 1024 × 500 |
-| Capturas de teléfono | `captura_1.png` … `captura_6.png` | 1080 × 1920 |
+| Capturas de teléfono | `captura_1.png` … `captura_8.png` | 1080 × 1920 |
 
 ## Otros datos de la ficha
 
