@@ -122,7 +122,9 @@ class _GameScreenState extends State<GameScreen> {
     final bonus = finished && widget.progressKey == challengeKey ? AppState.instance.completeChallenge() : 0;
     final sticker = finished ? AppState.instance.awardSticker() : null;
     final medal = finished && AppState.instance.takeNewMedal();
-    if (_q.speechLang == Lang.target) {
+    if (_q.letters case final l?) {
+      await Voice.say(l.praise, Lang.native);
+    } else if (_q.speechLang == Lang.target) {
       // La felicitación en el idioma del niño y solo la palabra en el que aprende.
       await Voice.say(_firstTry ? praiseFirstTry : praiseRetry, Lang.native);
       if (mounted) await Voice.say(_q.speech, Lang.target);
@@ -231,6 +233,28 @@ class _GameScreenState extends State<GameScreen> {
                   fontSize: 32,
                   onTap: _explaining ? null : () => Voice.say(q.speech, Lang.target),
                 ),
+              ] else if (q.letters case final l?) ...[
+                Text(q.prompt, textAlign: TextAlign.center, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                if (l.picture != null)
+                  Text(l.picture!, key: const Key('letters-picture'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 96)),
+                if (l.display.isNotEmpty)
+                  Text(l.display,
+                      key: const Key('prompt'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: l.picture == null ? 110 : 52, fontWeight: FontWeight.w800, letterSpacing: 2)),
+                const SizedBox(height: 8),
+                // Para volver a escuchar la pregunta.
+                Center(
+                  child: BigButton(
+                    key: const Key('listen-again'),
+                    label: '🔊',
+                    fontSize: 28,
+                    color: context.palette.accent,
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 28),
+                    onTap: _explaining ? null : () => Voice.say(q.speech, Lang.native),
+                  ),
+                ),
               ] else if (q.sequence != null) ...[
                 Text(q.prompt, textAlign: TextAlign.center, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 20),
@@ -254,7 +278,11 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ],
               const SizedBox(height: 28),
-              if (q.speechLang == Lang.target && !q.pictureOptions)
+              if (q.letters?.words ?? false)
+                // Palabras para leer: una debajo de otra (sin botón para escucharlas: hay que leerlas).
+                for (var i = 0; i < q.options.length; i++)
+                  Padding(padding: const EdgeInsets.only(bottom: 12), child: _option(i, fontSize: 34))
+              else if (q.speechLang == Lang.target && !q.pictureOptions)
                 // Palabras: una debajo de otra, cada una con su botón para escucharla.
                 for (var i = 0; i < q.options.length; i++)
                   Padding(
@@ -281,7 +309,7 @@ class _GameScreenState extends State<GameScreen> {
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 6),
-                          child: _option(i, fontSize: q.pictureOptions ? 52 : 40),
+                          child: _option(i, fontSize: q.pictureOptions || q.letters != null ? 52 : 40),
                         ),
                       ),
                   ],

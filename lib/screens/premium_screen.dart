@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../config.dart';
 import '../logic/content.dart';
 import '../logic/lang.dart';
+import '../logic/letters.dart';
 import '../logic/numbers.dart';
 import '../logic/shop.dart';
 import '../logic/stickers.dart';
@@ -163,6 +164,7 @@ class _Comparison extends StatelessWidget {
     final rows = [
       (tr('Sumar y restar', 'Add and subtract'), '${tr('Hasta', 'Up to')} $freeMax', '${tr('Hasta', 'Up to')} $allMax'),
       (tr('Juegos de números', 'Number games'), '${Config.freeNumberLevels.length}', '${numberLevels.length}'),
+      (tr('Juegos de letras', 'Letter games'), '${Config.freeLetterLevels.length}', '${letterLevels.length}'),
       (
         tr('Temas de inglés y Parejas', 'Spanish topics and Pairs'),
         '${Config.freeEnglishTopics.length}',

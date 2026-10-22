@@ -1,4 +1,5 @@
 import 'package:aprende_jugando/logic/lang.dart';
+import 'package:aprende_jugando/logic/letters.dart';
 import 'package:aprende_jugando/logic/numbers.dart';
 import 'package:aprende_jugando/main.dart';
 import 'package:aprende_jugando/services/app_state.dart';
@@ -119,6 +120,14 @@ void main() {
             // Números: cada juego.
             await open(tr('Números', 'Numbers'));
             for (final level in numberLevels) {
+              await open(level.label);
+              await back();
+            }
+            await back();
+
+            // Letras: cada juego.
+            await open(tr('Letras', 'Letters'));
+            for (final level in letterLevels) {
               await open(level.label);
               await back();
             }

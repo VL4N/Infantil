@@ -419,6 +419,7 @@ class AppState extends ChangeNotifier {
         for (final max in Config.freeMathMax) ...[mathKey(max), subtractKey(max)],
         for (final t in topics) if (isTopicFree(t.key)) topicKey(t),
         ...Config.freeNumberLevels,
+        ...Config.freeLetterLevels,
       ].every((key) => (played[key] ?? 0) > 0);
 
   // ---------- Álbum de stickers ----------
@@ -520,6 +521,7 @@ class AppState extends ChangeNotifier {
   bool isMathLevelFree(int max) => Config.freeMathMax.contains(max);
   bool isTopicFree(String key) => Config.freeEnglishTopics.contains(key);
   bool canPlayNumbers(String key) => premium || Config.freeNumberLevels.contains(key);
+  bool canPlayLetters(String key) => premium || Config.freeLetterLevels.contains(key);
   bool canPlayMath(int max) => premium || isMathLevelFree(max);
   bool canPlayTopic(String key) => premium || isTopicFree(key);
 }

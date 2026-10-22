@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../logic/content.dart';
 import '../logic/daily.dart';
 import '../logic/lang.dart';
+import '../logic/letters.dart';
 import '../logic/lines.dart';
 import '../logic/numbers.dart';
 import '../logic/questions.dart';
@@ -61,6 +62,8 @@ class MenuScreen extends StatelessWidget {
           () => _open(context, const EnglishTopicsScreen(memory: true))),
       _Game(tr('Números', 'Numbers'), tr('¿Qué sigue? · ¿Cuál es mayor?', 'What comes next? · Which is bigger?'), p.numbers,
           p.numbersInk, const _NumbersIcon(), () => _open(context, const NumbersScreen())),
+      _Game(tr('Letras', 'Letters'), tr('Abecedario y primeras lecturas', 'ABCs and first reading'), p.letters, p.lettersInk,
+          const _LettersIcon(), () => _open(context, const LettersScreen())),
       _Game(tr('Álbum', 'Album'), tr('${AppState.instance.stickers.length} de $totalStickers stickers', '${AppState.instance.stickers.length} of $totalStickers stickers'),
           p.album, p.albumInk, const _AlbumIcon(), () => _open(context, const AlbumScreen())),
       _Game(tr('Tienda', 'Shop'), tr('Gasta tus estrellas en Owlito', 'Spend your stars on Owlito'), p.star, const Color(0xFF3B2A55), const _StoreIcon(),
@@ -436,6 +439,13 @@ class _NumbersIcon extends StatelessWidget {
       style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _iconInk(context, context.palette.numbers, .1)));
 }
 
+class _LettersIcon extends StatelessWidget {
+  const _LettersIcon();
+  @override
+  Widget build(BuildContext context) => Text('Aa',
+      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _iconInk(context, context.palette.letters, .12)));
+}
+
 class _CardsIcon extends StatelessWidget {
   const _CardsIcon();
   @override
@@ -659,6 +669,42 @@ class NumbersScreen extends StatelessWidget {
                 onTap: () => state.canPlayNumbers(level.key)
                     ? Navigator.push(context, MaterialPageRoute(
                         builder: (_) => GameScreen(title: tr('Números', 'Numbers'), progressKey: level.key, makeQuestion: level.make),
+                      ))
+                    : askPremium(context),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Sección Letras: el abecedario y las primeras lecturas, en el idioma del niño.
+class LettersScreen extends StatelessWidget {
+  const LettersScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final state = AppState.instance;
+    return Scaffold(
+      appBar: _appBar(tr('Letras', 'Letters')),
+      body: ListenableBuilder(
+        listenable: state,
+        builder: (context, _) => ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Text(tr('Elige un juego', 'Pick a game'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 26)),
+            for (final level in letterLevels) ...[
+              const SizedBox(height: 16),
+              BigButton(
+                label: level.label,
+                fontSize: 22,
+                locked: !state.canPlayLetters(level.key),
+                stars: state.canPlayLetters(level.key) ? state.todayFor(level.key) : null,
+                onTap: () => state.canPlayLetters(level.key)
+                    ? Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => GameScreen(title: tr('Letras', 'Letters'), progressKey: level.key, makeQuestion: level.make),
                       ))
                     : askPremium(context),
               ),

@@ -81,7 +81,7 @@ void main() {
     expect(state.finishedFreeContent, isFalse);
     for (final key in [
       'suma-5', 'suma-10', 'resta-5', 'resta-10', 'ingles-animales', 'ingles-frutas', 'ingles-colores',
-      'sigue-10', 'mayor-10',
+      'sigue-10', 'mayor-10', 'letras-cual', 'letras-empieza',
     ]) {
       state.recordGame(key, 1);
     }
@@ -122,7 +122,7 @@ void main() {
     await startApp(tester);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('free-done')), findsNothing);
-    for (final key in ['suma-5', 'suma-10', 'resta-5', 'resta-10', 'ingles-animales', 'ingles-frutas', 'sigue-10', 'mayor-10']) {
+    for (final key in ['suma-5', 'suma-10', 'resta-5', 'resta-10', 'ingles-animales', 'ingles-frutas', 'sigue-10', 'mayor-10', 'letras-cual', 'letras-empieza']) {
       state.recordGame(key, 1);
     }
     await tester.pumpAndSettle();
