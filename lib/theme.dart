@@ -387,6 +387,11 @@ class _OwlPainter extends CustomPainter {
         ).createShader(body),
       _ => fill(bodyC),
     });
+    if (pattern == 'lunares') {
+      for (final (x, y, r) in [(26.0, 44.0, 4.0), (78.0, 40.0, 3.5), (22.0, 72.0, 3.5), (84.0, 70.0, 4.0), (32.0, 98.0, 3.0), (74.0, 98.0, 3.5)]) {
+        canvas.drawCircle(Offset(x, y), r, fill(0xFFFFE066));
+      }
+    }
     if (pattern == 'galaxia') {
       // Estrellitas en las plumas.
       for (final (x, y, r) in [(24.0, 40.0, 1.6), (78.0, 34.0, 1.3), (30.0, 88.0, 1.5), (80.0, 84.0, 1.7), (20.0, 64.0, 1.2), (86.0, 60.0, 1.4)]) {
@@ -506,6 +511,56 @@ class _OwlPainter extends CustomPainter {
         canvas.drawCircle(const Offset(52, 18), 3.2, fill(0xFFE5508E));
         canvas.drawCircle(const Offset(41, 21), 2.4, fill(0xFF2EC4A6));
         canvas.drawCircle(const Offset(63, 21), 2.4, fill(0xFF2EC4A6));
+      case 'lazo':
+        final pink = fill(0xFFE5508E);
+        canvas.drawPath(Path()..moveTo(70, 20)..lineTo(58, 12)..lineTo(58, 28)..close(), pink);
+        canvas.drawPath(Path()..moveTo(70, 20)..lineTo(82, 12)..lineTo(82, 28)..close(), pink);
+        canvas.drawCircle(const Offset(70, 20), 4, fill(0xFFB8326E));
+      case 'flor':
+        for (var k = 0; k < 5; k++) {
+          final a = k * 2 * math.pi / 5 - math.pi / 2;
+          canvas.drawCircle(Offset(72 + 7 * math.cos(a), 18 + 7 * math.sin(a)), 5.5, fill(0xFFFF8FB8));
+        }
+        canvas.drawCircle(const Offset(72, 18), 4.5, fill(0xFFFFC93C));
+      case 'gorra':
+        canvas.drawPath(Path()..moveTo(28, 26)..quadraticBezierTo(52, -6, 76, 26)..close(), fill(0xFF3B7DD8));
+        canvas.drawRRect(RRect.fromLTRBR(60, 21, 94, 29, const Radius.circular(4)), fill(0xFF2C5FA8));
+        canvas.drawCircle(const Offset(52, 8), 3, fill(0xFFFFFFFF));
+      case 'collar':
+        for (var k = 0; k <= 8; k++) {
+          final t = k / 8;
+          final x = 30 + 44 * t;
+          final y = 74 + 10 * math.sin(t * math.pi);
+          canvas.drawCircle(Offset(x, y), 3.6, fill(0xFFB8B8C8));
+          canvas.drawCircle(Offset(x, y), 2.8, fill(0xFFFFFFFF));
+        }
+      case 'audifonos':
+        canvas.drawArc(Rect.fromCircle(center: const Offset(52, 46), radius: 38), math.pi, math.pi, false, Paint()
+          ..color = const Color(0xFF22223B)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 5);
+        canvas.drawRRect(RRect.fromLTRBR(8, 36, 22, 60, const Radius.circular(6)), fill(0xFFE5508E));
+        canvas.drawRRect(RRect.fromLTRBR(82, 36, 96, 60, const Radius.circular(6)), fill(0xFFE5508E));
+      case 'chef':
+        final white = fill(0xFFFFFFFF);
+        final edge = Paint()
+          ..color = const Color(0xFFCBD2DC)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5;
+        for (final x in [40.0, 52.0, 64.0]) {
+          canvas.drawCircle(Offset(x, 4), 10, white);
+          canvas.drawCircle(Offset(x, 4), 10, edge);
+        }
+        canvas.drawRect(const Rect.fromLTRB(36, 6, 68, 26), white);
+        canvas.drawRect(const Rect.fromLTRB(36, 6, 68, 26), edge);
+      case 'vaquero':
+        final brown = fill(0xFF8B5A2B);
+        canvas.drawPath(
+          Path()..moveTo(34, 24)..lineTo(36, 2)..quadraticBezierTo(52, 10, 68, 2)..lineTo(70, 24)..close(),
+          brown,
+        );
+        canvas.drawRect(const Rect.fromLTRB(35, 17, 69, 22), fill(0xFF5A3518));
+        canvas.drawOval(const Rect.fromLTRB(12, 20, 92, 31), fill(0xFF7A4C22));
       // Trajes Premium.
       case 'astronauta':
         canvas.drawCircle(const Offset(52, 54), 47, fill(0x33BFE8FF));

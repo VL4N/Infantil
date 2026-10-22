@@ -32,6 +32,7 @@ class ParentsScreen extends StatelessWidget {
           Text('📅 ${tr('Días jugados', 'Days played')}: ${state.days.length}', style: body),
           Text('🎮 ${tr('Partidas terminadas', 'Games finished')}: ${state.played.values.fold(0, (a, b) => a + b)}', style: body),
           Text('⭐ ${tr('Estrellas ganadas', 'Stars earned')}: ${state.starsEarned} (${tr('para gastar', 'to spend')}: ${state.stars})', style: body),
+          Text('🏅 ${tr('Medallas del día', 'Daily medals')}: ${state.medals}', style: body),
           Text('📒 ${tr('Stickers del álbum', 'Album stickers')}: ${state.stickers.length} / $totalStickers', style: body),
           const SizedBox(height: 24),
           Text(tr('Lo que practicó', 'What they practiced'), style: title),
@@ -102,6 +103,15 @@ class _Week extends StatelessWidget {
           Text('🗓️ ${tr('Esta semana', 'This week')}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(text, style: const TextStyle(fontSize: 18, height: 1.3)),
+          if (days > 0) ...[
+            const SizedBox(height: 6),
+            Text(
+              tr('🏅 Ganó la medalla del día ${state.weekMedals} de 7 días.',
+                  "🏅 Won the daily medal ${state.weekMedals} of 7 days."),
+              key: const Key('week-medals'),
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+            ),
+          ],
           const SizedBox(height: 12),
           Row(
             children: [

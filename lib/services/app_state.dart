@@ -159,6 +159,8 @@ class AppState extends ChangeNotifier {
             )),
       ]);
     _streak = prefs.getInt(_k('streak')) ?? 0;
+    medals = prefs.getInt(_k('medals')) ?? 0;
+    _newMedal = false;
     _gamesDay = prefs.getString(_k('gamesDay')) ?? '';
     _gamesOnDay = prefs.getInt(_k('gamesOnDay')) ?? 0;
     days
@@ -273,6 +275,19 @@ class AppState extends ChangeNotifier {
   String _gamesDay = '';
   int _gamesOnDay = 0;
 
+  /// Medallas del día ganadas (una por día, al terminar [dailyGoal] partidas); cada una da [medalBonus] estrellas.
+  static const medalBonus = 5;
+  int medals = 0;
+  bool _newMedal = false;
+  bool get medalToday => gamesToday >= dailyGoal;
+
+  /// Si la última partida guardada ganó la medalla de hoy (para mostrarla una sola vez).
+  bool takeNewMedal() {
+    final won = _newMedal;
+    _newMedal = false;
+    return won;
+  }
+
   /// Partidas terminadas hoy.
   int get gamesToday => _gamesDay == _day(now()) ? _gamesOnDay : 0;
 
@@ -345,6 +360,15 @@ class AppState extends ChangeNotifier {
     _gamesDay = today;
     _prefs?.setString(_k('gamesDay'), today);
     _prefs?.setInt(_k('gamesOnDay'), _gamesOnDay);
+    if (_gamesOnDay == dailyGoal) {
+      medals++;
+      _newMedal = true;
+      stars += medalBonus;
+      starsEarned += medalBonus;
+      _prefs?.setInt(_k('medals'), medals);
+      _prefs?.setInt(_k('stars'), stars);
+      _prefs?.setInt(_k('starsEarned'), starsEarned);
+    }
     _countToday(games: 1);
     notifyListeners();
     return earned;
@@ -371,6 +395,7 @@ class AppState extends ChangeNotifier {
   int get weekDays => _thisWeek.where((d) => d.$1 > 0 || d.$2 > 0).length;
   int get weekGames => _thisWeek.fold(0, (n, d) => n + d.$1);
   int get weekAnswers => _thisWeek.fold(0, (n, d) => n + d.$2);
+  int get weekMedals => _thisWeek.where((d) => d.$1 >= dailyGoal).length;
 
   /// Si ya jugó todos los niveles y temas gratis (para contarle a los papás qué más trae Premium).
   bool get finishedFreeContent => !premium && [

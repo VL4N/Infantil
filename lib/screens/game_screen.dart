@@ -121,6 +121,7 @@ class _GameScreenState extends State<GameScreen> {
     // Al terminar el reto de hoy, estrellas extra (solo la primera vez del día).
     final bonus = finished && widget.progressKey == challengeKey ? AppState.instance.completeChallenge() : 0;
     final sticker = finished ? AppState.instance.awardSticker() : null;
+    final medal = finished && AppState.instance.takeNewMedal();
     if (_q.speechLang == Lang.target) {
       // La felicitación en el idioma del niño y solo la palabra en el que aprende.
       await Voice.say(_firstTry ? praiseFirstTry : praiseRetry, Lang.native);
@@ -143,8 +144,9 @@ class _GameScreenState extends State<GameScreen> {
             english: _q.speechLang == Lang.target,
             earned: earned,
             previousBest: previousBest,
-            starsWon: _correct + bonus,
+            starsWon: _correct + bonus + (medal ? AppState.medalBonus : 0),
             sticker: sticker,
+            medal: medal,
             playAgain: () => GameScreen(title: widget.title, progressKey: widget.progressKey, makeQuestion: widget.makeQuestion),
           ),
         ),

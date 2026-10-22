@@ -320,6 +320,7 @@ void main() {
     expect(find.text('🎮 Partidas terminadas: 3'), findsOneWidget);
     expect(find.text('Sumar 🐣 Hasta 5'), findsOneWidget);
     expect(find.text('2 partidas'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Inglés 🐶 Animales'), 200);
     expect(find.text('Inglés 🐶 Animales'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('• duck: 1 error'), 200);
     expect(find.text('• cow: 2 errores'), findsOneWidget);
@@ -356,10 +357,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Tienes 20 estrellas para gastar'), findsOneWidget);
 
-    // No le alcanza para la corona (80).
+    // No le alcanza para la corona (90).
     await tester.scrollUntilVisible(find.byKey(const Key('item-corona')), 100);
-    expect(find.descendant(of: find.byKey(const Key('item-corona')), matching: find.text('60')), findsOneWidget);
-    expect(state.buy('corona', 80), isFalse);
+    expect(find.descendant(of: find.byKey(const Key('item-corona')), matching: find.text('70')), findsOneWidget);
+    expect(state.buy('corona', 90), isFalse);
 
     // Compra el gorro (15): se descuentan, Owlito se lo pone y las ganadas no bajan.
     await tester.scrollUntilVisible(find.byKey(const Key('item-gorro')), -100);

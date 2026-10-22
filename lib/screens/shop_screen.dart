@@ -44,18 +44,13 @@ class ShopScreen extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 15, color: p.inkSoft),
             ),
-            const SizedBox(height: 20),
-            LayoutBuilder(
-              builder: (context, box) {
-                final columns = box.maxWidth >= 560 ? 3 : 2;
-                final width = (box.maxWidth - 14 * (columns - 1)) / columns;
-                return Wrap(
-                  spacing: 14,
-                  runSpacing: 14,
-                  children: [for (final item in shopItems) SizedBox(width: width, child: _ItemCard(item))],
-                );
-              },
-            ),
+            for (final (title, feathers) in [(tr('Ropa y accesorios', 'Clothes and accessories'), false), (tr('Plumaje', 'Feathers'), true)]) ...[
+              const SizedBox(height: 24),
+              Text(title, key: Key('shop-section-${feathers ? 'plumaje' : 'ropa'}'),
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 12),
+              _Grid(_section(feathers: feathers)),
+            ],
             if (state.wearing != null || state.feathers != null) ...[
               const SizedBox(height: 16),
               Center(
@@ -70,6 +65,31 @@ class ShopScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Las cosas de una sección, de la más barata a la más cara; las de Premium 👑 al final.
+List<ShopItem> _section({required bool feathers}) => [
+      for (final premium in [false, true])
+        ...shopItems.where((i) => i.isFeathers == feathers && i.premium == premium).toList()
+          ..sort((a, b) => a.price.compareTo(b.price)),
+    ];
+
+class _Grid extends StatelessWidget {
+  const _Grid(this.items);
+  final List<ShopItem> items;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, box) {
+          final columns = box.maxWidth >= 560 ? 3 : 2;
+          final width = (box.maxWidth - 14 * (columns - 1)) / columns;
+          return Wrap(
+            spacing: 14,
+            runSpacing: 14,
+            children: [for (final item in items) SizedBox(width: width, child: _ItemCard(item))],
+          );
+        },
+      );
 }
 
 class _ItemCard extends StatelessWidget {

@@ -64,6 +64,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
         final previousBest = AppState.instance.bestFor(widget.progressKey);
         final earned = done ? AppState.instance.recordGame(widget.progressKey, _game.stars) : 0;
         final sticker = done ? AppState.instance.awardSticker() : null;
+        final medal = done && AppState.instance.takeNewMedal();
         await Voice.say(greatJob, Lang.native);
         if (mounted) await Voice.say(card.word, Lang.target);
         if (!mounted || !done) return;
@@ -73,8 +74,9 @@ class _MemoryScreenState extends State<MemoryScreen> {
             builder: (_) => ResultScreen(
               earned: earned,
               previousBest: previousBest,
-              starsWon: _game.pairs,
+              starsWon: _game.pairs + (medal ? AppState.medalBonus : 0),
               sticker: sticker,
+              medal: medal,
               detail: tr('Encontraste las ${_game.pairs} parejas en ${_game.tries} intentos.',
                   'You found all ${_game.pairs} pairs in ${_game.tries} tries.'),
               english: true,

@@ -1,8 +1,10 @@
 import 'dart:math';
 
+import 'package:aprende_jugando/logic/shop.dart';
 import 'package:aprende_jugando/logic/stickers.dart';
 import 'package:aprende_jugando/screens/album_screen.dart';
 import 'package:aprende_jugando/screens/parents_screen.dart';
+import 'package:aprende_jugando/screens/shop_screen.dart';
 import 'package:aprende_jugando/services/app_state.dart';
 import 'package:aprende_jugando/theme.dart';
 import 'package:flutter/material.dart';
@@ -129,5 +131,45 @@ void main() {
     await tester.tap(nudge);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('gate-input')), findsOneWidget, reason: 'Premium sigue detrás de la pregunta para adultos');
+  });
+
+  test('medalla del día: al terminar las partidas del día, una vez, con estrellas extra', () async {
+    SharedPreferences.setMockInitialValues({});
+    await state.load();
+    var today = DateTime(2026, 10, 5, 10);
+    state.now = () => today;
+    addTearDown(() => state.now = DateTime.now);
+    for (var i = 0; i < AppState.dailyGoal - 1; i++) {
+      state.recordGame('suma-5', 1);
+    }
+    expect((state.medals, state.takeNewMedal(), state.medalToday), (0, false, false));
+    state.recordGame('suma-5', 1);
+    expect((state.medals, state.stars, state.medalToday), (1, AppState.medalBonus, true));
+    expect(state.takeNewMedal(), isTrue);
+    expect(state.takeNewMedal(), isFalse, reason: 'se muestra una sola vez');
+    state.recordGame('suma-5', 1);
+    expect(state.medals, 1, reason: 'una medalla por día');
+
+    // Al día siguiente se puede ganar otra; se guardan y se cuentan en la semana.
+    today = today.add(const Duration(days: 1));
+    for (var i = 0; i < AppState.dailyGoal; i++) {
+      state.recordGame('suma-5', 1);
+    }
+    await state.load();
+    expect((state.medals, state.weekMedals), (2, 2));
+  });
+
+  testWidgets('la tienda separa la ropa del plumaje, de la más barata a la más cara', (tester) async {
+    await startApp(tester);
+    await tester.pumpWidget(MaterialApp(theme: buildTheme(Palette.day), home: const ShopScreen()));
+    await tester.pumpAndSettle();
+    expect(find.text('Ropa y accesorios'), findsOneWidget);
+    expect(find.byKey(const Key('item-gorro')), findsOneWidget, reason: 'primero la ropa, empezando por lo más barato');
+    await tester.scrollUntilVisible(find.byKey(const Key('item-azul')), 300);
+    final plumaje = tester.getTopLeft(find.byKey(const Key('shop-section-plumaje'))).dy;
+    expect(tester.getTopLeft(find.byKey(const Key('item-azul'))).dy, greaterThan(plumaje));
+    final free = shopItems.where((i) => !i.premium);
+    expect(free.where((i) => i.isFeathers).length, greaterThanOrEqualTo(10));
+    expect(free.where((i) => !i.isFeathers).length, greaterThanOrEqualTo(10));
   });
 }
