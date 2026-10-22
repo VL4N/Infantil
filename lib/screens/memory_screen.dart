@@ -56,9 +56,11 @@ class _MemoryScreenState extends State<MemoryScreen> {
           setState(_game.hideMiss);
         }
       case FlipResult.match:
-        AppState.instance.addStar();
+        AppState.instance.countAnswer();
         // La partida se guarda en cuanto termina, antes de la voz, para no perderla si la voz se atasca.
         final done = _game.done;
+        // Las estrellas (una por pareja) se ganan al terminar, no a la mitad.
+        if (done) AppState.instance.addStars(_game.pairs);
         final previousBest = AppState.instance.bestFor(widget.progressKey);
         final earned = done ? AppState.instance.recordGame(widget.progressKey, _game.stars) : 0;
         final sticker = done ? AppState.instance.awardSticker() : null;
@@ -88,10 +90,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(tr('Parejas', 'Pairs')),
-        actions: [ListenableBuilder(
-          listenable: AppState.instance,
-          builder: (_, _) => StarCounter(stars: AppState.instance.stars),
-        )],
+        actions: [StarCounter(key: const Key('game-stars'), stars: _game.matched.length ~/ 2, pending: true)],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),

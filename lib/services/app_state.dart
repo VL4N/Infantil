@@ -216,9 +216,18 @@ class AppState extends ChangeNotifier {
   }
 
   void addStar() {
-    _countToday(answers: 1);
-    stars++;
-    starsEarned++;
+    countAnswer();
+    addStars(1);
+  }
+
+  /// Una respuesta correcta a la primera (o una pareja), para el resumen de la semana.
+  void countAnswer() => _countToday(answers: 1);
+
+  /// Las estrellas de una partida se suman al terminarla: si sale a la mitad, no se las lleva.
+  void addStars(int n) {
+    if (n <= 0) return;
+    stars += n;
+    starsEarned += n;
     _prefs?.setInt(_k('stars'), stars);
     _prefs?.setInt(_k('starsEarned'), starsEarned);
     notifyListeners();

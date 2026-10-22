@@ -104,7 +104,7 @@ class _GameScreenState extends State<GameScreen> {
     }
     if (_firstTry) {
       _correct++;
-      AppState.instance.addStar();
+      AppState.instance.countAnswer();
     }
     Sfx.acierto();
     setState(() {
@@ -114,6 +114,8 @@ class _GameScreenState extends State<GameScreen> {
     });
     // La partida se guarda en cuanto termina, antes de la voz, para no perderla si la voz se atasca.
     final finished = _round >= Config.roundsPerGame;
+    // Las estrellas se ganan al terminar la partida, no a la mitad.
+    if (finished) AppState.instance.addStars(_correct);
     final previousBest = AppState.instance.bestFor(widget.progressKey);
     final earned = finished ? AppState.instance.recordGame(widget.progressKey, AppState.starsFor(_correct)) : 0;
     // Al terminar el reto de hoy, estrellas extra (solo la primera vez del día).
@@ -179,10 +181,8 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        actions: [ListenableBuilder(
-          listenable: AppState.instance,
-          builder: (_, _) => StarCounter(stars: AppState.instance.stars),
-        )],
+        // Las estrellas de esta partida: se suman a las de la tienda al terminarla.
+        actions: [StarCounter(key: const Key('game-stars'), stars: _correct, pending: true)],
       ),
       body: Stack(
         children: [

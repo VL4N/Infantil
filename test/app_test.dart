@@ -128,6 +128,22 @@ void main() {
     expect(AppState.instance.bestFor('suma-5'), 3);
   });
 
+  testWidgets('si sale a la mitad de una partida, no se lleva las estrellas', (tester) async {
+    await startApp(tester);
+    await tester.tap(find.text('Sumar'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('🐣 Hasta 5'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(InkWell, '${mathAnswer(tester)}'));
+    await waitFor(tester);
+    expect(find.descendant(of: find.byKey(const Key('game-stars')), matching: find.text('+1')), findsOneWidget,
+        reason: 'en la partida se ven las estrellas que va ganando');
+    expect(AppState.instance.stars, 0, reason: 'todavía no se suman');
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(AppState.instance.stars, 0);
+  });
+
   testWidgets('en "2 + ? = 5" el segundo grupo aparece al contar', (tester) async {
     await startApp(tester);
     await tester.pumpWidget(MaterialApp(

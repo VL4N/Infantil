@@ -253,8 +253,11 @@ class BigButton extends StatelessWidget {
 
 /// Contador de estrellas: una pastilla con la estrella y el total.
 class StarCounter extends StatelessWidget {
-  const StarCounter({super.key, required this.stars});
+  const StarCounter({super.key, required this.stars, this.pending = false});
   final int stars;
+
+  /// Estrellas ganadas en la partida (todavía sin guardar): se muestran como "+3".
+  final bool pending;
 
   @override
   Widget build(BuildContext context) {
@@ -276,7 +279,7 @@ class StarCounter extends StatelessWidget {
             children: [
               Icon(Icons.star_rounded, size: 22, color: p.night ? p.star : Colors.white),
               const SizedBox(width: 4),
-              Text('$stars', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: fg)),
+              Text(pending ? '+$stars' : '$stars', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: fg)),
             ],
           ),
         ),
