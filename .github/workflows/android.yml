@@ -56,7 +56,13 @@ jobs:
           python-version: '3.12'
       - name: Grabar frases con Piper
         run: |
-          command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+          # ffmpeg desde pip: instalarlo con apt a veces tarda más de media hora en GitHub.
+          if ! command -v ffmpeg; then
+            pip install --quiet imageio-ffmpeg
+            mkdir -p "$RUNNER_TEMP/bin"
+            ln -sf "$(python -c 'import imageio_ffmpeg as f; print(f.get_ffmpeg_exe())')" "$RUNNER_TEMP/bin/ffmpeg"
+            export PATH="$RUNNER_TEMP/bin:$PATH"
+          fi
           pip install --quiet piper-tts
           base=https://huggingface.co/rhasspy/piper-voices/resolve/main
           mkdir -p modelos
