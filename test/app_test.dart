@@ -30,7 +30,7 @@ Future<void> startApp(WidgetTester tester, {bool premium = false, Map<String, Ob
   Sfx.enabled = false;
   LivelyOwl.animate = false;
   await Voice.init();
-  SharedPreferences.setMockInitialValues({'premium': premium, 'lang': 'es', ...prefs});
+  SharedPreferences.setMockInitialValues({'premium': premium, 'lang': 'es', 'ageGroup': 'small', ...prefs});
   await AppState.instance.load();
   await tester.pumpWidget(const AprendeJugandoApp());
 }

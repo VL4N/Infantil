@@ -20,6 +20,17 @@ class Profile {
   final String name;
 }
 
+/// Edad del niño: cambia qué niveles se recomiendan y lo larga que es la explicación de un error.
+enum AgeGroup {
+  /// 3 a 5 años: explicaciones completas, contando.
+  small,
+
+  /// 6 a 10 años: explicaciones cortas.
+  big;
+
+  String get label => this == small ? tr('3 a 5 años', '3 to 5 years') : tr('6 a 10 años', '6 to 10 years');
+}
+
 /// Estrellas, progreso por nivel/tema, resumen para papás y estado Premium, guardados en el teléfono.
 /// Todo es de cada niño (perfil), menos Premium y el recordatorio, que son del teléfono.
 class AppState extends ChangeNotifier {
@@ -145,6 +156,7 @@ class AppState extends ChangeNotifier {
           if (e.contains('=')) MapEntry(e.substring(0, e.lastIndexOf('=')), int.tryParse(e.substring(e.lastIndexOf('=') + 1)) ?? 0),
       ]);
     _challengeDay = prefs.getString(_k('challengeDay')) ?? '';
+    ageGroup = AgeGroup.values.where((a) => a.name == prefs.getString(_k('ageGroup'))).firstOrNull;
     stickers
       ..clear()
       ..addAll(prefs.getStringList(_k('stickers')) ?? const []);
@@ -184,9 +196,10 @@ class AppState extends ChangeNotifier {
   }
 
   /// Agrega un niño (hasta [maxProfiles]). Devuelve su id, o null si ya no caben.
-  int? addProfile(String name) {
+  int? addProfile(String name, {AgeGroup? age}) {
     if (profiles.length >= maxProfiles) return null;
     final id = profiles.map((p) => p.id).reduce((a, b) => a > b ? a : b) + 1;
+    if (age != null) _prefs?.setString('p$id:ageGroup', age.name);
     profiles.add(Profile(id, name.trim().isEmpty ? '${tr('Jugador', 'Player')} ${profiles.length + 1}' : name.trim()));
     _saveProfiles();
     notifyListeners();
@@ -200,6 +213,35 @@ class AppState extends ChangeNotifier {
     _saveProfiles();
     notifyListeners();
   }
+
+  /// Edad del niño que juega (null: todavía no la eligieron; se usa la de los pequeños).
+  AgeGroup? ageGroup;
+  bool get isBig => ageGroup == AgeGroup.big;
+
+  void setAgeGroup(AgeGroup age) {
+    ageGroup = age;
+    _prefs?.setString(_k('ageGroup'), age.name);
+    notifyListeners();
+  }
+
+  /// Edad de otro niño (para la lista de la zona de papás).
+  AgeGroup? ageOf(int id) {
+    final saved = _prefs?.getString(id == 0 ? 'ageGroup' : 'p$id:ageGroup');
+    return AgeGroup.values.where((a) => a.name == saved).firstOrNull;
+  }
+
+  void setAgeOf(int id, AgeGroup age) {
+    if (id == _profileId) return setAgeGroup(age);
+    _prefs?.setString(id == 0 ? 'ageGroup' : 'p$id:ageGroup', age.name);
+    notifyListeners();
+  }
+
+  /// Niveles que se recomiendan para la edad del niño (se marcan "Para tu edad").
+  bool recommended(String key) => (isBig ? _forBig : _forSmall).contains(key);
+  static const _forSmall = {'suma-5', 'suma-10', 'resta-5', 'resta-10', 'sigue-10', 'mayor-10', 'letras-cual', 'letras-empieza'};
+  static const _forBig = {
+    'suma-10', 'suma-20', 'resta-10', 'resta-20', 'sigue-20', 'dos-20', 'mayor-20', 'letras-minuscula', 'letras-leer',
+  };
 
   /// Borra un niño y todo su progreso (siempre queda al menos uno).
   void removeProfile(int id) {

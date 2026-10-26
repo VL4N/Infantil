@@ -52,6 +52,9 @@ class _GameScreenState extends State<GameScreen> {
   bool _highlightAnswer = false;
   int _explainToken = 0;
 
+  /// Ya se puede saltar la explicación (pasaron unos segundos).
+  bool _canSkip = false;
+
   @override
   void initState() {
     super.initState();
@@ -164,8 +167,20 @@ class _GameScreenState extends State<GameScreen> {
   /// Explica el error paso a paso con voz y dibujos.
   Future<void> _explain(int chosen) async {
     final token = ++_explainToken;
-    setState(() => _explaining = true);
-    for (final step in explainMistake(_q, chosen)) {
+    setState(() {
+      _explaining = true;
+      _canSkip = false;
+    });
+    // El botón para saltar la explicación aparece después de un momento (para que la escuchen un poco).
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted && token == _explainToken && _explaining) setState(() => _canSkip = true);
+    });
+    var steps = explainMistake(_q, chosen);
+    // Para los grandes, la explicación corta: solo la respuesta, sin contar todo.
+    if (AppState.instance.isBig && steps.any((s) => s.highlightAnswer)) {
+      steps = steps.skipWhile((s) => !s.highlightAnswer).toList();
+    }
+    for (final step in steps) {
       if (!mounted || token != _explainToken) return;
       setState(() {
         if (step.count != null) _counted = step.count;
@@ -177,6 +192,16 @@ class _GameScreenState extends State<GameScreen> {
       ]);
     }
     if (mounted && token == _explainToken) setState(() => _explaining = false);
+  }
+
+  /// "Ya entendí": corta la explicación y deja marcada la respuesta para que la toque.
+  void _skipExplanation() {
+    _explainToken++;
+    Voice.stop();
+    setState(() {
+      _explaining = false;
+      _highlightAnswer = true;
+    });
   }
 
   @override
@@ -317,6 +342,17 @@ class _GameScreenState extends State<GameScreen> {
               if (_explaining) ...[
                 const SizedBox(height: 20),
                 Text(tr('👂 Escucha…', '👂 Listen…'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 20)),
+                if (_canSkip) ...[
+                  const SizedBox(height: 10),
+                  Center(
+                    child: TextButton(
+                      key: const Key('skip-explanation'),
+                      onPressed: _skipExplanation,
+                      child: Text(tr('⏭ Ya entendí', '⏭ Got it'),
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: context.palette.ink)),
+                    ),
+                  ),
+                ],
               ],
             ],
           ),

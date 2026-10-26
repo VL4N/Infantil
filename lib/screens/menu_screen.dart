@@ -101,6 +101,8 @@ class MenuScreen extends StatelessWidget {
     final today = AppState.instance.gamesToday;
     final left = AppState.dailyGoal - today;
     return [
+      // La primera vez: la edad del niño (para recomendarle niveles y acortar las explicaciones).
+      if (AppState.instance.ageGroup == null) ...[const _AgeCard(), const SizedBox(height: 18)],
       _ChallengeCard(today: today, left: left),
       const SizedBox(height: 18),
       Text(tr('¿Qué jugamos?', 'What shall we play?'),
@@ -583,17 +585,20 @@ class MathLevelsScreen extends StatelessWidget {
             Text(tr('Elige un nivel', 'Pick a level'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 26)),
             for (final (max, _) in mathLevels) ...[
               const SizedBox(height: 16),
-              BigButton(
-                label: mathLevelLabel(max),
-                locked: !state.canPlayMath(max),
-                stars: state.canPlayMath(max) ? state.todayFor(subtract ? subtractKey(max) : mathKey(max)) : null,
-                onTap: () => state.canPlayMath(max)
-                    ? Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => subtract
-                            ? GameScreen(title: tr('Restar', 'Subtract'), progressKey: subtractKey(max), makeQuestion: (r) => subtractionQuestion(r, max))
-                            : GameScreen(title: tr('Sumar', 'Add'), progressKey: mathKey(max), makeQuestion: (r) => mathQuestion(r, max)),
-                      ))
-                    : askPremium(context),
+              _ForYourAge(
+                subtract ? subtractKey(max) : mathKey(max),
+                BigButton(
+                  label: mathLevelLabel(max),
+                  locked: !state.canPlayMath(max),
+                  stars: state.canPlayMath(max) ? state.todayFor(subtract ? subtractKey(max) : mathKey(max)) : null,
+                  onTap: () => state.canPlayMath(max)
+                      ? Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => subtract
+                              ? GameScreen(title: tr('Restar', 'Subtract'), progressKey: subtractKey(max), makeQuestion: (r) => subtractionQuestion(r, max))
+                              : GameScreen(title: tr('Sumar', 'Add'), progressKey: mathKey(max), makeQuestion: (r) => mathQuestion(r, max)),
+                        ))
+                      : askPremium(context),
+                ),
               ),
             ],
           ],
@@ -661,16 +666,19 @@ class NumbersScreen extends StatelessWidget {
             Text(tr('Elige un juego', 'Pick a game'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 26)),
             for (final level in numberLevels) ...[
               const SizedBox(height: 16),
-              BigButton(
-                label: level.label,
-                fontSize: 22,
-                locked: !state.canPlayNumbers(level.key),
-                stars: state.canPlayNumbers(level.key) ? state.todayFor(level.key) : null,
-                onTap: () => state.canPlayNumbers(level.key)
-                    ? Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => GameScreen(title: tr('Números', 'Numbers'), progressKey: level.key, makeQuestion: level.make),
-                      ))
-                    : askPremium(context),
+              _ForYourAge(
+                level.key,
+                BigButton(
+                  label: level.label,
+                  fontSize: 22,
+                  locked: !state.canPlayNumbers(level.key),
+                  stars: state.canPlayNumbers(level.key) ? state.todayFor(level.key) : null,
+                  onTap: () => state.canPlayNumbers(level.key)
+                      ? Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => GameScreen(title: tr('Números', 'Numbers'), progressKey: level.key, makeQuestion: level.make),
+                        ))
+                      : askPremium(context),
+                ),
               ),
             ],
           ],
@@ -697,20 +705,97 @@ class LettersScreen extends StatelessWidget {
             Text(tr('Elige un juego', 'Pick a game'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 26)),
             for (final level in letterLevels) ...[
               const SizedBox(height: 16),
-              BigButton(
-                label: level.label,
-                fontSize: 22,
-                locked: !state.canPlayLetters(level.key),
-                stars: state.canPlayLetters(level.key) ? state.todayFor(level.key) : null,
-                onTap: () => state.canPlayLetters(level.key)
-                    ? Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => GameScreen(title: tr('Letras', 'Letters'), progressKey: level.key, makeQuestion: level.make),
-                      ))
-                    : askPremium(context),
+              _ForYourAge(
+                level.key,
+                BigButton(
+                  label: level.label,
+                  fontSize: 22,
+                  locked: !state.canPlayLetters(level.key),
+                  stars: state.canPlayLetters(level.key) ? state.todayFor(level.key) : null,
+                  onTap: () => state.canPlayLetters(level.key)
+                      ? Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => GameScreen(title: tr('Letras', 'Letters'), progressKey: level.key, makeQuestion: level.make),
+                        ))
+                      : askPremium(context),
+                ),
               ),
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Marca "Para tu edad" en los niveles que se recomiendan según la edad del niño.
+class _ForYourAge extends StatelessWidget {
+  const _ForYourAge(this.levelKey, this.child);
+  final String levelKey;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!AppState.instance.recommended(levelKey)) return child;
+    return Stack(
+      // Mismo ancho que los demás botones.
+      fit: StackFit.passthrough,
+      clipBehavior: Clip.none,
+      children: [
+        child,
+        Positioned(
+          right: 10,
+          top: -10,
+          child: Container(
+            key: Key('for-your-age-$levelKey'),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+            decoration: BoxDecoration(color: AppColors.green, borderRadius: BorderRadius.circular(99)),
+            child: Text(tr('👍 Para tu edad', '👍 For your age'),
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// "¿Cuántos años tiene Sofía?": se pregunta una vez por niño (se puede cambiar en la zona de papás).
+class _AgeCard extends StatelessWidget {
+  const _AgeCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final state = AppState.instance;
+    final p = context.palette;
+    return _Card(
+      child: Column(
+        key: const Key('age-card'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(tr('¿Cuántos años tiene ${state.profile.name}?', 'How old is ${state.profile.name}?'),
+              textAlign: TextAlign.center, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 4),
+          Text(tr('Así Owlito le recomienda los juegos de su edad.', 'So Owlito can suggest games for their age.'),
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: p.inkSoft)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              for (final (i, age) in AgeGroup.values.indexed) ...[
+                if (i > 0) const SizedBox(width: 12),
+                Expanded(
+                  child: BigButton(
+                    key: Key('age-${age.name}'),
+                    label: '${age == AgeGroup.small ? '🐣' : '🦉'}\n${age.label}',
+                    fontSize: 20,
+                    color: age == AgeGroup.small ? p.subtract : p.numbers,
+                    textColor: age == AgeGroup.small ? p.subtractInk : p.numbersInk,
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                    onTap: () => state.setAgeGroup(age),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
       ),
     );
   }
