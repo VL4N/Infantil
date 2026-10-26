@@ -4,6 +4,7 @@ import '../config.dart';
 import '../logic/content.dart';
 import '../logic/lang.dart';
 import '../logic/letters.dart';
+import '../logic/tables.dart';
 import '../logic/numbers.dart';
 import '../logic/shop.dart';
 import '../logic/stickers.dart';
@@ -164,6 +165,7 @@ class _Comparison extends StatelessWidget {
     final rows = [
       (tr('Sumar y restar', 'Add and subtract'), '${tr('Hasta', 'Up to')} $freeMax', '${tr('Hasta', 'Up to')} $allMax'),
       (tr('Juegos de números', 'Number games'), '${AppState.instance.freeNumberLevels.length}', '${numberLevels.length}'),
+      (tr('Tablas y mates hasta 100', 'Times tables and math to 100'), '${Config.freeTablesLevels.length}', '${tablesLevels.length}'),
       (tr('Juegos de letras', 'Letter games'), '${AppState.instance.freeLetterLevels.length}', '${letterLevels.length}'),
       (
         tr('Temas de inglés y Parejas', 'Spanish topics and Pairs'),

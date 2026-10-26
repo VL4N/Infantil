@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:aprende_jugando/logic/content.dart';
 import 'package:aprende_jugando/logic/lang.dart';
 import 'package:aprende_jugando/logic/letters.dart';
+import 'package:aprende_jugando/logic/tables.dart';
 import 'package:aprende_jugando/logic/lines.dart';
 import 'package:aprende_jugando/logic/numbers.dart';
 import 'package:aprende_jugando/logic/phrases.dart';
@@ -51,6 +52,20 @@ void main() {
             if (!catalog.contains(p)) missing.add('${p.$2}: ${p.$1}');
           }
           for (final p in spoken(subtractionQuestion(r, max))) {
+            if (!catalog.contains(p)) missing.add('${p.$2}: ${p.$1}');
+          }
+        }
+      }
+      expect(missing, isEmpty);
+    });
+
+    test('todas las frases de la sección Tablas están grabadas (${lang.name})', () {
+      Lang.current = lang;
+      final r = Random(12);
+      final missing = <String>{};
+      for (final level in tablesLevels) {
+        for (var i = 0; i < 3000; i++) {
+          for (final p in spoken(level.make(r))) {
             if (!catalog.contains(p)) missing.add('${p.$2}: ${p.$1}');
           }
         }

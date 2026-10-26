@@ -466,6 +466,7 @@ class AppState extends ChangeNotifier {
         for (final t in topics) if (isTopicFree(t.key)) topicKey(t),
         ...freeNumberLevels,
         ...freeLetterLevels,
+        if (isBig) ...Config.freeTablesLevels,
       ].where((key) => !hidden(key)).every((key) => (played[key] ?? 0) > 0);
 
   /// Juegos de Números y Letras gratis, según la edad.
@@ -572,6 +573,7 @@ class AppState extends ChangeNotifier {
   bool isTopicFree(String key) => Config.freeEnglishTopics.contains(key);
   bool canPlayNumbers(String key) => premium || freeNumberLevels.contains(key);
   bool canPlayLetters(String key) => premium || freeLetterLevels.contains(key);
+  bool canPlayTables(String key) => premium || Config.freeTablesLevels.contains(key);
   bool canPlayMath(int max) => premium || isMathLevelFree(max);
   bool canPlayTopic(String key) => premium || isTopicFree(key);
 }
