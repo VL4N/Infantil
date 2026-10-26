@@ -157,10 +157,20 @@ class _Profiles extends StatelessWidget {
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(p.name, style: const TextStyle(fontSize: 18)),
-              subtitle: p.id == state.profile.id ? Text(tr('Está jugando ahora', 'Playing now')) : null,
+              subtitle: Text([
+                state.ageOf(p.id)?.label ?? tr('Edad sin elegir', 'Age not chosen'),
+                if (p.id == state.profile.id) tr('Está jugando ahora', 'Playing now'),
+              ].join(' · ')),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  PopupMenuButton<AgeGroup>(
+                    key: Key('age-menu-${p.id}'),
+                    tooltip: tr('Edad', 'Age'),
+                    icon: const Icon(Icons.cake_rounded),
+                    onSelected: (age) => state.setAgeOf(p.id, age),
+                    itemBuilder: (_) => [for (final age in AgeGroup.values) PopupMenuItem(value: age, child: Text(age.label))],
+                  ),
                   IconButton(
                     tooltip: tr('Cambiar nombre', 'Rename'),
                     icon: const Icon(Icons.edit_rounded),
@@ -198,7 +208,21 @@ class _Profiles extends StatelessWidget {
               label: Text(tr('Agregar otro niño o niña', 'Add another child')),
               onPressed: () async {
                 final name = await askName(context);
-                if (name != null) state.addProfile(name);
+                if (name == null || !context.mounted) return;
+                final age = await showDialog<AgeGroup>(
+                  context: context,
+                  builder: (context) => SimpleDialog(
+                    title: Text(tr('¿Cuántos años tiene?', 'How old are they?')),
+                    children: [
+                      for (final age in AgeGroup.values)
+                        SimpleDialogOption(
+                          onPressed: () => Navigator.pop(context, age),
+                          child: Text(age.label, style: const TextStyle(fontSize: 20)),
+                        ),
+                    ],
+                  ),
+                );
+                state.addProfile(name, age: age);
               },
             ),
         ],
