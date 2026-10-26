@@ -118,3 +118,99 @@ class _NameDialogState extends State<_NameDialog> {
         ],
       );
 }
+
+/// La primera vez, después del idioma: el nombre y la edad del niño (todo se puede cambiar en la zona de papás).
+class FirstProfileScreen extends StatefulWidget {
+  const FirstProfileScreen({super.key});
+
+  @override
+  State<FirstProfileScreen> createState() => _FirstProfileScreenState();
+}
+
+class _FirstProfileScreenState extends State<FirstProfileScreen> {
+  final _name = TextEditingController();
+  AgeGroup? _age;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  void _start() {
+    final state = AppState.instance;
+    if (_name.text.trim().isNotEmpty) state.renameProfile(state.profile.id, _name.text);
+    state.setAgeGroup(_age!);
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const MenuScreen()), (_) => false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Scaffold(
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            const SizedBox(height: 8),
+            Center(child: Owl(size: 96, night: p.night)),
+            const SizedBox(height: 12),
+            Text(tr('¡Hola! Soy Owlito. ¿Cómo te llamas?', "Hi! I'm Owlito. What's your name?"),
+                textAlign: TextAlign.center, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 16),
+            TextField(
+              key: const Key('first-name'),
+              controller: _name,
+              maxLength: 16,
+              textAlign: TextAlign.center,
+              textCapitalization: TextCapitalization.words,
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
+              decoration: InputDecoration(
+                hintText: tr('Nombre', 'Name'),
+                filled: true,
+                fillColor: p.card,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(tr('¿Cuántos años tienes?', 'How old are you?'),
+                textAlign: TextAlign.center, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                for (final (i, age) in AgeGroup.values.indexed) ...[
+                  if (i > 0) const SizedBox(width: 12),
+                  Expanded(
+                    child: BigButton(
+                      key: Key('first-age-${age.name}'),
+                      label: '${age == AgeGroup.small ? '🐣' : '🦉'}\n${age.label}',
+                      fontSize: 20,
+                      color: _age == age ? (age == AgeGroup.small ? p.subtract : p.numbers) : null,
+                      textColor: _age == age ? (age == AgeGroup.small ? p.subtractInk : p.numbersInk) : null,
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                      onTap: () => setState(() => _age = age),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 24),
+            BigButton(
+              key: const Key('first-start'),
+              label: tr('¡A jugar! ▶', "Let's play! ▶"),
+              fontSize: 26,
+              color: _age == null ? null : p.math,
+              textColor: _age == null ? null : p.mathInk,
+              // Primero hay que elegir la edad (el nombre es opcional).
+              onTap: _age == null ? null : _start,
+            ),
+            const SizedBox(height: 8),
+            Text(tr('Los papás pueden cambiarlo después en "Para papás y mamás".',
+                    'Parents can change this later in "For moms and dads".'),
+                textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: p.inkSoft)),
+          ],
+        ),
+      ),
+    );
+  }
+}

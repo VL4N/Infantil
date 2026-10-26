@@ -236,6 +236,10 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Niveles de los pequeños que no se muestran a los grandes (para que la app no les parezca "de bebé").
+  bool hidden(String key) => isBig && _smallOnly.contains(key);
+  static const _smallOnly = {'suma-5', 'resta-5', 'sigue-10', 'mayor-10', 'letras-cual'};
+
   /// Niveles que se recomiendan para la edad del niño (se marcan "Para tu edad").
   bool recommended(String key) => (isBig ? _forBig : _forSmall).contains(key);
   static const _forSmall = {'suma-5', 'suma-10', 'resta-5', 'resta-10', 'sigue-10', 'mayor-10', 'letras-cual', 'letras-empieza'};
@@ -460,9 +464,13 @@ class AppState extends ChangeNotifier {
   bool get finishedFreeContent => !premium && [
         for (final max in Config.freeMathMax) ...[mathKey(max), subtractKey(max)],
         for (final t in topics) if (isTopicFree(t.key)) topicKey(t),
-        ...Config.freeNumberLevels,
-        ...Config.freeLetterLevels,
-      ].every((key) => (played[key] ?? 0) > 0);
+        ...freeNumberLevels,
+        ...freeLetterLevels,
+      ].where((key) => !hidden(key)).every((key) => (played[key] ?? 0) > 0);
+
+  /// Juegos de Números y Letras gratis, según la edad.
+  List<String> get freeNumberLevels => isBig ? Config.freeNumberLevelsBig : Config.freeNumberLevels;
+  List<String> get freeLetterLevels => isBig ? Config.freeLetterLevelsBig : Config.freeLetterLevels;
 
   // ---------- Álbum de stickers ----------
 
@@ -562,8 +570,8 @@ class AppState extends ChangeNotifier {
 
   bool isMathLevelFree(int max) => Config.freeMathMax.contains(max);
   bool isTopicFree(String key) => Config.freeEnglishTopics.contains(key);
-  bool canPlayNumbers(String key) => premium || Config.freeNumberLevels.contains(key);
-  bool canPlayLetters(String key) => premium || Config.freeLetterLevels.contains(key);
+  bool canPlayNumbers(String key) => premium || freeNumberLevels.contains(key);
+  bool canPlayLetters(String key) => premium || freeLetterLevels.contains(key);
   bool canPlayMath(int max) => premium || isMathLevelFree(max);
   bool canPlayTopic(String key) => premium || isTopicFree(key);
 }

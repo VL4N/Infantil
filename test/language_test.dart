@@ -26,12 +26,19 @@ void main() {
     await tester.tap(find.byKey(const Key('lang-en')));
     await tester.pumpAndSettle();
     expect(Lang.current, AppLang.en);
-    // Primero se pregunta la edad del niño.
-    expect(find.text('How old is Player 1?'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('age-big')));
+    // Después del idioma: el nombre y la edad del niño.
+    expect(find.text("Hi! I'm Owlito. What's your name?"), findsOneWidget);
+    await tester.tap(find.byKey(const Key('first-start')));
+    await tester.pumpAndSettle();
+    expect(find.text("Hi! I'm Owlito. What's your name?"), findsOneWidget, reason: 'sin edad no se puede seguir');
+    await tester.enterText(find.byKey(const Key('first-name')), 'Emma');
+    await tester.tap(find.byKey(const Key('first-age-big')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('first-start')));
     await tester.pumpAndSettle();
     expect(AppState.instance.isBig, isTrue);
-    expect(find.byKey(const Key('age-card')), findsNothing);
+    expect(AppState.instance.profile.name, 'Emma');
+    expect(find.byKey(const Key('age-card')), findsNothing, reason: 'la edad ya se eligió');
     expect(find.text('What shall we play?'), findsOneWidget);
     expect(find.text('Add'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('Spanish'), 200);
