@@ -1,6 +1,7 @@
 import 'content.dart';
 import 'lang.dart';
 import 'letters.dart';
+import 'tables.dart';
 import 'lines.dart';
 import 'numbers.dart';
 import 'questions.dart';
@@ -94,6 +95,11 @@ void _addPhrases(Set<(String, String)> p) {
   for (var b = 1; b < maxSum; b++) {
     native(takeAway(b));
     native(countBack(b));
+  }
+
+  // Sección Tablas (para los grandes).
+  for (final t in tablesPhrases) {
+    native(t);
   }
 
   // Sección Letras (en el idioma del niño).

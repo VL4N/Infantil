@@ -177,7 +177,8 @@ class _GameScreenState extends State<GameScreen> {
     });
     var steps = explainMistake(_q, chosen);
     // Para los grandes, la explicación corta: solo la respuesta, sin contar todo.
-    if (AppState.instance.isBig && steps.any((s) => s.highlightAnswer)) {
+    // (En las tablas no: contar de 3 en 3 es justo lo que hay que aprender.)
+    if (AppState.instance.isBig && _q.tables == null && steps.any((s) => s.highlightAnswer)) {
       steps = steps.skipWhile((s) => !s.highlightAnswer).toList();
     }
     for (final step in steps) {
@@ -258,6 +259,18 @@ class _GameScreenState extends State<GameScreen> {
                   fontSize: 32,
                   onTap: _explaining ? null : () => Voice.say(q.speech, Lang.target),
                 ),
+              ] else if (q.tables case final t?) ...[
+                const SizedBox(height: 24),
+                Text(q.prompt, key: const Key('prompt'), textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 56, fontWeight: FontWeight.bold)),
+                // Al equivocarse, la ayuda escrita: "3 + 3 + 3 + 3 = 12".
+                if (_wrong.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(t.hint,
+                      key: const Key('tables-hint'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: context.palette.inkSoft)),
+                ],
               ] else if (q.letters case final l?) ...[
                 Text(q.prompt, textAlign: TextAlign.center, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),

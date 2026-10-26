@@ -10,6 +10,9 @@ class Config {
   static const freeNumberLevelsBig = ['sigue-20', 'mayor-20'];
   static const freeLetterLevelsBig = ['letras-empieza', 'letras-minuscula'];
 
+  /// Sección Tablas (solo grandes): estos se juegan gratis.
+  static const freeTablesLevels = ['tablas-2-5-10', 'suma-100'];
+
   // ---------- Compra en Google Play ----------
   /// ID del producto "único" (no consumible) creado en Play Console.
   static const premiumProductId = 'premium_unlock';

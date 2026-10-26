@@ -3,6 +3,7 @@ import 'dart:math';
 import 'content.dart';
 import 'lang.dart';
 import 'letters.dart';
+import 'tables.dart';
 import 'numbers.dart';
 
 const _objects = ['🍎', '⭐', '🐟', '🎈', '🍓', '🐢', '🚗', '🌸'];
@@ -44,7 +45,11 @@ class Question {
     this.optionWords,
     this.pictureOptions = false,
     this.letters,
+    this.tables,
   });
+
+  /// Sección Tablas: ayuda escrita y explicación (ver logic/tables.dart).
+  final TablesQuestion? tables;
 
   /// Sección Letras: qué se ve y qué dice Owlito (ver logic/letters.dart).
   final LetterQuestion? letters;
@@ -185,6 +190,7 @@ String countBack(int b) => tr('Contamos $b hacia atrás.', 'We count back $b.');
 /// Explicación con voz de una respuesta equivocada, para aprender en ese momento.
 List<ExplainStep> explainMistake(Question q, int chosen) {
   if (q.sequence != null || q.comparison != null) return explainNumbers(q, chosen);
+  if (q.tables case final t?) return t.explain;
   if (q.letters case final l?) return [for (final line in l.explain) ExplainStep(line, Lang.native, highlightAnswer: true)];
   final add = q.addition;
   final n = Lang.native;

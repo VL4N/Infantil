@@ -4,6 +4,7 @@ import '../logic/content.dart';
 import '../logic/daily.dart';
 import '../logic/lang.dart';
 import '../logic/letters.dart';
+import '../logic/tables.dart';
 import '../logic/lines.dart';
 import '../logic/numbers.dart';
 import '../logic/questions.dart';
@@ -48,10 +49,10 @@ class MenuScreen extends StatelessWidget {
   void _open(BuildContext context, Widget screen) =>
       Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
 
-  @override
-  Widget build(BuildContext context) {
+  /// Los juegos del menú (dependen de la edad y del álbum: se arman de nuevo cuando algo cambia).
+  List<_Game> _games(BuildContext context) {
     final p = context.palette;
-    final games = [
+    return [
       _Game(tr('Sumar', 'Add'), tr('Hasta 5 · 10 · 20', 'Up to 5 · 10 · 20'), p.math, p.mathInk, const _PlusIcon(),
           () => _open(context, const MathLevelsScreen())),
       _Game(tr('Restar', 'Subtract'), tr('Hasta 5 · 10 · 20', 'Up to 5 · 10 · 20'), p.subtract, p.subtractInk, const _MinusIcon(),
@@ -64,12 +65,20 @@ class MenuScreen extends StatelessWidget {
           p.numbersInk, const _NumbersIcon(), () => _open(context, const NumbersScreen())),
       _Game(tr('Letras', 'Letters'), tr('Abecedario y primeras lecturas', 'ABCs and first reading'), p.letters, p.lettersInk,
           const _LettersIcon(), () => _open(context, const LettersScreen())),
+      // Tablas de multiplicar y mates hasta 100: solo para los grandes.
+      if (AppState.instance.isBig)
+        _Game(tr('Tablas', 'Tables'), tr('Multiplicar y sumas hasta 100', 'Times tables and sums to 100'), p.math, p.mathInk,
+            const _TablesIcon(), () => _open(context, const TablesScreen())),
       _Game(tr('Álbum', 'Album'), tr('${AppState.instance.stickers.length} de $totalStickers stickers', '${AppState.instance.stickers.length} of $totalStickers stickers'),
           p.album, p.albumInk, const _AlbumIcon(), () => _open(context, const AlbumScreen())),
       _Game(tr('Tienda', 'Shop'), tr('Gasta tus estrellas en Owlito', 'Spend your stars on Owlito'), p.star, const Color(0xFF3B2A55), const _StoreIcon(),
           () => _open(context, const ShopScreen())),
     ];
-    final shop = games.last;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
     return Scaffold(
       body: Stack(
         children: [
@@ -77,17 +86,20 @@ class MenuScreen extends StatelessWidget {
           SafeArea(
             child: ListenableBuilder(
               listenable: AppState.instance,
-              builder: (context, _) => ListView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                children: [
-                  _Header(night: p.night, onStars: shop.onTap),
-                  if (AppState.instance.profiles.length > 1) _WhoPlays(),
-                  const SizedBox(height: 18),
-                  ..._body(context, games),
-                  const SizedBox(height: 24),
-                  const _ParentsCard(),
-                ],
-              ),
+              builder: (context, _) {
+                final games = _games(context);
+                return ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                  children: [
+                    _Header(night: p.night, onStars: games.last.onTap),
+                    if (AppState.instance.profiles.length > 1) _WhoPlays(),
+                    const SizedBox(height: 18),
+                    ..._body(context, games),
+                    const SizedBox(height: 24),
+                    const _ParentsCard(),
+                  ],
+                );
+              },
             ),
           ),
         ],
@@ -448,6 +460,12 @@ class _LettersIcon extends StatelessWidget {
       style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _iconInk(context, context.palette.letters, .12)));
 }
 
+class _TablesIcon extends StatelessWidget {
+  const _TablesIcon();
+  @override
+  Widget build(BuildContext context) => Icon(Icons.close_rounded, size: 40, color: _iconInk(context, context.palette.math));
+}
+
 class _CardsIcon extends StatelessWidget {
   const _CardsIcon();
   @override
@@ -799,6 +817,42 @@ class _AgeCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Sección Tablas (para los grandes): tablas de multiplicar y sumas y restas hasta 100.
+class TablesScreen extends StatelessWidget {
+  const TablesScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final state = AppState.instance;
+    return Scaffold(
+      appBar: _appBar(tr('Tablas', 'Tables')),
+      body: ListenableBuilder(
+        listenable: state,
+        builder: (context, _) => ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Text(tr('Elige un juego', 'Pick a game'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 26)),
+            for (final level in tablesLevels) ...[
+              const SizedBox(height: 16),
+              BigButton(
+                label: level.label,
+                fontSize: 22,
+                locked: !state.canPlayTables(level.key),
+                stars: state.canPlayTables(level.key) ? state.todayFor(level.key) : null,
+                onTap: () => state.canPlayTables(level.key)
+                    ? Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => GameScreen(title: tr('Tablas', 'Tables'), progressKey: level.key, makeQuestion: level.make),
+                      ))
+                    : askPremium(context),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
