@@ -163,8 +163,8 @@ class _Comparison extends StatelessWidget {
     final freeOutfits = shopItems.where((i) => !i.premium).length;
     final rows = [
       (tr('Sumar y restar', 'Add and subtract'), '${tr('Hasta', 'Up to')} $freeMax', '${tr('Hasta', 'Up to')} $allMax'),
-      (tr('Juegos de números', 'Number games'), '${Config.freeNumberLevels.length}', '${numberLevels.length}'),
-      (tr('Juegos de letras', 'Letter games'), '${Config.freeLetterLevels.length}', '${letterLevels.length}'),
+      (tr('Juegos de números', 'Number games'), '${AppState.instance.freeNumberLevels.length}', '${numberLevels.length}'),
+      (tr('Juegos de letras', 'Letter games'), '${AppState.instance.freeLetterLevels.length}', '${letterLevels.length}'),
       (
         tr('Temas de inglés y Parejas', 'Spanish topics and Pairs'),
         '${Config.freeEnglishTopics.length}',

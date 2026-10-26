@@ -26,7 +26,10 @@ class LanguageScreen extends StatelessWidget {
             const Text('Elige el idioma\nChoose your language',
                 textAlign: TextAlign.center, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, height: 1.3)),
             const SizedBox(height: 24),
-            LanguageChoices(onChosen: (_) => Navigator.pushReplacement(context, homeRoute())),
+            // Después del idioma, el nombre y la edad del niño.
+            LanguageChoices(
+              onChosen: (_) => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const FirstProfileScreen())),
+            ),
           ],
         ),
       ),

@@ -78,7 +78,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('for-your-age-suma-20')), findsOneWidget);
     expect(find.byKey(const Key('for-your-age-suma-5')), findsNothing);
-    expect(tester.getSize(find.byType(BigButton).at(2)).width, tester.getSize(find.byType(BigButton).first).width,
+    expect(tester.getSize(find.byType(BigButton).last).width, 800 - 40,
         reason: 'la marca no cambia el ancho del botón');
   });
 
@@ -94,5 +94,25 @@ void main() {
     state.setAgeOf(0, AgeGroup.big);
     state.switchProfile(0);
     expect(state.isBig, isTrue);
+  });
+
+  testWidgets('a los grandes no se les muestran los niveles de pequeños, y tienen gratis los de su edad', (tester) async {
+    await startApp(tester, prefs: {'ageGroup': 'big'});
+    final state = AppState.instance;
+    expect(state.hidden('suma-5'), isTrue);
+    expect(state.canPlayNumbers('sigue-20'), isTrue);
+    expect(state.canPlayLetters('letras-minuscula'), isTrue);
+    expect(state.canPlayLetters('letras-leer'), isFalse, reason: 'sigue siendo Premium');
+    await tester.pumpWidget(const MaterialApp(home: MathLevelsScreen()));
+    await tester.pumpAndSettle();
+    expect(find.text('🐣 Hasta 5'), findsNothing);
+    expect(find.text('🐥 Hasta 10'), findsOneWidget);
+
+    // Los pequeños ven todo.
+    state.setAgeGroup(AgeGroup.small);
+    await tester.pumpWidget(const MaterialApp(home: NumbersScreen()));
+    await tester.pumpAndSettle();
+    expect(state.hidden('sigue-10'), isFalse);
+    expect(state.canPlayNumbers('sigue-20'), isFalse);
   });
 }

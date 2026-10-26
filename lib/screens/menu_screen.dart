@@ -583,7 +583,8 @@ class MathLevelsScreen extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           children: [
             Text(tr('Elige un nivel', 'Pick a level'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 26)),
-            for (final (max, _) in mathLevels) ...[
+            for (final (max, _) in mathLevels)
+              if (!state.hidden(subtract ? subtractKey(max) : mathKey(max))) ...[
               const SizedBox(height: 16),
               _ForYourAge(
                 subtract ? subtractKey(max) : mathKey(max),
@@ -664,7 +665,8 @@ class NumbersScreen extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           children: [
             Text(tr('Elige un juego', 'Pick a game'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 26)),
-            for (final level in numberLevels) ...[
+            for (final level in numberLevels)
+              if (!state.hidden(level.key)) ...[
               const SizedBox(height: 16),
               _ForYourAge(
                 level.key,
@@ -703,7 +705,8 @@ class LettersScreen extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           children: [
             Text(tr('Elige un juego', 'Pick a game'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 26)),
-            for (final level in letterLevels) ...[
+            for (final level in letterLevels)
+              if (!state.hidden(level.key)) ...[
               const SizedBox(height: 16),
               _ForYourAge(
                 level.key,
