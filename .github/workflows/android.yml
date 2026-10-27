@@ -38,7 +38,7 @@ jobs:
       - run: flutter analyze
       - run: flutter test
       # Voz de la app: graba con Piper todas las frases (lib/logic/phrases.dart).
-      # Los audios se guardan en caché y solo se graban las frases nuevas (v4: MP3 a 32 kbps en español y 64 kbps en inglés).
+      # Los audios se guardan en caché y solo se graban las frases nuevas (v5: Opus a 20 kbps en español y 24 kbps en inglés).
       - name: Lista de frases
         id: frases
         run: |
@@ -49,8 +49,8 @@ jobs:
         id: voz
         with:
           path: assets/voz
-          key: voz-v4-es32k-en64k-claude-ljspeech-${{ steps.frases.outputs.hash }}
-          restore-keys: voz-v4-es32k-en64k-claude-ljspeech-
+          key: voz-v5-opus-es20k-en24k-claude-ljspeech-${{ steps.frases.outputs.hash }}
+          restore-keys: voz-v5-opus-es20k-en24k-claude-ljspeech-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -72,15 +72,15 @@ jobs:
             curl -sfL -o "modelos/$(basename $f).onnx.json" "$base/$f.onnx.json"
           done
           python tool/generar_voces.py frases.tsv modelos/es_MX-claude-high.onnx modelos/en_US-ljspeech-high.onnx assets/voz
-          echo "Audios: $(ls assets/voz/*.mp3 | wc -l), tamaño: $(du -sh assets/voz | cut -f1)"
-          test "$(ls assets/voz/*.mp3 | wc -l)" -eq "$(wc -l < frases.tsv)"
+          echo "Audios: $(ls assets/voz/*.ogg | wc -l), tamaño: $(du -sh assets/voz | cut -f1)"
+          test "$(ls assets/voz/*.ogg | wc -l)" -eq "$(wc -l < frases.tsv)"
       # Se guardan apenas se graban: si algo falla después (p. ej. al descargar herramientas
       # de Android), la próxima compilación no tiene que volver a grabarlas.
       - uses: actions/cache/save@v4
         if: steps.voz.outputs.cache-hit != 'true'
         with:
           path: assets/voz
-          key: voz-v4-es32k-en64k-claude-ljspeech-${{ steps.frases.outputs.hash }}
+          key: voz-v5-opus-es20k-en24k-claude-ljspeech-${{ steps.frases.outputs.hash }}
       # APK de prueba (firmado con clave de depuración) para instalar en el teléfono.
       - run: flutter build apk --release
       - run: mv build/app/outputs/flutter-apk/app-release.apk AprendeJugando.apk

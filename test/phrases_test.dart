@@ -142,6 +142,6 @@ void main() {
     final names = {for (final (t, l) in catalog) clipName(t, l)};
     expect(names.length, catalog.length);
     // Mismo valor que calcula tool/generar_voces.py.
-    expect(clipName('Great job!', 'en'), 'e52d14e578541d93.mp3');
+    expect(clipName('Great job!', 'en'), 'e52d14e578541d93.ogg');
   });
 }
