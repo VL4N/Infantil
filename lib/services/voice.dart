@@ -24,7 +24,7 @@ class Voice {
   static final _tts = FlutterTts();
   static bool _ready = false;
 
-  /// Audios grabados disponibles (rutas `assets/voz/<archivo>.mp3`).
+  /// Audios grabados disponibles (rutas `assets/voz/<archivo>.ogg`).
   static Set<String> _clips = {};
 
   /// Las pruebas lo apagan para escuchar la voz simulada del teléfono.

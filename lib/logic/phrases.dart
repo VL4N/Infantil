@@ -125,7 +125,7 @@ String clipName(String text, String lang) {
   for (final byte in _utf8('$lang|$text')) {
     h = ((h ^ BigInt.from(byte)) * prime) & mask;
   }
-  return '${h.toRadixString(16).padLeft(16, '0')}.mp3';
+  return '${h.toRadixString(16).padLeft(16, '0')}.ogg';
 }
 
 List<int> _utf8(String s) {
