@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../config.dart';
+import '../logic/clock.dart';
 import '../logic/content.dart';
 import '../logic/lang.dart';
 import '../logic/letters.dart';
@@ -166,6 +167,7 @@ class _Comparison extends StatelessWidget {
       (tr('Sumar y restar', 'Add and subtract'), '${tr('Hasta', 'Up to')} $freeMax', '${tr('Hasta', 'Up to')} $allMax'),
       (tr('Juegos de números', 'Number games'), '${AppState.instance.freeNumberLevels.length}', '${numberLevels.length}'),
       (tr('Tablas y mates hasta 100', 'Times tables and math to 100'), '${Config.freeTablesLevels.length}', '${tablesLevels.length}'),
+      (tr('Juegos de la hora', 'Telling-time games'), '${Config.freeClockLevels.length}', '${clockLevels.length}'),
       (tr('Juegos de letras', 'Letter games'), '${AppState.instance.freeLetterLevels.length}', '${letterLevels.length}'),
       (
         tr('Temas de inglés y Parejas', 'Spanish topics and Pairs'),

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:aprende_jugando/logic/clock.dart';
 import 'package:aprende_jugando/logic/content.dart';
 import 'package:aprende_jugando/logic/lang.dart';
 import 'package:aprende_jugando/logic/letters.dart';
@@ -23,6 +24,8 @@ void main() {
     yield (q.speech, lang);
     if (q.letters case final l?) {
       yield (l.praise, Lang.native);
+    } else if (q.clock case final c?) {
+      yield (c.praise, Lang.native);
     } else if (lang == Lang.target) {
       yield (praiseFirstTry, Lang.native);
       yield (praiseRetry, Lang.native);
@@ -65,6 +68,20 @@ void main() {
       final missing = <String>{};
       for (final level in tablesLevels) {
         for (var i = 0; i < 3000; i++) {
+          for (final p in spoken(level.make(r))) {
+            if (!catalog.contains(p)) missing.add('${p.$2}: ${p.$1}');
+          }
+        }
+      }
+      expect(missing, isEmpty);
+    });
+
+    test('todas las frases de la sección La hora están grabadas (${lang.name})', () {
+      Lang.current = lang;
+      final r = Random(13);
+      final missing = <String>{};
+      for (final level in clockLevels) {
+        for (var i = 0; i < 2000; i++) {
           for (final p in spoken(level.make(r))) {
             if (!catalog.contains(p)) missing.add('${p.$2}: ${p.$1}');
           }

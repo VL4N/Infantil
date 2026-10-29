@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'clock.dart';
 import 'content.dart';
 import 'lang.dart';
 import 'letters.dart';
@@ -46,7 +47,11 @@ class Question {
     this.pictureOptions = false,
     this.letters,
     this.tables,
+    this.clock,
   });
+
+  /// Sección La hora: el reloj y las opciones (ver logic/clock.dart).
+  final ClockQuestion? clock;
 
   /// Sección Tablas: ayuda escrita y explicación (ver logic/tables.dart).
   final TablesQuestion? tables;
@@ -191,6 +196,7 @@ String countBack(int b) => tr('Contamos $b hacia atrás.', 'We count back $b.');
 List<ExplainStep> explainMistake(Question q, int chosen) {
   if (q.sequence != null || q.comparison != null) return explainNumbers(q, chosen);
   if (q.tables case final t?) return t.explain;
+  if (q.clock case final c?) return c.explain;
   if (q.letters case final l?) return [for (final line in l.explain) ExplainStep(line, Lang.native, highlightAnswer: true)];
   final add = q.addition;
   final n = Lang.native;
@@ -289,6 +295,8 @@ String questionKey(Question q) {
   final cmp = q.comparison;
   if (cmp != null) return 'cmp ${cmp.a} ${cmp.b}';
   if (q.count != null) return 'count ${q.count}';
+  if (q.clock case final c?) return 'clock ${digital(c.time)}';
+  if (q.letters case final l?) return 'letters ${l.praise}';
   return q.speech;
 }
 

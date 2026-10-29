@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../logic/content.dart';
 import '../logic/daily.dart';
 import '../logic/lang.dart';
+import '../logic/clock.dart';
 import '../logic/letters.dart';
 import '../logic/tables.dart';
 import '../logic/lines.dart';
@@ -69,6 +70,9 @@ class MenuScreen extends StatelessWidget {
       if (AppState.instance.isBig)
         _Game(tr('Tablas', 'Tables'), tr('Multiplicar y sumas hasta 100', 'Times tables and sums to 100'), p.math, p.mathInk,
             const _TablesIcon(), () => _open(context, const TablesScreen())),
+      if (AppState.instance.isBig)
+        _Game(tr('La hora', 'Telling time'), tr('Aprende a leer el reloj', 'Learn to read the clock'), p.memory, p.memoryInk,
+            const _ClockIcon(), () => _open(context, const ClockScreen())),
       _Game(tr('Álbum', 'Album'), tr('${AppState.instance.stickers.length} de $totalStickers stickers', '${AppState.instance.stickers.length} of $totalStickers stickers'),
           p.album, p.albumInk, const _AlbumIcon(), () => _open(context, const AlbumScreen())),
       _Game(tr('Tienda', 'Shop'), tr('Gasta tus estrellas en Owlito', 'Spend your stars on Owlito'), p.star, const Color(0xFF3B2A55), const _StoreIcon(),
@@ -466,6 +470,13 @@ class _TablesIcon extends StatelessWidget {
   Widget build(BuildContext context) => Icon(Icons.close_rounded, size: 40, color: _iconInk(context, context.palette.math));
 }
 
+class _ClockIcon extends StatelessWidget {
+  const _ClockIcon();
+  @override
+  Widget build(BuildContext context) =>
+      Icon(Icons.schedule_rounded, size: 40, color: _iconInk(context, context.palette.memory, .12));
+}
+
 class _CardsIcon extends StatelessWidget {
   const _CardsIcon();
   @override
@@ -847,6 +858,42 @@ class TablesScreen extends StatelessWidget {
                 onTap: () => state.canPlayTables(level.key)
                     ? Navigator.push(context, MaterialPageRoute(
                         builder: (_) => GameScreen(title: tr('Tablas', 'Tables'), progressKey: level.key, makeQuestion: level.make),
+                      ))
+                    : askPremium(context),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Sección La hora (para los grandes): leer el reloj de agujas.
+class ClockScreen extends StatelessWidget {
+  const ClockScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final state = AppState.instance;
+    return Scaffold(
+      appBar: _appBar(tr('La hora', 'Telling time')),
+      body: ListenableBuilder(
+        listenable: state,
+        builder: (context, _) => ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Text(tr('Elige un juego', 'Pick a game'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 26)),
+            for (final level in clockLevels) ...[
+              const SizedBox(height: 16),
+              BigButton(
+                label: level.label,
+                fontSize: 22,
+                locked: !state.canPlayClock(level.key),
+                stars: state.canPlayClock(level.key) ? state.todayFor(level.key) : null,
+                onTap: () => state.canPlayClock(level.key)
+                    ? Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => GameScreen(title: tr('La hora', 'Telling time'), progressKey: level.key, makeQuestion: level.make),
                       ))
                     : askPremium(context),
               ),

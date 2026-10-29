@@ -30,6 +30,12 @@ void main() {
               expect(answer, q.letters!.display.toLowerCase());
             case 'letras-leer':
               expect(q.letters!.words, isTrue);
+            case 'letras-frase':
+              final group = sentenceGroups.firstWhere((g) => g.any((s) => tr(s.es, s.en) == q.letters!.display));
+              expect(group.firstWhere((s) => tr(s.es, s.en) == q.letters!.display).picture, answer);
+            case 'letras-completa':
+              expect(q.letters!.display, contains('___'));
+              expect(blanks.firstWhere((b) => b.text == q.letters!.display).answer, answer);
           }
         }
       }
