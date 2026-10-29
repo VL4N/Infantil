@@ -8,10 +8,13 @@ class Config {
 
   /// Para los grandes (6 a 10 años) no se ven los juegos de los pequeños: se abren gratis los de su edad.
   static const freeNumberLevelsBig = ['sigue-20', 'mayor-20'];
-  static const freeLetterLevelsBig = ['letras-empieza', 'letras-minuscula'];
+  static const freeLetterLevelsBig = ['letras-empieza', 'letras-minuscula', 'letras-frase'];
 
   /// Sección Tablas (solo grandes): estos se juegan gratis.
   static const freeTablesLevels = ['tablas-2-5-10', 'suma-100'];
+
+  /// Sección La hora (solo grandes): estos se juegan gratis.
+  static const freeClockLevels = ['reloj-punto', 'reloj-media'];
 
   // ---------- Compra en Google Play ----------
   /// ID del producto "único" (no consumible) creado en Play Console.

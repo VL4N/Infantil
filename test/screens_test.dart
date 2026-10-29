@@ -1,6 +1,8 @@
+import 'package:aprende_jugando/logic/clock.dart';
 import 'package:aprende_jugando/logic/lang.dart';
 import 'package:aprende_jugando/logic/letters.dart';
 import 'package:aprende_jugando/logic/numbers.dart';
+import 'package:aprende_jugando/logic/tables.dart';
 import 'package:aprende_jugando/main.dart';
 import 'package:aprende_jugando/services/app_state.dart';
 import 'package:aprende_jugando/theme.dart';
@@ -128,6 +130,7 @@ void main() {
             // Letras: cada juego.
             await open(tr('Letras', 'Letters'));
             for (final level in letterLevels) {
+              if (AppState.instance.hidden(level.key)) continue;
               await open(level.label);
               await back();
             }
@@ -140,6 +143,31 @@ void main() {
             // Tienda de Owlito.
             await open(tr('Tienda', 'Shop'));
             await back();
+
+            // Para los grandes: leer oraciones, Tablas y La hora.
+            AppState.instance.setAgeGroup(AgeGroup.big);
+            await tester.pumpAndSettle();
+            await tester.drag(find.byType(ListView).last, const Offset(0, 3000));
+            await tester.pumpAndSettle();
+            await open(tr('Letras', 'Letters'));
+            for (final level in letterLevels.where((l) => l.key == 'letras-frase' || l.key == 'letras-completa')) {
+              await open(level.label);
+              await back();
+            }
+            await back();
+            for (final (section, levels) in [
+              (tr('Tablas', 'Tables'), [for (final l in tablesLevels) l.label]),
+              (tr('La hora', 'Telling time'), [for (final l in clockLevels) l.label]),
+            ]) {
+              await tester.drag(find.byType(ListView).last, const Offset(0, 3000));
+              await tester.pumpAndSettle();
+              await open(section);
+              for (final level in levels) {
+                await open(level);
+                await back();
+              }
+              await back();
+            }
           });
         }
       }

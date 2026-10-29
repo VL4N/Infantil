@@ -1,5 +1,6 @@
 import 'content.dart';
 import 'lang.dart';
+import 'clock.dart';
 import 'letters.dart';
 import 'tables.dart';
 import 'lines.dart';
@@ -99,6 +100,11 @@ void _addPhrases(Set<(String, String)> p) {
 
   // Sección Tablas (para los grandes).
   for (final t in tablesPhrases) {
+    native(t);
+  }
+
+  // Sección La hora (para los grandes).
+  for (final t in clockPhrases) {
     native(t);
   }
 

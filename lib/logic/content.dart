@@ -1,3 +1,4 @@
+import 'clock.dart';
 import 'lang.dart';
 import 'letters.dart';
 import 'tables.dart';
@@ -140,6 +141,8 @@ String progressLabel(String key) {
   if (number != null) return '${tr('Números', 'Numbers')} ${number.label}';
   final tables = tablesLevels.where((l) => l.key == key).firstOrNull;
   if (tables != null) return '${tr('Tablas', 'Tables')} ${tables.label}';
+  final clock = clockLevels.where((l) => l.key == key).firstOrNull;
+  if (clock != null) return '${tr('La hora', 'Telling time')} ${clock.label}';
   final letters = letterLevels.where((l) => l.key == key).firstOrNull;
   if (letters != null) return '${tr('Letras', 'Letters')} ${letters.label}';
   final dash = key.indexOf('-');

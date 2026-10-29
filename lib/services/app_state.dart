@@ -237,14 +237,16 @@ class AppState extends ChangeNotifier {
   }
 
   /// Niveles de los pequeños que no se muestran a los grandes (para que la app no les parezca "de bebé").
-  bool hidden(String key) => isBig && _smallOnly.contains(key);
+  /// Y a los pequeños no se les muestran los de leer oraciones (todavía no leen).
+  bool hidden(String key) => isBig ? _smallOnly.contains(key) : _bigOnly.contains(key);
   static const _smallOnly = {'suma-5', 'resta-5', 'sigue-10', 'mayor-10', 'letras-cual'};
+  static const _bigOnly = {'letras-frase', 'letras-completa'};
 
   /// Niveles que se recomiendan para la edad del niño (se marcan "Para tu edad").
   bool recommended(String key) => (isBig ? _forBig : _forSmall).contains(key);
   static const _forSmall = {'suma-5', 'suma-10', 'resta-5', 'resta-10', 'sigue-10', 'mayor-10', 'letras-cual', 'letras-empieza'};
   static const _forBig = {
-    'suma-10', 'suma-20', 'resta-10', 'resta-20', 'sigue-20', 'dos-20', 'mayor-20', 'letras-minuscula', 'letras-leer',
+    'suma-10', 'suma-20', 'resta-10', 'resta-20', 'sigue-20', 'dos-20', 'mayor-20', 'letras-minuscula', 'letras-leer', 'letras-frase',
   };
 
   /// Borra un niño y todo su progreso (siempre queda al menos uno).
@@ -467,6 +469,7 @@ class AppState extends ChangeNotifier {
         ...freeNumberLevels,
         ...freeLetterLevels,
         if (isBig) ...Config.freeTablesLevels,
+        if (isBig) ...Config.freeClockLevels,
       ].where((key) => !hidden(key)).every((key) => (played[key] ?? 0) > 0);
 
   /// Juegos de Números y Letras gratis, según la edad.
@@ -574,6 +577,7 @@ class AppState extends ChangeNotifier {
   bool canPlayNumbers(String key) => premium || freeNumberLevels.contains(key);
   bool canPlayLetters(String key) => premium || freeLetterLevels.contains(key);
   bool canPlayTables(String key) => premium || Config.freeTablesLevels.contains(key);
+  bool canPlayClock(String key) => premium || Config.freeClockLevels.contains(key);
   bool canPlayMath(int max) => premium || isMathLevelFree(max);
   bool canPlayTopic(String key) => premium || isTopicFree(key);
 }

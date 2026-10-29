@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../config.dart';
+import '../logic/clock.dart';
 import '../logic/daily.dart';
 import '../logic/lang.dart';
 import '../logic/lines.dart';
@@ -127,6 +128,8 @@ class _GameScreenState extends State<GameScreen> {
     final medal = finished && AppState.instance.takeNewMedal();
     if (_q.letters case final l?) {
       await Voice.say(l.praise, Lang.native);
+    } else if (_q.clock case final c?) {
+      await Voice.say(c.praise, Lang.native);
     } else if (_q.speechLang == Lang.target) {
       // La felicitación en el idioma del niño y solo la palabra en el que aprende.
       await Voice.say(_firstTry ? praiseFirstTry : praiseRetry, Lang.native);
@@ -177,8 +180,8 @@ class _GameScreenState extends State<GameScreen> {
     });
     var steps = explainMistake(_q, chosen);
     // Para los grandes, la explicación corta: solo la respuesta, sin contar todo.
-    // (En las tablas no: contar de 3 en 3 es justo lo que hay que aprender.)
-    if (AppState.instance.isBig && _q.tables == null && steps.any((s) => s.highlightAnswer)) {
+    // (En las tablas y la hora no: contar de 3 en 3 y mirar las agujas es justo lo que hay que aprender.)
+    if (AppState.instance.isBig && _q.tables == null && _q.clock == null && steps.any((s) => s.highlightAnswer)) {
       steps = steps.skipWhile((s) => !s.highlightAnswer).toList();
     }
     for (final step in steps) {
@@ -271,6 +274,26 @@ class _GameScreenState extends State<GameScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: context.palette.inkSoft)),
                 ],
+              ] else if (q.clock case final c?) ...[
+                Text(c.pickClock ? tr('¿Qué reloj marca esta hora?', 'Which clock shows this time?') : q.prompt,
+                    textAlign: TextAlign.center, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                if (c.pickClock)
+                  Text(q.prompt, key: const Key('prompt'), textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 64, fontWeight: FontWeight.w800))
+                else
+                  Center(child: ClockFace(c.time, key: const Key('prompt'), size: 220, showHands: _wrong.isNotEmpty)),
+                const SizedBox(height: 8),
+                Center(
+                  child: BigButton(
+                    key: const Key('listen-again'),
+                    label: '🔊',
+                    fontSize: 28,
+                    color: context.palette.accent,
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 28),
+                    onTap: _explaining ? null : () => Voice.say(q.speech, Lang.native),
+                  ),
+                ),
               ] else if (q.letters case final l?) ...[
                 Text(q.prompt, textAlign: TextAlign.center, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
@@ -280,7 +303,9 @@ class _GameScreenState extends State<GameScreen> {
                   Text(l.display,
                       key: const Key('prompt'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: l.picture == null ? 110 : 52, fontWeight: FontWeight.w800, letterSpacing: 2)),
+                      style: l.sentence
+                          ? const TextStyle(fontSize: 34, fontWeight: FontWeight.w800)
+                          : TextStyle(fontSize: l.picture == null ? 110 : 52, fontWeight: FontWeight.w800, letterSpacing: 2)),
                 const SizedBox(height: 8),
                 // Para volver a escuchar la pregunta.
                 Center(
@@ -316,10 +341,27 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ],
               const SizedBox(height: 28),
-              if (q.letters?.words ?? false)
-                // Palabras para leer: una debajo de otra (sin botón para escucharlas: hay que leerlas).
+              if (q.clock?.pickClock ?? false)
+                // "¿Qué reloj marca las 3?": tres relojes para tocar, grandes (dos arriba y uno abajo).
+                LayoutBuilder(
+                  builder: (context, box) {
+                    final width = min(170.0, (box.maxWidth - 14) / 2);
+                    return Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 14,
+                      runSpacing: 14,
+                      children: [
+                        for (var i = 0; i < q.options.length; i++)
+                          SizedBox(width: width, child: _clockOption(i, q.clock!.optionTimes[i], showHands: _wrong.isNotEmpty)),
+                      ],
+                    );
+                  },
+                )
+              else if ((q.letters?.words ?? false) || q.clock != null)
+                // Palabras u horas para leer: una debajo de otra.
+                // (Sin botón para escucharlas: hay que leerlas.)
                 for (var i = 0; i < q.options.length; i++)
-                  Padding(padding: const EdgeInsets.only(bottom: 12), child: _option(i, fontSize: 34))
+                  Padding(padding: const EdgeInsets.only(bottom: 12), child: _option(i, fontSize: q.clock != null ? 38 : 34))
               else if (q.speechLang == Lang.target && !q.pictureOptions)
                 // Palabras: una debajo de otra, cada una con su botón para escucharla.
                 for (var i = 0; i < q.options.length; i++)
@@ -395,6 +437,34 @@ class _GameScreenState extends State<GameScreen> {
           onTap: () => _tap(i),
         ),
       );
+
+  /// Un reloj para tocar (con el color de las opciones: naranja si se equivocó, verde al acertar…).
+  Widget _clockOption(int i, ClockTime time, {required bool showHands}) {
+    final p = context.palette;
+    final color = _optionColor(i) ?? p.card;
+    return AnimatedScale(
+      scale: _highlightAnswer && i == _q.answerIndex && !_locked ? 1.08 : 1,
+      duration: const Duration(milliseconds: 300),
+      child: Material(
+        color: color,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: p.cardBorder == null || _optionColor(i) != null ? BorderSide.none : BorderSide(color: p.cardBorder!, width: 2),
+        ),
+        child: InkWell(
+          key: Key('option-$i'),
+          borderRadius: BorderRadius.circular(22),
+          onTap: () => _tap(i),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: LayoutBuilder(
+              builder: (context, box) => ClockFace(time, size: box.maxWidth, showHands: showHands),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   Color? _optionColor(int i) {
     if (_wrong.contains(i)) return AppColors.orange;
@@ -687,3 +757,87 @@ class _ComparisonCards extends StatelessWidget {
   }
 }
 
+
+/// Reloj de agujas: la corta (las horas) y la larga (los minutos), con los números del 1 al 12.
+/// Con [showHands] se ve en qué número señala cada aguja (después de equivocarse).
+class ClockFace extends StatelessWidget {
+  const ClockFace(this.time, {super.key, required this.size, this.showHands = false});
+  final ClockTime time;
+  final double size;
+  final bool showHands;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(
+        painter: _ClockPainter(
+          time,
+          face: p.night ? p.card : Colors.white,
+          rim: p.accent,
+          ink: p.night ? p.cardInk : const Color(0xFF3B2A55),
+          hourHand: AppColors.orange,
+          minuteHand: p.accent,
+          font: p.font,
+          showHands: showHands,
+        ),
+      ),
+    );
+  }
+}
+
+class _ClockPainter extends CustomPainter {
+  _ClockPainter(this.time,
+      {required this.face, required this.rim, required this.ink, required this.hourHand, required this.minuteHand, required this.font, required this.showHands});
+  final ClockTime time;
+  final Color face, rim, ink, hourHand, minuteHand;
+  final String? font;
+  final bool showHands;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final r = size.shortestSide / 2;
+    canvas.drawCircle(c, r, Paint()..color = face);
+    canvas.drawCircle(c, r - r * .04, Paint()
+      ..color = rim
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = r * .08);
+    Offset at(double turns, double length) =>
+        c + Offset(sin(turns * 2 * pi), -cos(turns * 2 * pi)) * length;
+    // Rayitas de los minutos (más gruesas en cada número).
+    for (var i = 0; i < 60; i++) {
+      final big = i % 5 == 0;
+      canvas.drawLine(at(i / 60, r * (big ? .78 : .82)), at(i / 60, r * .86), Paint()
+        ..color = ink.withValues(alpha: big ? .8 : .35)
+        ..strokeWidth = r * (big ? .025 : .012));
+    }
+    for (var n = 1; n <= 12; n++) {
+      final tp = TextPainter(
+        text: TextSpan(text: '$n', style: TextStyle(color: ink, fontSize: r * .2, fontWeight: FontWeight.w800, fontFamily: font)),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, at(n / 12, r * .63) - Offset(tp.width / 2, tp.height / 2));
+    }
+    final hourTurns = (time.hour % 12 + time.minute / 60) / 12;
+    final minuteTurns = time.minute / 60;
+    // Al explicar: un círculo en el número que señala cada aguja.
+    if (showHands) {
+      canvas.drawCircle(at(minuteTurns, r * .63), r * .15, Paint()..color = minuteHand.withValues(alpha: .25));
+      canvas.drawCircle(at(time.hour / 12, r * .63), r * .15, Paint()..color = hourHand.withValues(alpha: .25));
+    }
+    Paint hand(Color color, double width) => Paint()
+      ..color = color
+      ..strokeWidth = width
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(c, at(minuteTurns, r * .74), hand(minuteHand, r * .06));
+    canvas.drawLine(c, at(hourTurns, r * .45), hand(hourHand, r * .09));
+    canvas.drawCircle(c, r * .07, Paint()..color = ink);
+  }
+
+  @override
+  bool shouldRepaint(_ClockPainter old) =>
+      old.time != time || old.showHands != showHands || old.face != face || old.rim != rim || old.ink != ink;
+}
